@@ -13,7 +13,6 @@ export const auth = defineAuth({
 					name: "MicrosoftEntraID",
 					clientId: secret("MICROSOFT_CLIENT_ID"),
 					clientSecret: secret("MICROSOFT_CLIENT_SECRET"),
-					//TODO change this from GPR-old tenant to GPR
 					issuerUrl:
 						"https://login.microsoftonline.com/4c70b964-f256-4054-ace6-6375714daa99/v2.0",
 					scopes: ["openid", "profile", "email"],
@@ -21,12 +20,11 @@ export const auth = defineAuth({
 			],
 			logoutUrls: [
 				"http://localhost:3000",
-				// TODO add this wehn deploy
-				// "https://main.d2k6jx4fqnxjbh.amplifyapp.com",
+				"https://main.d2sc3b0jj94stq.amplifyapp.com",
 			],
 			callbackUrls: [
 				"http://localhost:3000",
-				// "https://main.d2k6jx4fqnxjbh.amplifyapp.com",
+				"https://main.d2sc3b0jj94stq.amplifyapp.com",
 			],
 		},
 	},
