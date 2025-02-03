@@ -1,7 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+	sassOptions: {
+		quietDeps: true, // Suppress GOV.UK deprecation warnings
+	},
 };
 
 export default nextConfig;

@@ -1,0 +1,19 @@
+$hounslow-primary: #642f6c;
+
+
+// Import GOV.UK Frontend with custom configuration
+@use "node_modules/govuk-frontend/dist/govuk" with (
+  $govuk-brand-colour: $hounslow-primary,
+  // Use Atkinson Hyperlegible instead of GDS Transport
+  // Because we are not an official GOV.UK service, we can't use GDS Transport
+  $govuk-font-family: var(--font-atkinson),
+  // Disable the default GDS Transport font-face
+  $govuk-include-default-font-face: false,
+  $govuk-assets-path: "/govuk-assets/"
+);
+
+
+// Define the public variables that can be used by other modules
+:root {
+  --hounslow-primary: #{$hounslow-primary};
+}
