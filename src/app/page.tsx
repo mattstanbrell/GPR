@@ -14,8 +14,7 @@ export default async function Home() {
 				<div className="govuk-grid-row">
 					<div className="govuk-grid-column-two-thirds">
 						<h1 className="govuk-heading-xl">
-							{/* Welcome to Hounslow Critical Service */}
-							Welcome to Example
+							Welcome to Hounslow Critical Service
 						</h1>
 						<p className="govuk-body">Please sign in to access the service.</p>
 						<SignInButton />
