@@ -15,7 +15,8 @@ const atkinson = Atkinson_Hyperlegible({
 });
 
 export const metadata: Metadata = {
-	title: "Hounslow Critical Service",
+	// title: "Hounslow Critical Service",
+	title: "Example",
 	description: "",
 };
 
