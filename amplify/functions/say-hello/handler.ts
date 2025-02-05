@@ -1,8 +1,10 @@
 import type { Schema } from "../../data/resource";
+import moment from "moment";
 
 export const handler: Schema["sayHello"]["functionHandler"] = async (event) => {
-	// arguments typed from `.arguments()`
 	const { name } = event.arguments;
-	// return typed from `.returns()`
-	return `Hello, ${name}! The secret is ${process.env.FOO}`;
+	const currentTime = moment().format("MMMM Do YYYY, h:mm:ss a");
+
+	// This will return both the greeting and the formatted time to verify moment is working
+	return `Hello, ${name}! The secret is ${process.env.FOO}. Current time: ${currentTime}`;
 };
