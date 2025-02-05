@@ -42,7 +42,8 @@ export default function RootLayout({
 								href="/"
 								className="govuk-header__link govuk-header__service-name"
 							>
-								Hounslow Critical Service
+								{/* Hounslow Critical Service */}
+								Example
 							</Link>
 						</div>
 					</div>
@@ -54,7 +55,7 @@ export default function RootLayout({
 					<div className="govuk-width-container">
 						<div className="govuk-footer__meta">
 							<div className="govuk-footer__meta-item">
-								© CRITICAL Channel 2025
+								{/* © CRITICAL Channel 2025 */}© Example
 							</div>
 						</div>
 					</div>
