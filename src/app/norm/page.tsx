@@ -49,6 +49,21 @@ export default function NormPage() {
 		},
 	});
 
+	const [animatingFields, setAnimatingFields] = useState<Set<string>>(
+		new Set(),
+	);
+
+	const animateField = (fieldName: string) => {
+		setAnimatingFields((prev) => new Set(prev).add(fieldName));
+		setTimeout(() => {
+			setAnimatingFields((prev) => {
+				const newSet = new Set(prev);
+				newSet.delete(fieldName);
+				return newSet;
+			});
+		}, 3000); // Duration of animation
+	};
+
 	const [messages, setMessages] = useState<Message[]>([]);
 	const [loading, setLoading] = useState(false);
 	const [message, setMessage] = useState("");
@@ -106,6 +121,7 @@ export default function NormPage() {
 						...prev,
 						caseNumber: parsedResponse.caseNumber.toString(),
 					}));
+					animateField("caseNumber");
 				}
 
 				// Parse the final state to get all messages including tool messages
@@ -208,6 +224,24 @@ export default function NormPage() {
 
 	return (
 		<div style={{ height: "calc(100vh - 140px)", overflow: "hidden" }}>
+			<style jsx>{`
+				@keyframes highlight {
+					0% {
+						background-color: transparent;
+					}
+					50% {
+						background-color: #ffdd00;
+					}
+					100% {
+						background-color: transparent;
+					}
+				}
+
+				.field-animation {
+					animation: highlight 1s ease-in-out;
+				}
+			`}</style>
+
 			<main
 				className="govuk-main-wrapper"
 				style={{ height: "100%", padding: "0" }}
@@ -237,7 +271,11 @@ export default function NormPage() {
 											Case number
 										</label>
 										<input
-											className="govuk-input"
+											className={`govuk-input ${
+												animatingFields.has("caseNumber")
+													? "field-animation"
+													: ""
+											}`}
 											id="caseNumber"
 											name="caseNumber"
 											type="text"
