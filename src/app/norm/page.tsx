@@ -6,6 +6,12 @@ import type { Schema } from "../../../amplify/data/resource";
 
 const client = generateClient<Schema>();
 
+type Message = {
+	id: number;
+	role: "user" | "assistant";
+	content: string;
+};
+
 export default function NormPage() {
 	const [formData, setFormData] = useState({
 		caseNumber: "",
@@ -26,26 +32,49 @@ export default function NormPage() {
 		},
 	});
 
-	const [normResult, setNormResult] = useState<string>("");
+	const [messages, setMessages] = useState<Message[]>([]);
 	const [loading, setLoading] = useState(false);
+	const [message, setMessage] = useState("");
 
-	useEffect(() => {
-		const callNorm = async () => {
-			setLoading(true);
-			try {
-				const response = await client.queries.norm({
-					name: "test",
-				});
-				setNormResult(response.data || "No response data");
-			} catch (error) {
-				console.error("Error calling norm:", error);
-				setNormResult("Error calling function. Check console for details.");
-			} finally {
-				setLoading(false);
-			}
+	const handleMessageSubmit = async () => {
+		if (!message.trim()) return;
+
+		const userMessage: Message = {
+			id: Date.now(),
+			role: "user",
+			content: message,
 		};
-		callNorm();
-	}, []);
+
+		setMessages((prev) => [...prev, userMessage]);
+		setLoading(true);
+
+		try {
+			const response = await client.queries.norm({
+				messages: [...messages, userMessage].map((msg) =>
+					JSON.stringify({ role: msg.role, content: msg.content }),
+				),
+			});
+
+			const assistantMessage: Message = {
+				id: Date.now(),
+				role: "assistant",
+				content: response.data || "No response data",
+			};
+
+			setMessages((prev) => [...prev, assistantMessage]);
+			setMessage(""); // Clear the input after sending
+		} catch (error) {
+			console.error("Error calling norm:", error);
+			const errorMessage: Message = {
+				id: Date.now(),
+				role: "assistant",
+				content: "Error calling function. Check console for details.",
+			};
+			setMessages((prev) => [...prev, errorMessage]);
+		} finally {
+			setLoading(false);
+		}
+	};
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -351,11 +380,47 @@ export default function NormPage() {
 							}}
 						>
 							<h2 className="govuk-heading-l">Norm</h2>
-							<div style={{ flexGrow: 1, padding: "20px" }}>
-								{loading ? (
-									<div className="govuk-body">Loading...</div>
-								) : (
-									normResult && <div className="govuk-body">{normResult}</div>
+							<div
+								style={{
+									flexGrow: 1,
+									padding: "20px",
+									overflowY: "auto",
+									display: "flex",
+									flexDirection: "column",
+									gap: "15px",
+								}}
+							>
+								{messages.map((msg) => (
+									<div
+										key={msg.id}
+										className={`govuk-inset-text ${
+											msg.role === "assistant" ? "govuk-inset-text--blue" : ""
+										}`}
+										style={{
+											marginLeft: msg.role === "user" ? "auto" : "0",
+											marginRight: msg.role === "assistant" ? "auto" : "0",
+											maxWidth: "80%",
+											marginTop: 0,
+											marginBottom: 0,
+											backgroundColor:
+												msg.role === "user" ? "#f3f2f1" : "#f0f7ff",
+											borderColor: msg.role === "user" ? "#505a5f" : "#1d70b8",
+											borderLeftWidth: msg.role === "assistant" ? "5px" : "0",
+											borderRightWidth: msg.role === "user" ? "5px" : "0",
+											borderStyle: "solid",
+											borderTop: "none",
+											borderBottom: "none",
+										}}
+									>
+										<p className="govuk-body" style={{ margin: 0 }}>
+											{msg.content}
+										</p>
+									</div>
+								))}
+								{loading && (
+									<div className="govuk-body" style={{ alignSelf: "center" }}>
+										<span className="govuk-hint">Norm is typing...</span>
+									</div>
 								)}
 							</div>
 							<div className="govuk-form-group" style={{ marginBottom: 0 }}>
@@ -365,7 +430,16 @@ export default function NormPage() {
 										rows={3}
 										aria-label="Message input"
 										placeholder="Type your message here..."
+										value={message}
+										onChange={(e) => setMessage(e.target.value)}
+										onKeyDown={(e) => {
+											if (e.key === "Enter" && !e.shiftKey) {
+												e.preventDefault();
+												handleMessageSubmit();
+											}
+										}}
 									/>
+									{/* we don't need this button rn */}
 									{/* <button
 										type="button"
 										className="govuk-button"
@@ -373,8 +447,10 @@ export default function NormPage() {
 											alignSelf: "flex-end",
 											whiteSpace: "nowrap",
 										}}
+										onClick={handleMessageSubmit}
+										disabled={loading}
 									>
-										Send
+										{loading ? "Sending..." : "Send"}
 									</button> */}
 								</div>
 							</div>
