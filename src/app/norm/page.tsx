@@ -8,8 +8,9 @@ const client = generateClient<Schema>();
 
 type Message = {
 	id: number;
-	role: "user" | "assistant";
+	role: "user" | "assistant" | "tool";
 	content: string;
+	tool_call_id?: string;
 };
 
 export default function NormPage() {
@@ -55,12 +56,17 @@ export default function NormPage() {
 				[...messages, userMessage].map((msg) => ({
 					role: msg.role,
 					content: msg.content,
+					tool_call_id: msg.tool_call_id,
 				})),
 			);
 
 			const response = await client.queries.norm({
 				messages: [...messages, userMessage].map((msg) =>
-					JSON.stringify({ role: msg.role, content: msg.content }),
+					JSON.stringify({
+						role: msg.role,
+						content: msg.content,
+						tool_call_id: msg.tool_call_id,
+					}),
 				),
 			});
 
@@ -70,13 +76,30 @@ export default function NormPage() {
 				throw new Error("No response received from norm");
 			}
 
-			const assistantMessage: Message = {
-				id: Date.now(),
-				role: "assistant",
-				content: response.data || "No response received",
-			};
+			// Parse the response which now includes state information
+			try {
+				const parsedResponse = JSON.parse(response.data || "{}");
+				console.log("Parsed response:", parsedResponse);
 
-			setMessages((prev) => [...prev, assistantMessage]);
+				// Update form if we have a case number in the state
+				if (parsedResponse.caseNumber !== undefined) {
+					setFormData((prev) => ({
+						...prev,
+						caseNumber: parsedResponse.caseNumber.toString(),
+					}));
+				}
+
+				const assistantMessage: Message = {
+					id: Date.now(),
+					role: "assistant",
+					content: parsedResponse.message || "No response received",
+				};
+
+				setMessages((prev) => [...prev, assistantMessage]);
+			} catch (error) {
+				console.error("Error parsing response:", error);
+				throw error;
+			}
 		} catch (error) {
 			console.error("Error calling norm:", error);
 			const errorMessage: Message = {
