@@ -15,8 +15,7 @@ const atkinson = Atkinson_Hyperlegible({
 });
 
 export const metadata: Metadata = {
-	// title: "Hounslow Critical Service",
-	title: "Example",
+	title: "Audily",
 	description: "",
 };
 
@@ -43,8 +42,7 @@ export default function RootLayout({
 								href="/"
 								className="govuk-header__link govuk-header__service-name"
 							>
-								{/* Hounslow Critical Service */}
-								Example
+								Audily
 							</Link>
 						</div>
 					</div>

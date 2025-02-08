@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { generateClient } from "aws-amplify/api";
 import type { Schema } from "../../../amplify/data/resource";
 
@@ -47,28 +47,42 @@ export default function NormPage() {
 
 		setMessages((prev) => [...prev, userMessage]);
 		setLoading(true);
+		setMessage(""); // Clear the input immediately for better UX
 
 		try {
+			console.log(
+				"Sending messages to norm:",
+				[...messages, userMessage].map((msg) => ({
+					role: msg.role,
+					content: msg.content,
+				})),
+			);
+
 			const response = await client.queries.norm({
 				messages: [...messages, userMessage].map((msg) =>
 					JSON.stringify({ role: msg.role, content: msg.content }),
 				),
 			});
 
+			console.log("Raw response from norm:", response);
+
+			if (!response) {
+				throw new Error("No response received from norm");
+			}
+
 			const assistantMessage: Message = {
 				id: Date.now(),
 				role: "assistant",
-				content: response.data || "No response data",
+				content: response.data || "No response received",
 			};
 
 			setMessages((prev) => [...prev, assistantMessage]);
-			setMessage(""); // Clear the input after sending
 		} catch (error) {
 			console.error("Error calling norm:", error);
 			const errorMessage: Message = {
 				id: Date.now(),
 				role: "assistant",
-				content: "Error calling function. Check console for details.",
+				content: "Sorry, I encountered an error. Please try again.",
 			};
 			setMessages((prev) => [...prev, errorMessage]);
 		} finally {
@@ -377,17 +391,19 @@ export default function NormPage() {
 								height: "100%",
 								display: "flex",
 								flexDirection: "column",
+								paddingLeft: "30px",
 							}}
 						>
 							<h2 className="govuk-heading-l">Norm</h2>
 							<div
 								style={{
 									flexGrow: 1,
-									padding: "20px",
 									overflowY: "auto",
 									display: "flex",
 									flexDirection: "column",
 									gap: "15px",
+									paddingTop: "20px",
+									paddingBottom: "20px",
 								}}
 							>
 								{messages.map((msg) => (
