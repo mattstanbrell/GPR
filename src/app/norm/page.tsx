@@ -1,6 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { generateClient } from "aws-amplify/api";
+import type { Schema } from "../../../amplify/data/resource";
+
+const client = generateClient<Schema>();
 
 export default function NormPage() {
 	const [formData, setFormData] = useState({
@@ -21,6 +25,27 @@ export default function NormPage() {
 			postcode: "",
 		},
 	});
+
+	const [normResult, setNormResult] = useState<string>("");
+	const [loading, setLoading] = useState(false);
+
+	useEffect(() => {
+		const callNorm = async () => {
+			setLoading(true);
+			try {
+				const response = await client.queries.norm({
+					name: "test",
+				});
+				setNormResult(response.data || "No response data");
+			} catch (error) {
+				console.error("Error calling norm:", error);
+				setNormResult("Error calling function. Check console for details.");
+			} finally {
+				setLoading(false);
+			}
+		};
+		callNorm();
+	}, []);
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -326,14 +351,32 @@ export default function NormPage() {
 							}}
 						>
 							<h2 className="govuk-heading-l">Norm</h2>
-							<div style={{ flexGrow: 1 }} />
+							<div style={{ flexGrow: 1, padding: "20px" }}>
+								{loading ? (
+									<div className="govuk-body">Loading...</div>
+								) : (
+									normResult && <div className="govuk-body">{normResult}</div>
+								)}
+							</div>
 							<div className="govuk-form-group" style={{ marginBottom: 0 }}>
-								<textarea
-									className="govuk-textarea"
-									rows={3}
-									aria-label="Message input"
-									placeholder="Type your message here..."
-								/>
+								<div style={{ display: "flex", gap: "10px" }}>
+									<textarea
+										className="govuk-textarea"
+										rows={3}
+										aria-label="Message input"
+										placeholder="Type your message here..."
+									/>
+									{/* <button
+										type="button"
+										className="govuk-button"
+										style={{
+											alignSelf: "flex-end",
+											whiteSpace: "nowrap",
+										}}
+									>
+										Send
+									</button> */}
+								</div>
 							</div>
 						</div>
 					</div>
