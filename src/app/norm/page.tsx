@@ -77,6 +77,66 @@ export default function NormPage() {
 			content: message,
 		};
 
+		// Find any manually updated fields by comparing with previous state
+		const findUpdates = (
+			current: typeof formData,
+			previous: Partial<typeof formData>,
+			path = "",
+		): string[] => {
+			const updates: string[] = [];
+			for (const [key, value] of Object.entries(current)) {
+				const fullPath = path ? `${path}.${key}` : key;
+				if (typeof value === "object" && value !== null) {
+					updates.push(
+						...findUpdates(
+							value,
+							(previous?.[key as keyof typeof previous] || {}) as any,
+							fullPath,
+						),
+					);
+				} else if (
+					value !== "" &&
+					value !== (previous as any)?.[key] &&
+					value !== previous?.[key as keyof typeof previous]
+				) {
+					updates.push(`${fullPath} to ${value}`);
+				}
+			}
+			return updates;
+		};
+
+		// Get the previous state from the last response
+		const previousState = messages
+			.filter((msg) => msg.role === "assistant")
+			.reduce(
+				(state, msg) => {
+					try {
+						const parsedResponse = JSON.parse(msg.content);
+						if (parsedResponse.formData) {
+							return parsedResponse.formData;
+						}
+					} catch (e) {
+						// Not a JSON message, ignore
+					}
+					return state;
+				},
+				{} as Partial<typeof formData>,
+			);
+
+		// Find which fields were manually updated
+		const updates = findUpdates(formData, previousState);
+
+		// Create messages array with update note if needed
+		const messagesToSend = [...messages];
+		if (updates.length > 0) {
+			messagesToSend.push({
+				id: Date.now() - 1,
+				role: "user",
+				content: `[Note: The following fields were manually updated: ${updates.join(", ")}. These updates have already been applied, no need to use the updateFormField tool.]`,
+			});
+		}
+		messagesToSend.push(userMessage);
+
 		setMessages((prev) => [...prev, userMessage]);
 		setLoading(true);
 		setMessage(""); // Clear the input immediately for better UX
@@ -84,7 +144,7 @@ export default function NormPage() {
 		try {
 			console.log(
 				"Sending messages to norm:",
-				[...messages, userMessage].map((msg) => ({
+				messagesToSend.map((msg) => ({
 					role: msg.role,
 					content: msg.content,
 					tool_call_id: msg.tool_call_id,
@@ -92,16 +152,14 @@ export default function NormPage() {
 			);
 
 			const response = await client.queries.norm({
-				messages: [...messages, userMessage].map((msg) =>
+				messages: messagesToSend.map((msg) =>
 					JSON.stringify({
 						role: msg.role,
 						content: msg.content,
 						...(msg.tool_call_id && { tool_call_id: msg.tool_call_id }),
 					}),
 				),
-				initialState: JSON.stringify({
-					caseNumber: formData.caseNumber,
-				}),
+				initialState: JSON.stringify(formData),
 			});
 
 			console.log("Raw response from norm:", response);
@@ -115,59 +173,57 @@ export default function NormPage() {
 				const parsedResponse = JSON.parse(response.data || "{}");
 				console.log("Parsed response:", parsedResponse);
 
-				// Update form if we have a case number in the state
-				if (parsedResponse.caseNumber !== undefined) {
+				// Update form data if we received it
+				if (parsedResponse.formData) {
+					// Find which fields changed
+					const findChangedFields = (
+						oldData: typeof formData,
+						newData: Partial<typeof formData>,
+						prefix = "",
+					): string[] => {
+						const changedFields: string[] = [];
+						for (const [key, value] of Object.entries(newData)) {
+							const fullPath = prefix ? `${prefix}.${key}` : key;
+							if (typeof value === "object" && value !== null) {
+								changedFields.push(
+									...findChangedFields(
+										oldData[key as keyof typeof oldData] as any,
+										value as any,
+										fullPath,
+									),
+								);
+							} else if (value !== oldData[key as keyof typeof oldData]) {
+								changedFields.push(fullPath);
+							}
+						}
+						return changedFields;
+					};
+
+					// Find which fields changed
+					const changedFields = findChangedFields(
+						formData,
+						parsedResponse.formData,
+					);
+
+					// Update form data
 					setFormData((prev) => ({
 						...prev,
-						caseNumber: parsedResponse.caseNumber.toString(),
+						...parsedResponse.formData,
 					}));
-					animateField("caseNumber");
+
+					// Animate all changed fields
+					for (const field of changedFields) {
+						animateField(field);
+					}
 				}
 
-				// Parse the final state to get all messages including tool messages
-				const finalState = JSON.parse(response.data || "{}");
-
-				if (finalState.messages) {
-					// If we have messages in the final state, use those
-					const newMessages = finalState.messages
-						.map((msg: StateMessage) => {
-							if (msg.type === "tool") {
-								return {
-									id: Date.now(),
-									role: "tool",
-									content: msg.content,
-									tool_call_id: msg.tool_call_id,
-								};
-							}
-							if (msg.type === "ai" && msg.tool_calls?.length) {
-								return {
-									id: Date.now(),
-									role: "assistant",
-									content: msg.content,
-									tool_calls: msg.tool_calls,
-								};
-							}
-							if (msg.type === "ai") {
-								return {
-									id: Date.now(),
-									role: "assistant",
-									content: msg.content,
-								};
-							}
-							return null;
-						})
-						.filter(Boolean) as Message[];
-
-					setMessages((prev) => [...prev, ...newMessages]);
-				} else {
-					// Fallback to just using the message from parsedResponse
-					const assistantMessage: Message = {
-						id: Date.now(),
-						role: "assistant",
-						content: parsedResponse.message || "No response received",
-					};
-					setMessages((prev) => [...prev, assistantMessage]);
-				}
+				// Add the assistant's response to messages
+				const assistantMessage: Message = {
+					id: Date.now(),
+					role: "assistant",
+					content: parsedResponse.message || "No response received",
+				};
+				setMessages((prev) => [...prev, assistantMessage]);
 			} catch (error) {
 				console.error("Error parsing response:", error);
 				throw error;
@@ -289,7 +345,9 @@ export default function NormPage() {
 											Reason for expense
 										</label>
 										<textarea
-											className="govuk-textarea"
+											className={`govuk-textarea ${
+												animatingFields.has("reason") ? "field-animation" : ""
+											}`}
 											id="reason"
 											name="reason"
 											rows={3}
@@ -307,7 +365,9 @@ export default function NormPage() {
 												£
 											</div>
 											<input
-												className="govuk-input govuk-input--width-5"
+												className={`govuk-input govuk-input--width-5 ${
+													animatingFields.has("amount") ? "field-animation" : ""
+												}`}
 												id="amount"
 												name="amount"
 												type="text"
@@ -336,7 +396,11 @@ export default function NormPage() {
 															Day
 														</label>
 														<input
-															className="govuk-input govuk-date-input__input govuk-input--width-2"
+															className={`govuk-input govuk-date-input__input govuk-input--width-2 ${
+																animatingFields.has("dateRequired.day")
+																	? "field-animation"
+																	: ""
+															}`}
 															id="date-required-day"
 															name="date-required-day"
 															type="text"
@@ -355,7 +419,11 @@ export default function NormPage() {
 															Month
 														</label>
 														<input
-															className="govuk-input govuk-date-input__input govuk-input--width-2"
+															className={`govuk-input govuk-date-input__input govuk-input--width-2 ${
+																animatingFields.has("dateRequired.month")
+																	? "field-animation"
+																	: ""
+															}`}
 															id="date-required-month"
 															name="date-required-month"
 															type="text"
@@ -374,7 +442,11 @@ export default function NormPage() {
 															Year
 														</label>
 														<input
-															className="govuk-input govuk-date-input__input govuk-input--width-4"
+															className={`govuk-input govuk-date-input__input govuk-input--width-4 ${
+																animatingFields.has("dateRequired.year")
+																	? "field-animation"
+																	: ""
+															}`}
 															id="date-required-year"
 															name="date-required-year"
 															type="text"
@@ -404,7 +476,11 @@ export default function NormPage() {
 											First name
 										</label>
 										<input
-											className="govuk-input"
+											className={`govuk-input ${
+												animatingFields.has("firstName")
+													? "field-animation"
+													: ""
+											}`}
 											id="firstName"
 											name="firstName"
 											type="text"
@@ -418,7 +494,9 @@ export default function NormPage() {
 											Last name
 										</label>
 										<input
-											className="govuk-input"
+											className={`govuk-input ${
+												animatingFields.has("lastName") ? "field-animation" : ""
+											}`}
 											id="lastName"
 											name="lastName"
 											type="text"
@@ -432,7 +510,11 @@ export default function NormPage() {
 											Address line 1
 										</label>
 										<input
-											className="govuk-input"
+											className={`govuk-input ${
+												animatingFields.has("address.line1")
+													? "field-animation"
+													: ""
+											}`}
 											id="address-line-1"
 											name="address-line-1"
 											type="text"
@@ -447,7 +529,11 @@ export default function NormPage() {
 											Address line 2 (optional)
 										</label>
 										<input
-											className="govuk-input"
+											className={`govuk-input ${
+												animatingFields.has("address.line2")
+													? "field-animation"
+													: ""
+											}`}
 											id="address-line-2"
 											name="address-line-2"
 											type="text"
@@ -462,7 +548,11 @@ export default function NormPage() {
 											Town or city
 										</label>
 										<input
-											className="govuk-input govuk-input--width-20"
+											className={`govuk-input govuk-input--width-20 ${
+												animatingFields.has("address.town")
+													? "field-animation"
+													: ""
+											}`}
 											id="address-town"
 											name="address-town"
 											type="text"
@@ -477,7 +567,11 @@ export default function NormPage() {
 											Postcode
 										</label>
 										<input
-											className="govuk-input govuk-input--width-10"
+											className={`govuk-input govuk-input--width-10 ${
+												animatingFields.has("address.postcode")
+													? "field-animation"
+													: ""
+											}`}
 											id="address-postcode"
 											name="address-postcode"
 											type="text"

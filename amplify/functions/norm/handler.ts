@@ -23,25 +23,92 @@ import { AIMessage, HumanMessage, ToolMessage } from "@langchain/core/messages";
 
 const StateAnnotation = Annotation.Root({
 	...MessagesAnnotation.spec,
-	caseNumber: Annotation<number>,
+	formData: Annotation<{
+		caseNumber?: number;
+		reason?: string;
+		amount?: number;
+		dateRequired?: {
+			day: number;
+			month: number;
+			year: number;
+		};
+		firstName?: string;
+		lastName?: string;
+		address?: {
+			line1: string;
+			line2: string;
+			town: string;
+			postcode: string;
+		};
+	}>,
 });
 
 const updateFormField = tool(
-	async ({ field, value }: { field: string; value: number }, config) => {
-		console.log(
-			`updateFormField tool called with field: ${field}, value: ${value}`,
-		);
-		if (field !== "caseNumber") {
-			throw new Error("Can only update caseNumber field");
+	async (
+		{
+			updates,
+		}: {
+			updates: Array<{
+				field: string;
+				value: string;
+				type: "string" | "number";
+			}>;
+		},
+		config,
+	) => {
+		console.log("updateFormField tool called with updates:", updates);
+
+		// Helper to update nested fields
+		const updateNestedField = (
+			currentFormData: Record<string, unknown>,
+			path: string[],
+			value: string,
+			type: "string" | "number",
+		) => {
+			const current = { ...currentFormData };
+			const lastKey = path[path.length - 1];
+			let pointer: Record<string, unknown> = current;
+
+			// Navigate to the correct nesting level
+			for (let i = 0; i < path.length - 1; i++) {
+				const key = path[i];
+				if (!(key in pointer)) {
+					pointer[key] = {};
+				}
+				pointer = pointer[key] as Record<string, unknown>;
+			}
+
+			// Update the value with proper type conversion
+			pointer[lastKey] = type === "number" ? Number(value) : value;
+			return current;
+		};
+
+		// Get current form data from state or initialize empty object
+		const currentFormData = ((config as any).state?.formData || {}) as Record<
+			string,
+			unknown
+		>;
+
+		// Apply all updates in sequence
+		let updatedFormData = currentFormData;
+		for (const { field, value, type } of updates) {
+			const fieldParts = field.split(".");
+			updatedFormData = updateNestedField(
+				updatedFormData,
+				fieldParts,
+				value,
+				type,
+			);
 		}
-		// Log the current case number before update
-		console.log("Current tool config:", config);
+
 		return new Command({
 			update: {
-				caseNumber: value,
+				formData: updatedFormData,
 				messages: [
 					new ToolMessage({
-						content: `Updated case number to ${value}`,
+						content: `Updated fields: ${updates
+							.map(({ field, value }) => `${field} to ${value}`)
+							.join(", ")}`,
 						tool_call_id: config.toolCall.id,
 					}),
 				],
@@ -50,18 +117,31 @@ const updateFormField = tool(
 	},
 	{
 		name: "updateFormField",
-		description: "Update the case number.",
+		description: "Update multiple fields in the form at once.",
 		schema: z.object({
-			field: z
-				.string()
-				.describe("The field name to update (must be 'caseNumber')."),
-			value: z.number().describe("The new case number value."),
+			updates: z
+				.array(
+					z.object({
+						field: z
+							.string()
+							.describe(
+								"The field name to update. Can be nested using dot notation (e.g. 'address.line1' or 'dateRequired.day').",
+							),
+						value: z.string().describe("The new value for the field."),
+						type: z
+							.enum(["string", "number"])
+							.describe(
+								"The type of the field - use 'number' for caseNumber, amount, and all dateRequired fields. Use 'string' for everything else.",
+							),
+					}),
+				)
+				.describe("Array of field updates to apply"),
 		}),
 	},
 );
 
 const model = new ChatOpenAI({
-	model: "gpt-4o",
+	model: "gpt-4o", // DON'T CHANGE THIS
 	apiKey: process.env.OPENAI_API_KEY,
 });
 
@@ -69,7 +149,21 @@ const agent = createReactAgent({
 	llm: model,
 	tools: [updateFormField],
 	stateSchema: StateAnnotation,
-	stateModifier: "You are a helpful assistant that can update the case number.",
+	stateModifier:
+		"You are a helpful assistant that can update any field in the form. The form has the following fields:\n" +
+		"- caseNumber (number)\n" +
+		"- reason (string)\n" +
+		"- amount (number)\n" +
+		"- dateRequired.day (number)\n" +
+		"- dateRequired.month (number)\n" +
+		"- dateRequired.year (number)\n" +
+		"- firstName (string)\n" +
+		"- lastName (string)\n" +
+		"- address.line1 (string)\n" +
+		"- address.line2 (string)\n" +
+		"- address.town (string)\n" +
+		"- address.postcode (string)\n" +
+		"\nWhen updating fields, use the appropriate type ('number' or 'string') for each field.",
 });
 
 export const handler: Schema["norm"]["functionHandler"] = async (event) => {
@@ -130,36 +224,10 @@ export const handler: Schema["norm"]["functionHandler"] = async (event) => {
 		const parsedInitialState = JSON.parse((initialState as string) || "{}");
 		console.log("Initial state:", parsedInitialState);
 
-		// If this is a new message and there's a case number in the initial state,
-		// insert information about the manual update before the latest message
-		if (
-			parsedMessages.length > 0 &&
-			parsedInitialState.caseNumber !== undefined
-		) {
-			const lastMessage = parsedMessages[parsedMessages.length - 1];
-			if (lastMessage.role === "user") {
-				// Find the index of the last message in the langchain messages
-				const lastMessageIndex = langchainMessages.length - 1;
-
-				// Insert the update note just before the last message
-				langchainMessages.splice(
-					lastMessageIndex,
-					0,
-					new HumanMessage(
-						`[Note: The case number field was manually updated to ${parsedInitialState.caseNumber}. This update has already been applied, no need to use the updateFormField tool.]`,
-					),
-				);
-			}
-		}
-
-		console.log("Langchain messages:", langchainMessages);
-
 		// Run the graph with initial state
 		const finalState = await agent.invoke({
 			messages: langchainMessages,
-			caseNumber: parsedInitialState.caseNumber
-				? Number(parsedInitialState.caseNumber)
-				: undefined,
+			formData: parsedInitialState,
 		});
 
 		console.log("Final state:", finalState);
@@ -171,10 +239,10 @@ export const handler: Schema["norm"]["functionHandler"] = async (event) => {
 		}
 
 		console.log("Final response:", lastMessage);
-		// Return both the message and the current case number
+		// Return both the message and form data
 		return JSON.stringify({
 			message: lastMessage.content.toString(),
-			caseNumber: finalState.caseNumber,
+			formData: finalState.formData,
 		});
 	} catch (error) {
 		console.error("Error in handler:", error);

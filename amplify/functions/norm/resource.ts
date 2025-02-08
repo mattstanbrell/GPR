@@ -8,4 +8,5 @@ export const norm = defineFunction({
 	environment: {
 		OPENAI_API_KEY: secret("OPENAI_API_KEY"),
 	},
+	timeoutSeconds: 30, // increase timeout to 30 seconds
 });
