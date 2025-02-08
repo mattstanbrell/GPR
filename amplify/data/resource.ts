@@ -31,6 +31,7 @@ const schema = a.schema({
 		.query()
 		.arguments({
 			messages: a.string().array(),
+			initialState: a.string(),
 		})
 		.returns(a.string())
 		.handler(a.handler.function(norm))

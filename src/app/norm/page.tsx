@@ -11,6 +11,22 @@ type Message = {
 	role: "user" | "assistant" | "tool";
 	content: string;
 	tool_call_id?: string;
+	tool_calls?: Array<{
+		id: string;
+		type: "function";
+		function: { name: string; arguments: string };
+	}>;
+};
+
+type StateMessage = {
+	type: "human" | "ai" | "tool";
+	content: string;
+	tool_call_id?: string;
+	tool_calls?: Array<{
+		id: string;
+		type: "function";
+		function: { name: string; arguments: string };
+	}>;
 };
 
 export default function NormPage() {
@@ -65,9 +81,12 @@ export default function NormPage() {
 					JSON.stringify({
 						role: msg.role,
 						content: msg.content,
-						tool_call_id: msg.tool_call_id,
+						...(msg.tool_call_id && { tool_call_id: msg.tool_call_id }),
 					}),
 				),
+				initialState: JSON.stringify({
+					caseNumber: formData.caseNumber,
+				}),
 			});
 
 			console.log("Raw response from norm:", response);
@@ -89,13 +108,50 @@ export default function NormPage() {
 					}));
 				}
 
-				const assistantMessage: Message = {
-					id: Date.now(),
-					role: "assistant",
-					content: parsedResponse.message || "No response received",
-				};
+				// Parse the final state to get all messages including tool messages
+				const finalState = JSON.parse(response.data || "{}");
 
-				setMessages((prev) => [...prev, assistantMessage]);
+				if (finalState.messages) {
+					// If we have messages in the final state, use those
+					const newMessages = finalState.messages
+						.map((msg: StateMessage) => {
+							if (msg.type === "tool") {
+								return {
+									id: Date.now(),
+									role: "tool",
+									content: msg.content,
+									tool_call_id: msg.tool_call_id,
+								};
+							}
+							if (msg.type === "ai" && msg.tool_calls?.length) {
+								return {
+									id: Date.now(),
+									role: "assistant",
+									content: msg.content,
+									tool_calls: msg.tool_calls,
+								};
+							}
+							if (msg.type === "ai") {
+								return {
+									id: Date.now(),
+									role: "assistant",
+									content: msg.content,
+								};
+							}
+							return null;
+						})
+						.filter(Boolean) as Message[];
+
+					setMessages((prev) => [...prev, ...newMessages]);
+				} else {
+					// Fallback to just using the message from parsedResponse
+					const assistantMessage: Message = {
+						id: Date.now(),
+						role: "assistant",
+						content: parsedResponse.message || "No response received",
+					};
+					setMessages((prev) => [...prev, assistantMessage]);
+				}
 			} catch (error) {
 				console.error("Error parsing response:", error);
 				throw error;

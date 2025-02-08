@@ -73,7 +73,7 @@ const agent = createReactAgent({
 });
 
 export const handler: Schema["norm"]["functionHandler"] = async (event) => {
-	const { messages = [] } = event.arguments;
+	const { messages = [], initialState = {} } = event.arguments;
 	console.log("Received event arguments:", event.arguments);
 
 	try {
@@ -93,7 +93,16 @@ export const handler: Schema["norm"]["functionHandler"] = async (event) => {
 			.filter(
 				(
 					msg,
-				): msg is { role: string; content: string; tool_call_id?: string } =>
+				): msg is {
+					role: string;
+					content: string;
+					tool_call_id?: string;
+					tool_calls?: Array<{
+						id: string;
+						type: "function";
+						function: { name: string; arguments: string };
+					}>;
+				} =>
 					msg !== null &&
 					typeof msg === "object" &&
 					"role" in msg &&
@@ -117,9 +126,40 @@ export const handler: Schema["norm"]["functionHandler"] = async (event) => {
 			}
 		});
 
-		// Run the graph
+		// Parse initial state
+		const parsedInitialState = JSON.parse((initialState as string) || "{}");
+		console.log("Initial state:", parsedInitialState);
+
+		// If this is a new message and there's a case number in the initial state,
+		// insert information about the manual update before the latest message
+		if (
+			parsedMessages.length > 0 &&
+			parsedInitialState.caseNumber !== undefined
+		) {
+			const lastMessage = parsedMessages[parsedMessages.length - 1];
+			if (lastMessage.role === "user") {
+				// Find the index of the last message in the langchain messages
+				const lastMessageIndex = langchainMessages.length - 1;
+
+				// Insert the update note just before the last message
+				langchainMessages.splice(
+					lastMessageIndex,
+					0,
+					new HumanMessage(
+						`[Note: The case number field was manually updated to ${parsedInitialState.caseNumber}. This update has already been applied, no need to use the updateFormField tool.]`,
+					),
+				);
+			}
+		}
+
+		console.log("Langchain messages:", langchainMessages);
+
+		// Run the graph with initial state
 		const finalState = await agent.invoke({
 			messages: langchainMessages,
+			caseNumber: parsedInitialState.caseNumber
+				? Number(parsedInitialState.caseNumber)
+				: undefined,
 		});
 
 		console.log("Final state:", finalState);
