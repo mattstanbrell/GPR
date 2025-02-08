@@ -155,7 +155,7 @@ export default function NormPage() {
 
 									<div className="govuk-form-group">
 										<label className="govuk-label" htmlFor="caseNumber">
-											Case Number
+											Case number
 										</label>
 										<input
 											className="govuk-input"
@@ -169,7 +169,7 @@ export default function NormPage() {
 
 									<div className="govuk-form-group">
 										<label className="govuk-label" htmlFor="reason">
-											Reason for Expense
+											Reason for expense
 										</label>
 										<textarea
 											className="govuk-textarea"
@@ -207,11 +207,8 @@ export default function NormPage() {
 											aria-describedby="date-required-hint"
 										>
 											<legend className="govuk-fieldset__legend">
-												Date Required
+												Date prepaid card is needed by
 											</legend>
-											<div id="date-required-hint" className="govuk-hint">
-												Date prepaid card is needed by.
-											</div>
 											<div className="govuk-date-input" id="date-required">
 												<div className="govuk-date-input__item">
 													<div className="govuk-form-group">

@@ -8,6 +8,7 @@ import {
 } from "@langchain/core/messages";
 import { tool } from "@langchain/core/tools";
 import { z } from "zod";
+import { StateGraph, MessagesAnnotation, START } from "@langchain/langgraph";
 
 /**
  * Example data of childName -> caseNumber
@@ -17,6 +18,13 @@ const cases = [
 	{ caseNumber: 23456, childName: "Veruca Salt", childAge: 12 },
 	{ caseNumber: 34567, childName: "Mike Teavee", childAge: 14 },
 ];
+
+/**
+ * Define the Graph State
+ */
+const FormState = {
+	messages: MessagesAnnotation,
+};
 
 /**
  * The lookup tool
@@ -49,39 +57,83 @@ const llm = new ChatOpenAI({
 	apiKey: process.env.OPENAI_API_KEY,
 });
 const tools = [lookupCaseByChildName];
+const toolsByName = Object.fromEntries(tools.map((tool) => [tool.name, tool]));
 const llmWithTools = llm.bindTools(tools);
 
-const SYSTEM_PROMPT = new SystemMessage({
-	content: `You are a helpful assistant for the Hounslow Council's expense request system.
+/**
+ * Agent Node - Handles the LLM interaction
+ */
+async function llmCall(state: typeof MessagesAnnotation.State) {
+	const system = new SystemMessage({
+		content: `You are a helpful assistant for the Hounslow Council's expense request system.
 You can look up case numbers when users mention a child's name.
 If the user mentions a child's name, use the lookupCaseByChildName tool to find their case number.
 Then help the user with their expense request using that information.
 Keep your responses professional and concise.
 If you don't know something or encounter an error, explain it clearly.`,
-});
+	});
+
+	const modelMessages = [system, ...state.messages];
+	const response = await llmWithTools.invoke(modelMessages);
+
+	return {
+		messages: [response],
+	};
+}
 
 /**
- * Execute any tool calls and return their responses
+ * Tool Node - Executes any tool calls
  */
-async function executeTools(message: AIMessage): Promise<ToolMessage[]> {
-	if (!message.additional_kwargs?.tool_calls?.length) {
-		return [];
+async function toolNode(state: typeof MessagesAnnotation.State) {
+	// Performs the tool call
+	const results: ToolMessage[] = [];
+	const lastMessage: AIMessage | undefined = state.messages.at(-1);
+
+	if (lastMessage?.tool_calls?.length) {
+		for (const toolCall of lastMessage.tool_calls) {
+			const tool = toolsByName[toolCall.name];
+			const args =
+				typeof toolCall.args === "string"
+					? JSON.parse(toolCall.args)
+					: toolCall.args;
+			const observation = await tool.invoke(args);
+			results.push(
+				new ToolMessage({
+					content: observation,
+					tool_call_id: toolCall.id || "",
+				}),
+			);
+		}
 	}
 
-	const toolResponses: ToolMessage[] = [];
-	for (const toolCall of message.additional_kwargs.tool_calls) {
-		const toolFn = tools.find((t) => t.name === toolCall.function.name);
-		if (!toolFn) {
-			throw new Error(`Unknown tool: ${toolCall.function.name}`);
-		}
-		const args = JSON.parse(toolCall.function.arguments);
-		const result = await toolFn.invoke(args);
-		toolResponses.push(
-			new ToolMessage({ content: result, tool_call_id: toolCall.id }),
-		);
-	}
-	return toolResponses;
+	return { messages: results };
 }
+
+/**
+ * Route to end after tool execution
+ */
+function shouldContinue(state: typeof MessagesAnnotation.State) {
+	const messages = state.messages;
+	const lastMessage: AIMessage | undefined = messages.at(-1);
+
+	// If the LLM makes a tool call, then perform an action
+	if (lastMessage?.tool_calls?.length) {
+		return "tools";
+	}
+	// Otherwise, we stop (reply to the user)
+	return "__end__";
+}
+
+/**
+ * Build the Graph
+ */
+const graph = new StateGraph(MessagesAnnotation)
+	.addNode("llmCall", llmCall)
+	.addNode("tools", toolNode)
+	.addEdge(START, "llmCall")
+	.addConditionalEdges("llmCall", shouldContinue)
+	.addEdge("tools", "llmCall")
+	.compile();
 
 export const handler: Schema["norm"]["functionHandler"] = async (event) => {
 	const { messages = [] } = event.arguments;
@@ -112,36 +164,25 @@ export const handler: Schema["norm"]["functionHandler"] = async (event) => {
 		console.log("Parsed messages:", parsedMessages);
 
 		// Convert to LangChain message format
-		const langchainMessages = [
-			SYSTEM_PROMPT,
-			...parsedMessages.map((msg) =>
-				msg.role === "user"
-					? new HumanMessage(msg.content)
-					: new AIMessage(msg.content),
-			),
-		];
+		const langchainMessages = parsedMessages.map((msg) =>
+			msg.role === "user"
+				? new HumanMessage(msg.content)
+				: new AIMessage(msg.content),
+		);
 
-		// Get initial LLM response
-		const llmResponse = await llmWithTools.invoke(langchainMessages);
-		console.log("Initial LLM response:", llmResponse);
+		// Run the graph
+		const finalState = await graph.invoke({
+			messages: langchainMessages,
+		});
 
-		// Execute any tool calls
-		const toolResponses = await executeTools(llmResponse);
-		console.log("Tool responses:", toolResponses);
-
-		if (toolResponses.length > 0) {
-			// If we got tool responses, send another request to the LLM with the tool results
-			const finalResponse = await llmWithTools.invoke([
-				...langchainMessages,
-				llmResponse,
-				...toolResponses,
-			]);
-			console.log("Final LLM response:", finalResponse);
-			return finalResponse.content.toString();
+		// Get the last message from the final state
+		const lastMessage = finalState.messages.at(-1);
+		if (!lastMessage) {
+			throw new Error("No response generated");
 		}
 
-		// If no tool calls, return the initial response
-		return llmResponse.content.toString();
+		console.log("Final response:", lastMessage);
+		return lastMessage.content.toString();
 	} catch (error) {
 		console.error("Error in handler:", error);
 		return "I'm sorry, I encountered an error. Please try again.";
