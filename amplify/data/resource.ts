@@ -9,16 +9,12 @@ specifies that any unauthenticated user can "create", "read", "update",
 and "delete" any "Todo" records.
 =========================================================================*/
 const schema = a.schema({
-	ChatMessage: a.customType({
-		role: a.string(),
-		content: a.string(),
-	}),
-
 	Todo: a
 		.model({
 			content: a.string(),
 		})
 		.authorization((allow) => [allow.owner()]),
+
 	sayHello: a
 		.query()
 		.arguments({
@@ -27,6 +23,7 @@ const schema = a.schema({
 		.returns(a.string())
 		.handler(a.handler.function(sayHello))
 		.authorization((allow) => [allow.authenticated()]),
+
 	norm: a
 		.query()
 		.arguments({

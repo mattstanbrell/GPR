@@ -6,9 +6,8 @@ import type { Schema } from "../../../amplify/data/resource";
 
 const client = generateClient<Schema>();
 
-type Message = {
-	id: number;
-	role: "user" | "assistant" | "tool";
+type LangChainMessage = {
+	role: "human" | "ai" | "tool";
 	content: string;
 	tool_call_id?: string;
 	tool_calls?: Array<{
@@ -18,26 +17,148 @@ type Message = {
 	}>;
 };
 
-type StateMessage = {
-	type: "human" | "ai" | "tool";
-	content: string;
-	tool_call_id?: string;
-	tool_calls?: Array<{
-		id: string;
-		type: "function";
-		function: { name: string; arguments: string };
-	}>;
+type FormState = {
+	caseNumber: number | null;
+	reason: string;
+	amount: number | null;
+	dateRequired: {
+		day: number | null;
+		month: number | null;
+		year: number | null;
+	};
+	firstName: string;
+	lastName: string;
+	address: {
+		line1: string;
+		line2: string;
+		town: string;
+		postcode: string;
+	};
+};
+
+// For React's list rendering
+type Message = LangChainMessage & {
+	id: number;
+};
+
+const convertToLangChainMessage = (msg: Message): LangChainMessage => {
+	const { id, ...rest } = msg;
+	return rest;
+};
+
+const createUserMessage = (content: string): Message => ({
+	id: Date.now(),
+	role: "human",
+	content,
+});
+
+const createAssistantMessage = (content: string): Message => ({
+	id: Date.now(),
+	role: "ai",
+	content,
+});
+
+const createToolMessage = (content: string, tool_call_id: string): Message => ({
+	id: Date.now(),
+	role: "tool",
+	content,
+	tool_call_id,
+});
+
+// Helper type for nested form fields
+type FormStateValue =
+	| string
+	| number
+	| null
+	| undefined
+	| {
+			day?: number | null;
+			month?: number | null;
+			year?: number | null;
+			line1?: string;
+			line2?: string;
+			town?: string;
+			postcode?: string;
+	  };
+
+const findUpdates = (
+	current: FormState,
+	previous: Partial<FormState>,
+	path = "",
+): string[] => {
+	const updates: string[] = [];
+
+	// Helper to check if a value should be considered empty
+	const isEmpty = (value: FormStateValue) =>
+		value === null || value === undefined || value === "";
+
+	// Helper to check if values are different (accounting for empty values)
+	const isDifferent = (curr: FormStateValue, prev: FormStateValue) =>
+		!isEmpty(curr) && // Only consider non-empty current values
+		curr !== prev && // Values must be different
+		!isEmpty(prev); // Previous value must also be non-empty to count as a change
+
+	for (const [key, value] of Object.entries(current)) {
+		const fullPath = path ? `${path}.${key}` : key;
+		if (typeof value === "object" && value !== null) {
+			const prevValue = previous[key as keyof FormState];
+			if (prevValue && typeof prevValue === "object") {
+				// Compare nested objects
+				for (const [nestedKey, nestedValue] of Object.entries(value)) {
+					const nestedPath = `${fullPath}.${nestedKey}`;
+					const prevNestedValue = (prevValue as Record<string, FormStateValue>)[
+						nestedKey
+					];
+					if (isDifferent(nestedValue, prevNestedValue)) {
+						updates.push(`${nestedPath} to ${nestedValue}`);
+					}
+				}
+			}
+		} else if (isDifferent(value, previous[key as keyof FormState])) {
+			updates.push(`${fullPath} to ${value}`);
+		}
+	}
+	return updates;
+};
+
+const findChangedFields = (
+	oldData: FormState,
+	newData: Partial<FormState>,
+	prefix = "",
+): string[] => {
+	const changedFields: string[] = [];
+	for (const [key, value] of Object.entries(newData)) {
+		const fullPath = prefix ? `${prefix}.${key}` : key;
+		if (typeof value === "object" && value !== null) {
+			const oldValue = oldData[key as keyof FormState];
+			if (oldValue && typeof oldValue === "object") {
+				// Compare nested objects
+				for (const [nestedKey, nestedValue] of Object.entries(value)) {
+					const nestedPath = `${fullPath}.${nestedKey}`;
+					const oldNestedValue = (oldValue as Record<string, FormStateValue>)[
+						nestedKey
+					];
+					if (nestedValue !== oldNestedValue) {
+						changedFields.push(nestedPath);
+					}
+				}
+			}
+		} else if (value !== oldData[key as keyof FormState]) {
+			changedFields.push(fullPath);
+		}
+	}
+	return changedFields;
 };
 
 export default function NormPage() {
-	const [formData, setFormData] = useState({
-		caseNumber: "",
+	const [formData, setFormData] = useState<FormState>({
+		caseNumber: null,
 		reason: "",
-		amount: "",
+		amount: null,
 		dateRequired: {
-			day: "",
-			month: "",
-			year: "",
+			day: null,
+			month: null,
+			year: null,
 		},
 		firstName: "",
 		lastName: "",
@@ -71,43 +192,11 @@ export default function NormPage() {
 	const handleMessageSubmit = async () => {
 		if (!message.trim()) return;
 
-		const userMessage: Message = {
-			id: Date.now(),
-			role: "user",
-			content: message,
-		};
-
-		// Find any manually updated fields by comparing with previous state
-		const findUpdates = (
-			current: typeof formData,
-			previous: Partial<typeof formData>,
-			path = "",
-		): string[] => {
-			const updates: string[] = [];
-			for (const [key, value] of Object.entries(current)) {
-				const fullPath = path ? `${path}.${key}` : key;
-				if (typeof value === "object" && value !== null) {
-					updates.push(
-						...findUpdates(
-							value,
-							(previous?.[key as keyof typeof previous] || {}) as any,
-							fullPath,
-						),
-					);
-				} else if (
-					value !== "" &&
-					value !== (previous as any)?.[key] &&
-					value !== previous?.[key as keyof typeof previous]
-				) {
-					updates.push(`${fullPath} to ${value}`);
-				}
-			}
-			return updates;
-		};
+		const userMessage = createUserMessage(message);
 
 		// Get the previous state from the last response
 		const previousState = messages
-			.filter((msg) => msg.role === "assistant")
+			.filter((msg) => msg.role === "ai")
 			.reduce(
 				(state, msg) => {
 					try {
@@ -120,7 +209,7 @@ export default function NormPage() {
 					}
 					return state;
 				},
-				{} as Partial<typeof formData>,
+				{} as Partial<FormState>,
 			);
 
 		// Find which fields were manually updated
@@ -129,11 +218,11 @@ export default function NormPage() {
 		// Create messages array with update note if needed
 		const messagesToSend = [...messages];
 		if (updates.length > 0) {
-			messagesToSend.push({
-				id: Date.now() - 1,
-				role: "user",
-				content: `[Note: The following fields were manually updated: ${updates.join(", ")}. These updates have already been applied, no need to use the updateFormField tool.]`,
-			});
+			messagesToSend.push(
+				createUserMessage(
+					`[Note: The following fields were manually updated: ${updates.join(", ")}. These updates have already been applied, no need to use the updateFormField tool.]`,
+				),
+			);
 		}
 		messagesToSend.push(userMessage);
 
@@ -144,21 +233,20 @@ export default function NormPage() {
 		try {
 			console.log(
 				"Sending messages to norm:",
-				messagesToSend.map((msg) => ({
-					role: msg.role,
-					content: msg.content,
-					tool_call_id: msg.tool_call_id,
-				})),
+				messagesToSend.map(convertToLangChainMessage),
 			);
 
 			const response = await client.queries.norm({
-				messages: messagesToSend.map((msg) =>
-					JSON.stringify({
-						role: msg.role,
-						content: msg.content,
-						...(msg.tool_call_id && { tool_call_id: msg.tool_call_id }),
-					}),
-				),
+				messages: messagesToSend.map((msg) => {
+					const langChainMsg = convertToLangChainMessage(msg);
+					// Ensure role is explicitly set in the stringified message
+					return JSON.stringify({
+						role: langChainMsg.role,
+						content: langChainMsg.content,
+						tool_call_id: langChainMsg.tool_call_id,
+						tool_calls: langChainMsg.tool_calls,
+					});
+				}),
 				initialState: JSON.stringify(formData),
 			});
 
@@ -175,30 +263,6 @@ export default function NormPage() {
 
 				// Update form data if we received it
 				if (parsedResponse.formData) {
-					// Find which fields changed
-					const findChangedFields = (
-						oldData: typeof formData,
-						newData: Partial<typeof formData>,
-						prefix = "",
-					): string[] => {
-						const changedFields: string[] = [];
-						for (const [key, value] of Object.entries(newData)) {
-							const fullPath = prefix ? `${prefix}.${key}` : key;
-							if (typeof value === "object" && value !== null) {
-								changedFields.push(
-									...findChangedFields(
-										oldData[key as keyof typeof oldData] as any,
-										value as any,
-										fullPath,
-									),
-								);
-							} else if (value !== oldData[key as keyof typeof oldData]) {
-								changedFields.push(fullPath);
-							}
-						}
-						return changedFields;
-					};
-
 					// Find which fields changed
 					const changedFields = findChangedFields(
 						formData,
@@ -218,11 +282,9 @@ export default function NormPage() {
 				}
 
 				// Add the assistant's response to messages
-				const assistantMessage: Message = {
-					id: Date.now(),
-					role: "assistant",
-					content: parsedResponse.message || "No response received",
-				};
+				const assistantMessage = createAssistantMessage(
+					parsedResponse.message || "No response received",
+				);
 				setMessages((prev) => [...prev, assistantMessage]);
 			} catch (error) {
 				console.error("Error parsing response:", error);
@@ -230,11 +292,9 @@ export default function NormPage() {
 			}
 		} catch (error) {
 			console.error("Error calling norm:", error);
-			const errorMessage: Message = {
-				id: Date.now(),
-				role: "assistant",
-				content: "Sorry, I encountered an error. Please try again.",
-			};
+			const errorMessage = createAssistantMessage(
+				"Sorry, I encountered an error. Please try again.",
+			);
 			setMessages((prev) => [...prev, errorMessage]);
 		} finally {
 			setLoading(false);
@@ -335,7 +395,7 @@ export default function NormPage() {
 											id="caseNumber"
 											name="caseNumber"
 											type="text"
-											value={formData.caseNumber}
+											value={formData.caseNumber?.toString() || ""}
 											onChange={handleChange("caseNumber")}
 										/>
 									</div>
@@ -372,7 +432,7 @@ export default function NormPage() {
 												name="amount"
 												type="text"
 												spellCheck="false"
-												value={formData.amount}
+												value={formData.amount?.toString() || ""}
 												onChange={handleChange("amount")}
 											/>
 										</div>
@@ -405,7 +465,9 @@ export default function NormPage() {
 															name="date-required-day"
 															type="text"
 															inputMode="numeric"
-															value={formData.dateRequired.day}
+															value={
+																formData.dateRequired.day?.toString() || ""
+															}
 															onChange={handleChange("date.day")}
 														/>
 													</div>
@@ -428,7 +490,9 @@ export default function NormPage() {
 															name="date-required-month"
 															type="text"
 															inputMode="numeric"
-															value={formData.dateRequired.month}
+															value={
+																formData.dateRequired.month?.toString() || ""
+															}
 															onChange={handleChange("date.month")}
 														/>
 													</div>
@@ -451,7 +515,9 @@ export default function NormPage() {
 															name="date-required-year"
 															type="text"
 															inputMode="numeric"
-															value={formData.dateRequired.year}
+															value={
+																formData.dateRequired.year?.toString() || ""
+															}
 															onChange={handleChange("date.year")}
 														/>
 													</div>
@@ -614,33 +680,36 @@ export default function NormPage() {
 									paddingBottom: "20px",
 								}}
 							>
-								{messages.map((msg) => (
-									<div
-										key={msg.id}
-										className={`govuk-inset-text ${
-											msg.role === "assistant" ? "govuk-inset-text--blue" : ""
-										}`}
-										style={{
-											marginLeft: msg.role === "user" ? "auto" : "0",
-											marginRight: msg.role === "assistant" ? "auto" : "0",
-											maxWidth: "80%",
-											marginTop: 0,
-											marginBottom: 0,
-											backgroundColor:
-												msg.role === "user" ? "#f3f2f1" : "#f0f7ff",
-											borderColor: msg.role === "user" ? "#505a5f" : "#1d70b8",
-											borderLeftWidth: msg.role === "assistant" ? "5px" : "0",
-											borderRightWidth: msg.role === "user" ? "5px" : "0",
-											borderStyle: "solid",
-											borderTop: "none",
-											borderBottom: "none",
-										}}
-									>
-										<p className="govuk-body" style={{ margin: 0 }}>
-											{msg.content}
-										</p>
-									</div>
-								))}
+								{messages
+									.filter((msg) => msg.role !== "tool") // Filter out tool messages from UI
+									.map((msg) => (
+										<div
+											key={msg.id}
+											className={`govuk-inset-text ${
+												msg.role === "ai" ? "govuk-inset-text--blue" : ""
+											}`}
+											style={{
+												marginLeft: msg.role === "human" ? "auto" : "0",
+												marginRight: msg.role === "ai" ? "auto" : "0",
+												maxWidth: "80%",
+												marginTop: 0,
+												marginBottom: 0,
+												backgroundColor:
+													msg.role === "human" ? "#f3f2f1" : "#f0f7ff",
+												borderColor:
+													msg.role === "human" ? "#505a5f" : "#1d70b8",
+												borderLeftWidth: msg.role === "ai" ? "5px" : "0",
+												borderRightWidth: msg.role === "human" ? "5px" : "0",
+												borderStyle: "solid",
+												borderTop: "none",
+												borderBottom: "none",
+											}}
+										>
+											<p className="govuk-body" style={{ margin: 0 }}>
+												{msg.content}
+											</p>
+										</div>
+									))}
 								{loading && (
 									<div className="govuk-body" style={{ alignSelf: "center" }}>
 										<span className="govuk-hint">Norm is typing...</span>

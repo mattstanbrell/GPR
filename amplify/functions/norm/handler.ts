@@ -208,13 +208,15 @@ export const handler: Schema["norm"]["functionHandler"] = async (event) => {
 		// Convert to LangChain message format
 		const langchainMessages = parsedMessages.map((msg) => {
 			switch (msg.role) {
-				case "user":
+				case "human":
 					return new HumanMessage(msg.content);
 				case "tool":
 					return new ToolMessage({
 						content: msg.content,
 						tool_call_id: msg.tool_call_id || "",
 					});
+				case "ai":
+					return new AIMessage(msg.content);
 				default:
 					return new AIMessage(msg.content);
 			}
