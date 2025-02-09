@@ -27,19 +27,15 @@ type FormState = {
 	caseNumber: string | null;
 	reason: string;
 	amount: number | null;
-	dateRequired: {
-		day: number | null;
-		month: number | null;
-		year: number | null;
-	};
+	dateRequiredDay: number | null;
+	dateRequiredMonth: number | null;
+	dateRequiredYear: number | null;
 	firstName: string;
 	lastName: string;
-	address: {
-		line1: string;
-		line2: string;
-		town: string;
-		postcode: string;
-	};
+	addressLine1: string;
+	addressLine2: string;
+	addressTown: string;
+	addressPostcode: string;
 };
 
 // For React's list rendering
@@ -70,21 +66,8 @@ const createAssistantMessage = (content: string): Message => ({
 	content,
 });
 
-// Helper type for nested form fields
-type FormStateValue =
-	| string
-	| number
-	| null
-	| undefined
-	| {
-			day?: number | null;
-			month?: number | null;
-			year?: number | null;
-			line1?: string;
-			line2?: string;
-			town?: string;
-			postcode?: string;
-	  };
+// Helper type for form fields
+type FormStateValue = string | number | null | undefined;
 
 const findUpdates = (
 	current: FormState,
@@ -105,21 +88,7 @@ const findUpdates = (
 
 	for (const [key, value] of Object.entries(current)) {
 		const fullPath = path ? `${path}.${key}` : key;
-		if (typeof value === "object" && value !== null) {
-			const prevValue = previous[key as keyof FormState];
-			if (prevValue && typeof prevValue === "object") {
-				// Compare nested objects
-				for (const [nestedKey, nestedValue] of Object.entries(value)) {
-					const nestedPath = `${fullPath}.${nestedKey}`;
-					const prevNestedValue = (prevValue as Record<string, FormStateValue>)[
-						nestedKey
-					];
-					if (isDifferent(nestedValue, prevNestedValue)) {
-						updates.push(`${nestedPath} to ${nestedValue}`);
-					}
-				}
-			}
-		} else if (isDifferent(value, previous[key as keyof FormState])) {
+		if (isDifferent(value, previous[key as keyof FormState])) {
 			updates.push(`${fullPath} to ${value}`);
 		}
 	}
@@ -134,21 +103,7 @@ const findChangedFields = (
 	const changedFields: string[] = [];
 	for (const [key, value] of Object.entries(newData)) {
 		const fullPath = prefix ? `${prefix}.${key}` : key;
-		if (typeof value === "object" && value !== null) {
-			const oldValue = oldData[key as keyof FormState];
-			if (oldValue && typeof oldValue === "object") {
-				// Compare nested objects
-				for (const [nestedKey, nestedValue] of Object.entries(value)) {
-					const nestedPath = `${fullPath}.${nestedKey}`;
-					const oldNestedValue = (oldValue as Record<string, FormStateValue>)[
-						nestedKey
-					];
-					if (nestedValue !== oldNestedValue) {
-						changedFields.push(nestedPath);
-					}
-				}
-			}
-		} else if (value !== oldData[key as keyof FormState]) {
+		if (value !== oldData[key as keyof FormState]) {
 			changedFields.push(fullPath);
 		}
 	}
@@ -160,38 +115,30 @@ export default function NormPage() {
 		caseNumber: null,
 		reason: "",
 		amount: null,
-		dateRequired: {
-			day: null,
-			month: null,
-			year: null,
-		},
+		dateRequiredDay: null,
+		dateRequiredMonth: null,
+		dateRequiredYear: null,
 		firstName: "",
 		lastName: "",
-		address: {
-			line1: "",
-			line2: "",
-			town: "",
-			postcode: "",
-		},
+		addressLine1: "",
+		addressLine2: "",
+		addressTown: "",
+		addressPostcode: "",
 	});
 
 	const [previousFormData, setPreviousFormData] = useState<FormState>({
 		caseNumber: null,
 		reason: "",
 		amount: null,
-		dateRequired: {
-			day: null,
-			month: null,
-			year: null,
-		},
+		dateRequiredDay: null,
+		dateRequiredMonth: null,
+		dateRequiredYear: null,
 		firstName: "",
 		lastName: "",
-		address: {
-			line1: "",
-			line2: "",
-			town: "",
-			postcode: "",
-		},
+		addressLine1: "",
+		addressLine2: "",
+		addressTown: "",
+		addressPostcode: "",
 	});
 
 	const [animatingFields, setAnimatingFields] = useState<Map<string, boolean>>(
@@ -244,28 +191,7 @@ export default function NormPage() {
 		path: string,
 	): string | number | null => {
 		console.log(`=== Getting nested value for ${path} ===`);
-		const parts = path.split(".");
-		let value: unknown = obj;
-
-		for (const part of parts) {
-			if (value && typeof value === "object" && part in value) {
-				value = (value as Record<string, unknown>)[part];
-			} else {
-				console.log("Value not found in object, returning null");
-				return null;
-			}
-		}
-
-		console.log("Found value:", value);
-		if (
-			typeof value === "string" ||
-			typeof value === "number" ||
-			value === null
-		) {
-			return value;
-		}
-		console.log("Value is not a primitive type, returning null");
-		return null;
+		return obj[path as keyof FormState] ?? null;
 	};
 
 	// Function to safely animate field changes
@@ -415,42 +341,23 @@ export default function NormPage() {
 		(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
 			const value = e.target.value;
 			setFormData((prev) => {
-				let newData: FormState;
-				if (field.startsWith("date.")) {
+				const newData = { ...prev };
+
+				// Handle numeric fields
+				if (field === "amount") {
+					newData.amount = value === "" ? null : Number(value);
+				} else if (field === "caseNumber") {
+					newData.caseNumber = value === "" ? null : value;
+				} else if (field.startsWith("date.")) {
 					const datePart = field.split(".")[1];
 					const numValue = value === "" ? null : Number(value);
-					newData = {
-						...prev,
-						dateRequired: {
-							...prev.dateRequired,
-							[datePart]: numValue,
-						},
-					};
+					const dateField =
+						`dateRequired${datePart.charAt(0).toUpperCase() + datePart.slice(1)}` as keyof FormState;
+					(newData[dateField] as number | null) = numValue;
 					// Compare old and new values for animation
-					safeAnimateField(`dateRequired.${datePart}`, false);
-				} else if (field.startsWith("address.")) {
-					const addressPart = field.split(".")[1];
-					newData = {
-						...prev,
-						address: {
-							...prev.address,
-							[addressPart]: value,
-						},
-					};
-					// Compare old and new values for animation
-					safeAnimateField(`address.${addressPart}`, false);
+					safeAnimateField(dateField, false);
 				} else {
-					// Handle numeric fields
-					let processedValue: string | number | null = value;
-					if (field === "amount") {
-						processedValue = value === "" ? null : Number(value);
-					} else if (field === "caseNumber") {
-						processedValue = value === "" ? null : value;
-					}
-					newData = {
-						...prev,
-						[field]: processedValue,
-					};
+					(newData[field as keyof FormState] as string) = value;
 					// Compare old and new values for animation
 					safeAnimateField(field, false);
 				}
@@ -674,8 +581,8 @@ export default function NormPage() {
 														</label>
 														<input
 															className={`govuk-input govuk-date-input__input govuk-input--width-2 ${
-																animatingFields.has("dateRequired.day")
-																	? animatingFields.get("dateRequired.day")
+																animatingFields.has("dateRequiredDay")
+																	? animatingFields.get("dateRequiredDay")
 																		? "field-animation-mention"
 																		: "field-animation"
 																	: ""
@@ -684,9 +591,7 @@ export default function NormPage() {
 															name="date-required-day"
 															type="text"
 															inputMode="numeric"
-															value={
-																formData.dateRequired.day?.toString() || ""
-															}
+															value={formData.dateRequiredDay?.toString() || ""}
 															onChange={handleChange("date.day")}
 														/>
 													</div>
@@ -701,8 +606,8 @@ export default function NormPage() {
 														</label>
 														<input
 															className={`govuk-input govuk-date-input__input govuk-input--width-2 ${
-																animatingFields.has("dateRequired.month")
-																	? animatingFields.get("dateRequired.month")
+																animatingFields.has("dateRequiredMonth")
+																	? animatingFields.get("dateRequiredMonth")
 																		? "field-animation-mention"
 																		: "field-animation"
 																	: ""
@@ -712,7 +617,7 @@ export default function NormPage() {
 															type="text"
 															inputMode="numeric"
 															value={
-																formData.dateRequired.month?.toString() || ""
+																formData.dateRequiredMonth?.toString() || ""
 															}
 															onChange={handleChange("date.month")}
 														/>
@@ -728,8 +633,8 @@ export default function NormPage() {
 														</label>
 														<input
 															className={`govuk-input govuk-date-input__input govuk-input--width-4 ${
-																animatingFields.has("dateRequired.year")
-																	? animatingFields.get("dateRequired.year")
+																animatingFields.has("dateRequiredYear")
+																	? animatingFields.get("dateRequiredYear")
 																		? "field-animation-mention"
 																		: "field-animation"
 																	: ""
@@ -739,7 +644,7 @@ export default function NormPage() {
 															type="text"
 															inputMode="numeric"
 															value={
-																formData.dateRequired.year?.toString() || ""
+																formData.dateRequiredYear?.toString() || ""
 															}
 															onChange={handleChange("date.year")}
 														/>
@@ -806,8 +711,8 @@ export default function NormPage() {
 										</label>
 										<input
 											className={`govuk-input ${
-												animatingFields.has("address.line1")
-													? animatingFields.get("address.line1")
+												animatingFields.has("addressLine1")
+													? animatingFields.get("addressLine1")
 														? "field-animation-mention"
 														: "field-animation"
 													: ""
@@ -815,8 +720,8 @@ export default function NormPage() {
 											id="address-line-1"
 											name="address-line-1"
 											type="text"
-											value={formData.address.line1}
-											onChange={handleChange("address.line1")}
+											value={formData.addressLine1}
+											onChange={handleChange("addressLine1")}
 											autoComplete="address-line1"
 										/>
 									</div>
@@ -827,8 +732,8 @@ export default function NormPage() {
 										</label>
 										<input
 											className={`govuk-input ${
-												animatingFields.has("address.line2")
-													? animatingFields.get("address.line2")
+												animatingFields.has("addressLine2")
+													? animatingFields.get("addressLine2")
 														? "field-animation-mention"
 														: "field-animation"
 													: ""
@@ -836,8 +741,8 @@ export default function NormPage() {
 											id="address-line-2"
 											name="address-line-2"
 											type="text"
-											value={formData.address.line2}
-											onChange={handleChange("address.line2")}
+											value={formData.addressLine2}
+											onChange={handleChange("addressLine2")}
 											autoComplete="address-line2"
 										/>
 									</div>
@@ -848,8 +753,8 @@ export default function NormPage() {
 										</label>
 										<input
 											className={`govuk-input govuk-input--width-20 ${
-												animatingFields.has("address.town")
-													? animatingFields.get("address.town")
+												animatingFields.has("addressTown")
+													? animatingFields.get("addressTown")
 														? "field-animation-mention"
 														: "field-animation"
 													: ""
@@ -857,8 +762,8 @@ export default function NormPage() {
 											id="address-town"
 											name="address-town"
 											type="text"
-											value={formData.address.town}
-											onChange={handleChange("address.town")}
+											value={formData.addressTown}
+											onChange={handleChange("addressTown")}
 											autoComplete="address-level2"
 										/>
 									</div>
@@ -869,8 +774,8 @@ export default function NormPage() {
 										</label>
 										<input
 											className={`govuk-input govuk-input--width-10 ${
-												animatingFields.has("address.postcode")
-													? animatingFields.get("address.postcode")
+												animatingFields.has("addressPostcode")
+													? animatingFields.get("addressPostcode")
 														? "field-animation-mention"
 														: "field-animation"
 													: ""
@@ -878,8 +783,8 @@ export default function NormPage() {
 											id="address-postcode"
 											name="address-postcode"
 											type="text"
-											value={formData.address.postcode}
-											onChange={handleChange("address.postcode")}
+											value={formData.addressPostcode}
+											onChange={handleChange("addressPostcode")}
 											autoComplete="postal-code"
 										/>
 									</div>

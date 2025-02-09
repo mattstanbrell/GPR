@@ -72,19 +72,15 @@ type FormState = {
 	caseNumber?: string;
 	reason?: string;
 	amount?: number;
-	dateRequired?: {
-		day: number;
-		month: number;
-		year: number;
-	};
+	dateRequiredDay?: number;
+	dateRequiredMonth?: number;
+	dateRequiredYear?: number;
 	firstName?: string;
 	lastName?: string;
-	address?: {
-		line1: string;
-		line2: string;
-		town: string;
-		postcode: string;
-	};
+	addressLine1?: string;
+	addressLine2?: string;
+	addressTown?: string;
+	addressPostcode?: string;
 };
 
 // Module-level form state
@@ -186,39 +182,26 @@ const updateFormFields = tool(
 		);
 		console.log("Requested updates:", updates);
 
-		// Helper to update nested fields
-		const updateNestedField = (
-			path: string[],
-			value: string,
-			type: "string" | "number",
-		) => {
-			console.log(`Updating field: ${path.join(".")} to ${value} (${type})`);
-			const lastKey = path[path.length - 1];
-			let pointer: Record<string, unknown> = currentFormState;
-
-			// Navigate to the correct nesting level
-			for (let i = 0; i < path.length - 1; i++) {
-				const key = path[i];
-				if (!(key in pointer)) {
-					pointer[key] = {};
-				}
-				pointer = pointer[key] as Record<string, unknown>;
-			}
-
-			// Update the value with proper type conversion
-			if (lastKey === "caseNumber") {
-				pointer[lastKey] = value; // Always keep caseNumber as string
-			} else if (type === "number") {
-				pointer[lastKey] = value === "" ? null : Number(value);
-			} else {
-				pointer[lastKey] = value;
-			}
-		};
-
-		// Apply all updates in sequence
+		// Apply all updates directly to the form state
 		for (const { field, value, type } of updates) {
-			const fieldParts = field.split(".");
-			updateNestedField(fieldParts, value, type);
+			if (field.includes(".")) {
+				console.log(`Warning: Nested field ${field} is no longer supported`);
+				continue;
+			}
+
+			const formField = field as keyof FormState;
+			const formState = currentFormState as Record<
+				keyof FormState,
+				string | number | undefined
+			>;
+
+			if (field === "caseNumber") {
+				formState[formField] = value; // Always keep caseNumber as string
+			} else if (type === "number") {
+				formState[formField] = value === "" ? undefined : Number(value);
+			} else {
+				formState[formField] = value;
+			}
 		}
 
 		console.log(
@@ -234,7 +217,7 @@ const updateFormFields = tool(
 	},
 	{
 		name: "updateFormFields",
-		description: "Update multiple fields in the form at once.",
+		description: `Update the form fields. You must provide an array, eg [{"caseNumber", "12345", "string"}, {"reason", "Car seat for Charlie Bucket", "string"}, {"amount", "100", "number"}, {"dateRequiredDay", "1", "number"}, {"dateRequiredMonth", "1", "number"}, {"dateRequiredYear", "2025", "number"}]`,
 		schema: z.object({
 			updates: z
 				.array(
@@ -242,7 +225,7 @@ const updateFormFields = tool(
 						field: z
 							.string()
 							.describe(
-								"The field name to update. Can be nested using dot notation (e.g. 'address.line1' or 'dateRequired.day').",
+								"The field name to update (e.g. 'addressLine1' or 'dateRequiredDay').",
 							),
 						value: z.string().describe("The new value for the field."),
 						type: z
@@ -287,10 +270,19 @@ const formatLondonTime = () => {
 	}).format(now);
 };
 
-const agent = createReactAgent({
-	llm: model,
-	tools: [updateFormFields, lookupCaseNumberByChildName],
-	stateModifier: `You are a friendly assistant helping social workers submit prepaid card requests. You help fill out a form based on their natural language requests.
+// Helper function to get tomorrow's date components
+const getTomorrowDate = () => {
+	const tomorrow = new Date();
+	tomorrow.setDate(tomorrow.getDate() + 1);
+	return {
+		day: tomorrow.getDate(),
+		month: tomorrow.getMonth() + 1, // JavaScript months are 0-based
+		year: tomorrow.getFullYear(),
+	};
+};
+
+// Log the state modifier for debugging
+const stateModifier = `You are a friendly assistant helping social workers submit prepaid card requests. You help fill out a form based on their natural language requests.
 
 Current time in London: ${formatLondonTime()}
 
@@ -326,27 +318,35 @@ Assistant: [calls updateFormFields with [{field: "amount", value: "110", type: "
 "I've updated the amount to £110. When do you need the card by?"
 
 Social worker: "I need £50 by tomorrow"
-Assistant: [calls updateFormFields with [{field: "amount", value: "50", type: "number"}, {field: "dateRequired.day", value: new Date(Date.now() + 86400000).getDate(), type: "number"}, {field: "dateRequired.month", value: new Date(Date.now() + 86400000).getMonth() + 1, type: "number"}, {field: "dateRequired.year", value: new Date(Date.now() + 86400000).getFullYear(), type: "number"}]]
+Assistant: [calls updateFormFields with [{field: "amount", value: "50", type: "number"}, {field: "dateRequiredDay", value: "${getTomorrowDate().day}", type: "number"}, {field: "dateRequiredMonth", value: "${getTomorrowDate().month}", type: "number"}, {field: "dateRequiredYear", value: "${getTomorrowDate().year}", type: "number"}]]
 "I see. Which child is this expense for?"
 
 Form fields available:
 - caseNumber (string) - REQUIRED - Case number of the child the expense is for
 - reason (string) - REQUIRED - Reason for the expense
 - amount (number) - REQUIRED - Amount of the expense (remove any currency symbols)
-- dateRequired.day (number) - REQUIRED - Day of the month the expense is needed by
-- dateRequired.month (number) - REQUIRED - Month the expense is needed by
-- dateRequired.year (number) - REQUIRED - Year the expense is needed by
+- dateRequiredDay (number) - REQUIRED - Day of the month the expense is needed by
+- dateRequiredMonth (number) - REQUIRED - Month the expense is needed by
+- dateRequiredYear (number) - REQUIRED - Year the expense is needed by
 - firstName (string) - REQUIRED - First name of the card recipient
 - lastName (string) - REQUIRED - Last name of the card recipient
-- address.line1 (string) - REQUIRED - First line of the card recipient's address
-- address.line2 (string) - Optional - Second line of the card recipient's address
-- address.town (string) - REQUIRED - Town of the card recipient's address
-- address.postcode (string) - REQUIRED - Postcode of the card recipient's address
+- addressLine1 (string) - REQUIRED - First line of the card recipient's address
+- addressLine2 (string) - Optional - Second line of the card recipient's address
+- addressTown (string) - REQUIRED - Town of the card recipient's address
+- addressPostcode (string) - REQUIRED - Postcode of the card recipient's address
 
 Remember:
 - Ask directly about form details (e.g. "Are you the card recipient?") rather than offering help (e.g. "Should I send the card to your address?")
 - Be natural and friendly
-- Ask for missing information one step at a time`,
+- Ask for missing information one step at a time`;
+
+console.log("\n=== Agent State Modifier ===");
+console.log(stateModifier);
+
+const agent = createReactAgent({
+	llm: model,
+	tools: [updateFormFields, lookupCaseNumberByChildName],
+	stateModifier,
 });
 
 export const handler: Schema["norm"]["functionHandler"] = async (event) => {
