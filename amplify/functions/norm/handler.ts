@@ -25,6 +25,11 @@ import { AIMessage, HumanMessage, ToolMessage } from "@langchain/core/messages";
 
 const dummyChildData = [
 	{
+		name: "Charles Bucket",
+		caseNumber: "12350",
+		age: 8,
+	},
+	{
 		name: "Charlie Bucket",
 		caseNumber: "12345",
 		age: 10,
@@ -55,7 +60,7 @@ const dummyChildData = [
 const socialWorker = {
 	name: "Matt Stanbrell",
 	email: "matt@critcal.com",
-	cases: ["12345", "12346", "12347", "12348", "12349"],
+	cases: ["12345", "12346", "12347", "12348", "12349", "12350"],
 	address: {
 		line1: "123 Fake Street",
 		town: "London",

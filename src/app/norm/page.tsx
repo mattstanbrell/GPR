@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { generateClient } from "aws-amplify/api";
 import type { Schema } from "../../../amplify/data/resource";
 import ReactMarkdown from "react-markdown";
@@ -48,10 +48,11 @@ type Message = LangChainMessage & {
 	mentions?: StructuredMention[];
 };
 
-const convertToLangChainMessage = (msg: Message): LangChainMessage => {
-	const { id, ...rest } = msg;
-	return rest;
-};
+const convertToLangChainMessage = ({
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	id,
+	...langChainMessage
+}: Message): LangChainMessage => langChainMessage;
 
 const createUserMessage = (
 	content: string,
@@ -67,13 +68,6 @@ const createAssistantMessage = (content: string): Message => ({
 	id: Date.now(),
 	role: "ai",
 	content,
-});
-
-const createToolMessage = (content: string, tool_call_id: string): Message => ({
-	id: Date.now(),
-	role: "tool",
-	content,
-	tool_call_id,
 });
 
 // Helper type for nested form fields
@@ -238,9 +232,8 @@ export default function NormPage() {
 				}, 3000);
 
 				return () => clearTimeout(timeoutId);
-			} else {
-				console.log("No animation needed - values are the same");
 			}
+			console.log("No animation needed - values are the same");
 		},
 		[],
 	);
@@ -326,8 +319,6 @@ export default function NormPage() {
 		setMessages((prev) => [...prev, userMessage]);
 		setLoading(true);
 		setMessage("");
-		// Store the current mentions before clearing them
-		const previousMentions = currentMentions;
 		setCurrentMentions([]);
 
 		try {
@@ -956,17 +947,17 @@ export default function NormPage() {
 												components={{
 													p: ({ children }) => (
 														<p className="govuk-body" style={{ margin: 0 }}>
-															{renderMessageContent(children.toString())}
+															{renderMessageContent(children?.toString() ?? "")}
 														</p>
 													),
 													ul: ({ children }) => (
 														<ul className="govuk-list govuk-list--bullet">
-															{children}
+															{children ?? ""}
 														</ul>
 													),
 													li: ({ children }) => (
 														<li className="govuk-body" style={{ margin: 0 }}>
-															{children}
+															{children ?? ""}
 														</li>
 													),
 												}}
@@ -977,7 +968,7 @@ export default function NormPage() {
 									))}
 								{loading && (
 									<div className="govuk-body" style={{ alignSelf: "center" }}>
-										<span className="govuk-hint">Norm is typing...</span>
+										<span className="govuk-hint">Norm is thinking...</span>
 									</div>
 								)}
 							</div>

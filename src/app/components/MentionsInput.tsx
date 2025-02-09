@@ -69,7 +69,7 @@ export const dummyChildData = [
 const socialWorker = {
 	name: "Matt Stanbrell",
 	email: "matt@critcal.com",
-	cases: ["12345", "12346", "12347", "12348", "12349"] as const,
+	cases: ["12345", "12346", "12347", "12348", "12349", "12350"] as const,
 	address: {
 		line1: "123 Fake Street",
 		town: "London",
@@ -258,13 +258,6 @@ export default function MentionsInput({
 		return () => document.removeEventListener("mousedown", handleClickOutside);
 	}, []);
 
-	// Function to convert the internal format to display format
-	const getDisplayValue = () => {
-		const displayValue = value;
-		const mentionRegex = /\[\[CASE:(\d+):([^\]]+)\]\]/g;
-		return displayValue.replace(mentionRegex, (_, _id, display) => display);
-	};
-
 	return (
 		<div
 			className="govuk-form-group"
@@ -310,7 +303,7 @@ export default function MentionsInput({
 					}}
 				>
 					{(() => {
-						let result = [];
+						const result = [];
 						let lastIndex = 0;
 
 						// Sort mentions by start position
