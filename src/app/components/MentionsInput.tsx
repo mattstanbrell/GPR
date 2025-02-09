@@ -8,7 +8,7 @@ type Case = {
 	matchType?: "number" | "name";
 };
 
-type StructuredMention = {
+export type StructuredMention = {
 	type: "case";
 	id: string;
 	display: string;
@@ -32,7 +32,7 @@ type MentionsInputProps = {
 };
 
 // Mock data from handler.ts - moved outside component
-const dummyChildData = [
+export const dummyChildData = [
 	{
 		name: "Charles Bucket",
 		caseNumber: "12350",
@@ -289,9 +289,11 @@ export default function MentionsInput({
 						bottom: 0,
 						color: "transparent",
 						caretColor: "black",
-						background: "transparent",
+						background: "none",
+						backgroundColor: "transparent",
 						zIndex: 2,
 						minHeight: `${rows * 1.5}em`,
+						WebkitBackgroundClip: "text",
 					}}
 				/>
 				<div
@@ -304,6 +306,7 @@ export default function MentionsInput({
 						overflowWrap: "break-word",
 						pointerEvents: "none",
 						background: "white",
+						WebkitBackgroundClip: "padding-box",
 					}}
 				>
 					{(() => {

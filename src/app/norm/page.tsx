@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { generateClient } from "aws-amplify/api";
 import type { Schema } from "../../../amplify/data/resource";
 import ReactMarkdown from "react-markdown";
 import MentionsInput, {
 	type StructuredMention,
+	dummyChildData,
 } from "../components/MentionsInput";
 import React from "react";
 
@@ -180,27 +181,94 @@ export default function NormPage() {
 		},
 	});
 
+	const [previousFormData, setPreviousFormData] = useState<FormState>({
+		caseNumber: null,
+		reason: "",
+		amount: null,
+		dateRequired: {
+			day: null,
+			month: null,
+			year: null,
+		},
+		firstName: "",
+		lastName: "",
+		address: {
+			line1: "",
+			line2: "",
+			town: "",
+			postcode: "",
+		},
+	});
+
 	const [animatingFields, setAnimatingFields] = useState<Set<string>>(
 		new Set(),
 	);
 
-	const animateField = React.useCallback((fieldName: string) => {
-		setAnimatingFields((prev) => {
-			const newSet = new Set(prev);
-			newSet.add(fieldName);
-			return newSet;
-		});
+	const animateField = React.useCallback(
+		(
+			fieldName: string,
+			newValue: string | number | null,
+			oldValue: string | number | null,
+		) => {
+			// Only animate if the values are different
+			if (JSON.stringify(newValue) !== JSON.stringify(oldValue)) {
+				setAnimatingFields((prev) => {
+					const newSet = new Set(prev);
+					newSet.add(fieldName);
+					return newSet;
+				});
 
-		const timeoutId = setTimeout(() => {
-			setAnimatingFields((prev) => {
-				const newSet = new Set(prev);
-				newSet.delete(fieldName);
-				return newSet;
-			});
-		}, 3000);
+				const timeoutId = setTimeout(() => {
+					setAnimatingFields((prev) => {
+						const newSet = new Set(prev);
+						newSet.delete(fieldName);
+						return newSet;
+					});
+				}, 3000);
 
-		return () => clearTimeout(timeoutId);
-	}, []);
+				return () => clearTimeout(timeoutId);
+			}
+		},
+		[],
+	);
+
+	// Update previous form data whenever form data changes
+	useEffect(() => {
+		setPreviousFormData(formData);
+	}, [formData]);
+
+	// Function to get nested value from form data
+	const getNestedValue = (
+		obj: FormState,
+		path: string,
+	): string | number | null => {
+		const parts = path.split(".");
+		let value: unknown = obj;
+
+		for (const part of parts) {
+			if (value && typeof value === "object" && part in value) {
+				value = (value as Record<string, unknown>)[part];
+			} else {
+				return null;
+			}
+		}
+
+		if (
+			typeof value === "string" ||
+			typeof value === "number" ||
+			value === null
+		) {
+			return value;
+		}
+		return null;
+	};
+
+	// Function to safely animate field changes
+	const safeAnimateField = (field: string) => {
+		const newValue = getNestedValue(formData, field);
+		const oldValue = getNestedValue(previousFormData, field);
+		animateField(field, newValue, oldValue);
+	};
 
 	const [messages, setMessages] = useState<Message[]>([]);
 	const [loading, setLoading] = useState(false);
@@ -302,7 +370,7 @@ export default function NormPage() {
 
 					// Animate all changed fields
 					for (const field of changedFields) {
-						animateField(field);
+						safeAnimateField(field);
 					}
 				}
 
@@ -336,30 +404,38 @@ export default function NormPage() {
 		(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
 			const value = e.target.value;
 			setFormData((prev) => {
+				let newData: FormState;
 				if (field.startsWith("date.")) {
 					const datePart = field.split(".")[1];
-					return {
+					newData = {
 						...prev,
 						dateRequired: {
 							...prev.dateRequired,
 							[datePart]: value,
 						},
 					};
-				}
-				if (field.startsWith("address.")) {
+					// Compare old and new values for animation
+					safeAnimateField(`dateRequired.${datePart}`);
+				} else if (field.startsWith("address.")) {
 					const addressPart = field.split(".")[1];
-					return {
+					newData = {
 						...prev,
 						address: {
 							...prev.address,
 							[addressPart]: value,
 						},
 					};
+					// Compare old and new values for animation
+					safeAnimateField(`address.${addressPart}`);
+				} else {
+					newData = {
+						...prev,
+						[field]: value,
+					};
+					// Compare old and new values for animation
+					safeAnimateField(field);
 				}
-				return {
-					...prev,
-					[field]: value,
-				};
+				return newData;
 			});
 		};
 
@@ -388,20 +464,52 @@ export default function NormPage() {
 	return (
 		<div style={{ height: "calc(100vh - 140px)", overflow: "hidden" }}>
 			<style jsx>{`
-				@keyframes highlight {
+				@keyframes highlight-agent {
 					0% {
 						background-color: transparent;
+						box-shadow: none;
 					}
 					50% {
-						background-color: rgba(111, 0, 176, 0.1);
+						background-color: #f0f7ff;
+						box-shadow: none;
 					}
 					100% {
 						background-color: transparent;
+						box-shadow: none;
+					}
+				}
+
+				@keyframes highlight-mention {
+					0% {
+						background-color: transparent;
+						box-shadow: none;
+					}
+					50% {
+						background-color: rgba(111, 0, 176, 0.1);
+						box-shadow: none;
+					}
+					100% {
+						background-color: transparent;
+						box-shadow: none;
 					}
 				}
 
 				.field-animation {
-					animation: highlight 1s ease-in-out;
+					animation: highlight-agent 1s ease-in-out forwards;
+				}
+
+				.field-animation-mention {
+					animation: highlight-mention 1s ease-in-out forwards;
+				}
+
+				/* Add hover styles for tooltip */
+				#caseNumber:hover + #case-number-tooltip {
+					display: block !important;
+				}
+
+				/* Add focus styles for tooltip */
+				#caseNumber:focus + #case-number-tooltip {
+					display: block !important;
 				}
 			`}</style>
 
@@ -433,18 +541,53 @@ export default function NormPage() {
 										<label className="govuk-label" htmlFor="caseNumber">
 											Case number
 										</label>
-										<input
-											className={`govuk-input ${
-												animatingFields.has("caseNumber")
-													? "field-animation"
-													: ""
-											}`}
-											id="caseNumber"
-											name="caseNumber"
-											type="text"
-											value={formData.caseNumber?.toString() || ""}
-											onChange={handleChange("caseNumber")}
-										/>
+										<div style={{ position: "relative" }}>
+											<input
+												className={`govuk-input ${
+													animatingFields.has("caseNumber")
+														? formData.caseNumber === previousCaseNumber
+															? "field-animation"
+															: "field-animation-mention"
+														: ""
+												}`}
+												id="caseNumber"
+												name="caseNumber"
+												type="text"
+												value={formData.caseNumber?.toString() || ""}
+												onChange={handleChange("caseNumber")}
+												aria-describedby="case-number-tooltip"
+											/>
+											{formData.caseNumber && (
+												<div
+													id="case-number-tooltip"
+													className="govuk-hint govuk-!-margin-top-1 govuk-!-margin-bottom-0"
+													style={{
+														position: "absolute",
+														top: "100%",
+														left: 0,
+														backgroundColor: "#f3f2f1",
+														padding: "15px",
+														marginTop: "5px",
+														zIndex: 100,
+														display: "none",
+														borderLeft: "5px solid #1d70b8",
+														maxWidth: "calc(100% - 5px)",
+														boxSizing: "border-box",
+													}}
+												>
+													{(() => {
+														const child = dummyChildData.find(
+															(c) =>
+																c.caseNumber ===
+																formData.caseNumber?.toString(),
+														);
+														return child
+															? `${child.name}, Age ${child.age}`
+															: "Case not found";
+													})()}
+												</div>
+											)}
+										</div>
 									</div>
 
 									<div className="govuk-form-group">
@@ -806,7 +949,7 @@ export default function NormPage() {
 														...prev,
 														caseNumber: caseNum,
 													}));
-													animateField("caseNumber");
+													safeAnimateField("caseNumber");
 												}
 											} else if (
 												mentions.length === 0 &&
