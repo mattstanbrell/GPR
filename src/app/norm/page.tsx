@@ -986,22 +986,64 @@ export default function NormPage() {
 									<MentionsInput
 										value={message}
 										onChange={(newValue, mentions) => {
+											console.log("\n=== Mentions Changed ===");
+											console.log("New mentions:", mentions);
+											console.log("Previous mentions:", currentMentions);
+											console.log(
+												"Previous case number stored:",
+												previousCaseNumber,
+											);
+
 											setMessage(newValue);
+
+											// Check if we're removing a mention
+											if (mentions.length < currentMentions.length) {
+												console.log(
+													"Mention removed - restoring previous case number:",
+													previousCaseNumber,
+												);
+												// Restore the previous case number
+												if (previousCaseNumber !== null) {
+													// Trigger animation before state update
+													animateField(
+														"caseNumber",
+														previousCaseNumber,
+														formData.caseNumber,
+														true,
+													);
+													setFormData((prev) => ({
+														...prev,
+														caseNumber: previousCaseNumber,
+													}));
+													setPreviousCaseNumber(null); // Clear the stored value
+												}
+											}
+
 											setCurrentMentions(mentions);
 
 											// If a case was mentioned, update the form data
 											const lastMention = mentions[mentions.length - 1];
 											if (lastMention) {
+												console.log("Processing last mention:", lastMention);
 												// Only store previous value if it exists and is different
 												if (
 													formData.caseNumber !== null &&
 													formData.caseNumber !== lastMention.id
 												) {
+													console.log(
+														"Storing previous case number:",
+														formData.caseNumber,
+													);
 													setPreviousCaseNumber(formData.caseNumber);
 												}
 												// Ensure we're setting the case number as a string
 												const caseNumberString = lastMention.id.toString();
 												const oldValue = formData.caseNumber;
+
+												console.log("Updating case number:", {
+													old: oldValue,
+													new: caseNumberString,
+												});
 
 												// Trigger animation before state update
 												animateField(
