@@ -287,6 +287,13 @@ export default function MentionsInput({
 						zIndex: 2,
 						minHeight: `${rows * 1.5}em`,
 						WebkitBackgroundClip: "text",
+						padding: "5px 4px 4px",
+						whiteSpace: "pre-wrap",
+						overflowWrap: "break-word",
+						resize: "vertical",
+						fontFamily: "inherit",
+						fontSize: "19px",
+						lineHeight: "1.25",
 					}}
 				/>
 				<div
@@ -300,6 +307,9 @@ export default function MentionsInput({
 						pointerEvents: "none",
 						background: "white",
 						WebkitBackgroundClip: "padding-box",
+						fontFamily: "inherit",
+						fontSize: "19px",
+						lineHeight: "1.25",
 					}}
 				>
 					{(() => {
