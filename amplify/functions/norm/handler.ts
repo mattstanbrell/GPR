@@ -1,5 +1,5 @@
 import type { Schema } from "../../data/resource";
-// import { ChatOpenAI } from "@langchain/openai";
+import { ChatOpenAI } from "@langchain/openai";
 // import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { ChatAnthropic } from "@langchain/anthropic";
 import { tool } from "@langchain/core/tools";
@@ -251,20 +251,20 @@ const updateFormFields = tool(
 	},
 );
 
-// const model = new ChatOpenAI({
-// 	model: "gpt-4o", // DON'T CHANGE THIS
-// 	apiKey: process.env.OPENAI_API_KEY,
-// });
+const model = new ChatOpenAI({
+	model: "gpt-4o", // DON'T CHANGE THIS
+	apiKey: process.env.OPENAI_API_KEY,
+});
 
 // const model = new ChatGoogleGenerativeAI({
 // 	model: "gemini-2.0-flash", // DON'T CHANGE THIS
 // 	apiKey: process.env.GOOGLE_API_KEY,
 // });
 
-const model = new ChatAnthropic({
-	model: "claude-3-5-sonnet-latest", // DON'T CHANGE THIS
-	apiKey: process.env.ANTHROPIC_API_KEY,
-});
+// const model = new ChatAnthropic({
+// 	model: "claude-3-5-sonnet-latest", // DON'T CHANGE THIS
+// 	apiKey: process.env.ANTHROPIC_API_KEY,
+// });
 
 // Add this before the agent creation
 const formatLondonTime = () => {

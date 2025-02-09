@@ -4,6 +4,10 @@ import { useState } from "react";
 import { generateClient } from "aws-amplify/api";
 import type { Schema } from "../../../amplify/data/resource";
 import ReactMarkdown from "react-markdown";
+import MentionsInput, {
+	type StructuredMention,
+} from "../components/MentionsInput";
+import React from "react";
 
 const client = generateClient<Schema>();
 
@@ -40,6 +44,7 @@ type FormState = {
 // For React's list rendering
 type Message = LangChainMessage & {
 	id: number;
+	mentions?: StructuredMention[];
 };
 
 const convertToLangChainMessage = (msg: Message): LangChainMessage => {
@@ -47,10 +52,14 @@ const convertToLangChainMessage = (msg: Message): LangChainMessage => {
 	return rest;
 };
 
-const createUserMessage = (content: string): Message => ({
+const createUserMessage = (
+	content: string,
+	mentions: StructuredMention[] = [],
+): Message => ({
 	id: Date.now(),
 	role: "human",
 	content,
+	mentions,
 });
 
 const createAssistantMessage = (content: string): Message => ({
@@ -175,25 +184,39 @@ export default function NormPage() {
 		new Set(),
 	);
 
-	const animateField = (fieldName: string) => {
-		setAnimatingFields((prev) => new Set(prev).add(fieldName));
-		setTimeout(() => {
+	const animateField = React.useCallback((fieldName: string) => {
+		setAnimatingFields((prev) => {
+			const newSet = new Set(prev);
+			newSet.add(fieldName);
+			return newSet;
+		});
+
+		const timeoutId = setTimeout(() => {
 			setAnimatingFields((prev) => {
 				const newSet = new Set(prev);
 				newSet.delete(fieldName);
 				return newSet;
 			});
-		}, 3000); // Duration of animation
-	};
+		}, 3000);
+
+		return () => clearTimeout(timeoutId);
+	}, []);
 
 	const [messages, setMessages] = useState<Message[]>([]);
 	const [loading, setLoading] = useState(false);
 	const [message, setMessage] = useState("");
+	const [currentMentions, setCurrentMentions] = useState<StructuredMention[]>(
+		[],
+	);
+	const [previousCaseNumber, setPreviousCaseNumber] = useState<number | null>(
+		null,
+	);
 
 	const handleMessageSubmit = async () => {
 		if (!message.trim()) return;
 
-		const userMessage = createUserMessage(message);
+		// Create a message that includes mention metadata
+		const userMessage = createUserMessage(message, currentMentions);
 
 		// Get the previous state from the last response
 		const previousState = messages
@@ -229,7 +252,8 @@ export default function NormPage() {
 
 		setMessages((prev) => [...prev, userMessage]);
 		setLoading(true);
-		setMessage(""); // Clear the input immediately for better UX
+		setMessage("");
+		setCurrentMentions([]);
 
 		try {
 			console.log(
@@ -339,6 +363,28 @@ export default function NormPage() {
 			});
 		};
 
+	// Function to render message content with highlighted mentions
+	const renderMessageContent = React.useCallback((content: string) => {
+		return content.split(/(\[\[CASE:\d+:[^\]]+\]\])/).map((part, i) => {
+			const mentionMatch = part.match(/\[\[CASE:(\d+):([^\]]+)\]\]/);
+			if (mentionMatch) {
+				return (
+					<span
+						key={`mention-${mentionMatch[1]}-${i}`}
+						style={{
+							backgroundColor: "rgba(111, 0, 176, 0.1)", // Hounslow purple with low opacity
+							padding: "0 2px",
+							borderRadius: "2px",
+						}}
+					>
+						{mentionMatch[2]}
+					</span>
+				);
+			}
+			return part;
+		});
+	}, []);
+
 	return (
 		<div style={{ height: "calc(100vh - 140px)", overflow: "hidden" }}>
 			<style jsx>{`
@@ -347,7 +393,7 @@ export default function NormPage() {
 						background-color: transparent;
 					}
 					50% {
-						background-color: #ffdd00;
+						background-color: rgba(111, 0, 176, 0.1);
 					}
 					100% {
 						background-color: transparent;
@@ -711,7 +757,7 @@ export default function NormPage() {
 												components={{
 													p: ({ children }) => (
 														<p className="govuk-body" style={{ margin: 0 }}>
-															{children}
+															{renderMessageContent(children.toString())}
 														</p>
 													),
 													ul: ({ children }) => (
@@ -737,34 +783,56 @@ export default function NormPage() {
 								)}
 							</div>
 							<div className="govuk-form-group" style={{ marginBottom: 0 }}>
-								<div style={{ display: "flex", gap: "10px" }}>
-									<textarea
-										className="govuk-textarea"
-										rows={3}
-										aria-label="Message input"
-										placeholder="Type your message here..."
+								<div style={{ display: "flex", gap: "10px", width: "100%" }}>
+									<MentionsInput
 										value={message}
-										onChange={(e) => setMessage(e.target.value)}
+										onChange={(newValue, mentions) => {
+											setMessage(newValue);
+											setCurrentMentions(mentions);
+
+											// If a case was mentioned, update the form data
+											const lastMention = mentions[mentions.length - 1];
+											if (lastMention) {
+												const caseNum = Number.parseInt(lastMention.id, 10);
+												if (!Number.isNaN(caseNum)) {
+													// Only store previous value if it exists and is different
+													if (
+														formData.caseNumber !== null &&
+														formData.caseNumber !== caseNum
+													) {
+														setPreviousCaseNumber(formData.caseNumber);
+													}
+													setFormData((prev) => ({
+														...prev,
+														caseNumber: caseNum,
+													}));
+													animateField("caseNumber");
+												}
+											} else if (
+												mentions.length === 0 &&
+												previousCaseNumber !== null
+											) {
+												// Restore previous case number when all mentions are removed
+												setFormData((prev) => ({
+													...prev,
+													caseNumber: previousCaseNumber,
+												}));
+												setPreviousCaseNumber(null);
+											} else if (mentions.length === 0) {
+												// If no mentions and no previous value, clear the case number
+												setFormData((prev) => ({
+													...prev,
+													caseNumber: null,
+												}));
+											}
+										}}
+										onSubmit={handleMessageSubmit}
 										onKeyDown={(e) => {
 											if (e.key === "Enter" && !e.shiftKey) {
 												e.preventDefault();
-												handleMessageSubmit();
 											}
 										}}
 									/>
-									{/* we don't need this button rn */}
-									{/* <button
-										type="button"
-										className="govuk-button"
-										style={{
-											alignSelf: "flex-end",
-											whiteSpace: "nowrap",
-										}}
-										onClick={handleMessageSubmit}
-										disabled={loading}
-									>
-										{loading ? "Sending..." : "Send"}
-									</button> */}
 								</div>
 							</div>
 						</div>
