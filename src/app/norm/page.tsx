@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { generateClient } from "aws-amplify/api";
 import type { Schema } from "../../../amplify/data/resource";
+import ReactMarkdown from "react-markdown";
 
 const client = generateClient<Schema>();
 
@@ -705,9 +706,28 @@ export default function NormPage() {
 												borderBottom: "none",
 											}}
 										>
-											<p className="govuk-body" style={{ margin: 0 }}>
+											<ReactMarkdown
+												className="govuk-body"
+												components={{
+													p: ({ children }) => (
+														<p className="govuk-body" style={{ margin: 0 }}>
+															{children}
+														</p>
+													),
+													ul: ({ children }) => (
+														<ul className="govuk-list govuk-list--bullet">
+															{children}
+														</ul>
+													),
+													li: ({ children }) => (
+														<li className="govuk-body" style={{ margin: 0 }}>
+															{children}
+														</li>
+													),
+												}}
+											>
 												{msg.content}
-											</p>
+											</ReactMarkdown>
 										</div>
 									))}
 								{loading && (
