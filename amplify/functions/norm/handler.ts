@@ -43,7 +43,7 @@ const StateAnnotation = Annotation.Root({
 	}>,
 });
 
-const updateFormField = tool(
+const updateFormFields = tool(
 	async (
 		{
 			updates,
@@ -56,7 +56,7 @@ const updateFormField = tool(
 		},
 		config,
 	) => {
-		console.log("updateFormField tool called with updates:", updates);
+		console.log("updateFormFields tool called with updates:", updates);
 
 		// Helper to update nested fields
 		const updateNestedField = (
@@ -116,7 +116,7 @@ const updateFormField = tool(
 		});
 	},
 	{
-		name: "updateFormField",
+		name: "updateFormFields",
 		description: "Update multiple fields in the form at once.",
 		schema: z.object({
 			updates: z
@@ -147,7 +147,7 @@ const model = new ChatOpenAI({
 
 const agent = createReactAgent({
 	llm: model,
-	tools: [updateFormField],
+	tools: [updateFormFields],
 	stateSchema: StateAnnotation,
 	stateModifier:
 		"You are a helpful assistant that can update any field in the form. The form has the following fields:\n" +
