@@ -24,7 +24,7 @@ type LangChainMessage = {
 };
 
 type FormState = {
-	caseNumber: number | null;
+	caseNumber: string | null;
 	reason: string;
 	amount: number | null;
 	dateRequired: {
@@ -232,11 +232,6 @@ export default function NormPage() {
 		[],
 	);
 
-	// Update previous form data whenever form data changes
-	useEffect(() => {
-		setPreviousFormData(formData);
-	}, [formData]);
-
 	// Function to get nested value from form data
 	const getNestedValue = (
 		obj: FormState,
@@ -276,7 +271,7 @@ export default function NormPage() {
 	const [currentMentions, setCurrentMentions] = useState<StructuredMention[]>(
 		[],
 	);
-	const [previousCaseNumber, setPreviousCaseNumber] = useState<number | null>(
+	const [previousCaseNumber, setPreviousCaseNumber] = useState<string | null>(
 		null,
 	);
 
@@ -286,30 +281,13 @@ export default function NormPage() {
 		// Create a message that includes mention metadata
 		const userMessage = createUserMessage(message, currentMentions);
 
-		// Get the previous state from the last response
-		const previousState = messages
-			.filter((msg) => msg.role === "ai")
-			.reduce(
-				(state, msg) => {
-					try {
-						const parsedResponse = JSON.parse(msg.content);
-						if (parsedResponse.formData) {
-							return parsedResponse.formData;
-						}
-					} catch (e) {
-						// Not a JSON message, ignore
-					}
-					return state;
-				},
-				{} as Partial<FormState>,
-			);
-
-		// Find which fields were manually updated
-		const updates = findUpdates(formData, previousState);
+		// Find which fields were manually updated by comparing with previous form data
+		const updates = findUpdates(formData, previousFormData);
 
 		// Create messages array with update note if needed
 		const messagesToSend = [...messages];
 		if (updates.length > 0) {
+			console.log("Manual updates detected:", updates);
 			messagesToSend.push(
 				createUserMessage(
 					`[Note: The following fields were manually updated: ${updates.join(", ")}. These updates have already been applied, no need to use the updateFormField tool.]`,
@@ -321,6 +299,8 @@ export default function NormPage() {
 		setMessages((prev) => [...prev, userMessage]);
 		setLoading(true);
 		setMessage("");
+		// Store the current mentions before clearing them
+		const previousMentions = currentMentions;
 		setCurrentMentions([]);
 
 		try {
@@ -362,10 +342,26 @@ export default function NormPage() {
 						parsedResponse.formData,
 					);
 
-					// Update form data
+					// Update form data while preserving the case number if it hasn't changed
 					setFormData((prev) => ({
 						...prev,
 						...parsedResponse.formData,
+						// Preserve the case number if it hasn't changed in the response
+						caseNumber:
+							parsedResponse.formData.caseNumber === prev.caseNumber
+								? prev.caseNumber
+								: parsedResponse.formData.caseNumber,
+					}));
+
+					// Update previousFormData to match the agent's response
+					setPreviousFormData((prev) => ({
+						...prev,
+						...parsedResponse.formData,
+						// Keep the same case number preservation logic
+						caseNumber:
+							parsedResponse.formData.caseNumber === prev.caseNumber
+								? prev.caseNumber
+								: parsedResponse.formData.caseNumber,
 					}));
 
 					// Animate all changed fields
@@ -407,11 +403,12 @@ export default function NormPage() {
 				let newData: FormState;
 				if (field.startsWith("date.")) {
 					const datePart = field.split(".")[1];
+					const numValue = value === "" ? null : Number(value);
 					newData = {
 						...prev,
 						dateRequired: {
 							...prev.dateRequired,
-							[datePart]: value,
+							[datePart]: numValue,
 						},
 					};
 					// Compare old and new values for animation
@@ -428,9 +425,16 @@ export default function NormPage() {
 					// Compare old and new values for animation
 					safeAnimateField(`address.${addressPart}`);
 				} else {
+					// Handle numeric fields
+					let processedValue: string | number | null = value;
+					if (field === "amount") {
+						processedValue = value === "" ? null : Number(value);
+					} else if (field === "caseNumber") {
+						processedValue = value === "" ? null : value;
+					}
 					newData = {
 						...prev,
-						[field]: value,
+						[field]: processedValue,
 					};
 					// Compare old and new values for animation
 					safeAnimateField(field);
@@ -936,37 +940,20 @@ export default function NormPage() {
 											// If a case was mentioned, update the form data
 											const lastMention = mentions[mentions.length - 1];
 											if (lastMention) {
-												const caseNum = Number.parseInt(lastMention.id, 10);
-												if (!Number.isNaN(caseNum)) {
-													// Only store previous value if it exists and is different
-													if (
-														formData.caseNumber !== null &&
-														formData.caseNumber !== caseNum
-													) {
-														setPreviousCaseNumber(formData.caseNumber);
-													}
-													setFormData((prev) => ({
-														...prev,
-														caseNumber: caseNum,
-													}));
-													safeAnimateField("caseNumber");
+												// Only store previous value if it exists and is different
+												if (
+													formData.caseNumber !== null &&
+													formData.caseNumber !== lastMention.id
+												) {
+													setPreviousCaseNumber(formData.caseNumber);
 												}
-											} else if (
-												mentions.length === 0 &&
-												previousCaseNumber !== null
-											) {
-												// Restore previous case number when all mentions are removed
+												// Ensure we're setting the case number as a string
+												const caseNumberString = lastMention.id.toString();
 												setFormData((prev) => ({
 													...prev,
-													caseNumber: previousCaseNumber,
+													caseNumber: caseNumberString,
 												}));
-												setPreviousCaseNumber(null);
-											} else if (mentions.length === 0) {
-												// If no mentions and no previous value, clear the case number
-												setFormData((prev) => ({
-													...prev,
-													caseNumber: null,
-												}));
+												safeAnimateField("caseNumber");
 											}
 										}}
 										onSubmit={handleMessageSubmit}

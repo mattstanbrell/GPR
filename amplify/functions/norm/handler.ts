@@ -94,7 +94,7 @@ const lookupCaseNumberByChildName = tool(
 		console.log("\n=== lookupCaseNumberByChildName called ===");
 		console.log("Looking up:", childName);
 
-		const searchName = childName.toLowerCase();
+		const searchName = childName.toLowerCase().trim();
 		console.log("Normalized search name:", searchName);
 
 		// Filter cases that belong to the social worker
@@ -103,51 +103,51 @@ const lookupCaseNumberByChildName = tool(
 		);
 		console.log("Available cases:", availableCases);
 
-		// Look for exact matches (case-insensitive)
+		// Look for exact matches first (case-insensitive)
 		const exactMatches = availableCases.filter(
 			(child) => child.name.toLowerCase() === searchName,
 		);
+
+		// Look for partial matches
+		const partialMatches = availableCases.filter(
+			(child) =>
+				child.name.toLowerCase().includes(searchName) ||
+				searchName.includes(child.name.toLowerCase()),
+		);
+
 		console.log("Exact matches found:", exactMatches);
+		console.log("Partial matches found:", partialMatches);
 
 		let result: {
-			status: "exact_match" | "multiple_matches" | "no_exact_match";
+			status: "exact_match" | "partial_match" | "no_match";
 			caseNumber?: string;
 			message: string;
-			matches?: typeof exactMatches;
-			availableCases?: typeof availableCases;
-			searchTerm?: string;
+			matches?: typeof partialMatches;
 		};
 
 		if (exactMatches.length === 1) {
 			result = {
 				status: "exact_match",
 				caseNumber: exactMatches[0].caseNumber,
-				message: `Found case number ${exactMatches[0].caseNumber} for ${exactMatches[0].name}. Proceed with using this case number.`,
+				message: `Found case number ${exactMatches[0].caseNumber} for ${exactMatches[0].name}.`,
 			};
-		} else if (exactMatches.length > 1) {
-			const matchesText = exactMatches
-				.map(
-					(child) =>
-						`- ${child.name} (Case ${child.caseNumber}, Age ${child.age})`,
-				)
-				.join("\n");
+		} else if (partialMatches.length === 1) {
 			result = {
-				status: "multiple_matches",
-				matches: exactMatches,
-				message: `Multiple exact matches found. Ask the user to specify which child they are referring to from the following list:\n${matchesText}`,
+				status: "partial_match",
+				caseNumber: partialMatches[0].caseNumber,
+				matches: partialMatches,
+				message: `Found one possible match: ${partialMatches[0].name}. If this is correct, proceed with case ${partialMatches[0].caseNumber}. If not, ask the social worker to clarify or provide the case number directly.`,
+			};
+		} else if (partialMatches.length > 1) {
+			result = {
+				status: "partial_match",
+				matches: partialMatches,
+				message: `Found ${partialMatches.length} possible matches. Ask the social worker which child they mean, showing ONLY these matches:\n${partialMatches.map((child) => `- ${child.name} (Case ${child.caseNumber})`).join("\n")}`,
 			};
 		} else {
-			const casesText = availableCases
-				.map(
-					(child) =>
-						`- ${child.name} (Case ${child.caseNumber}, Age ${child.age})`,
-				)
-				.join("\n");
 			result = {
-				status: "no_exact_match",
-				availableCases: availableCases,
-				searchTerm: childName,
-				message: `No exact match found for "${childName}". Here are all available cases:\n${casesText}\n\nPlease:\n1. Check if any names are similar to "${childName}" (e.g. nicknames, partial matches, misspellings)\n2. If you find similar names, ask the user "Did you mean one of these?" and show only those matches\n3. If no similar names found, show the full list and ask the user to specify which child they mean`,
+				status: "no_match",
+				message: `No matches found for "${childName}". As a last resort, here are all available cases:\n${availableCases.map((child) => `- ${child.name} (Case ${child.caseNumber})`).join("\n")}\n\nAsk the social worker to either select from this list or provide a case number directly.`,
 			};
 		}
 
@@ -157,7 +157,7 @@ const lookupCaseNumberByChildName = tool(
 	{
 		name: "lookupCaseNumberByChildName",
 		description:
-			"Look up a child's case number by their name. Returns exact matches if found, otherwise returns all cases for the agent to analyze.",
+			"Look up a child's case number by their name. Returns exact matches if found, otherwise provides guidance for handling partial matches or no matches.",
 		schema: z.object({
 			childName: z.string().describe("The name of the child to look up"),
 		}),
@@ -201,11 +201,12 @@ const updateFormFields = tool(
 			}
 
 			// Update the value with proper type conversion
-			// Special case for caseNumber - always treat as string
 			if (lastKey === "caseNumber") {
-				pointer[lastKey] = value;
+				pointer[lastKey] = value; // Always keep caseNumber as string
+			} else if (type === "number") {
+				pointer[lastKey] = value === "" ? null : Number(value);
 			} else {
-				pointer[lastKey] = type === "number" ? Number(value) : value;
+				pointer[lastKey] = value;
 			}
 		};
 
@@ -284,73 +285,63 @@ const formatLondonTime = () => {
 const agent = createReactAgent({
 	llm: model,
 	tools: [updateFormFields, lookupCaseNumberByChildName],
-	stateModifier: `You are an intelligent assistant helping social workers submit prepaid card requests quickly and efficiently. You help fill out a form based on their natural language requests, while being aware of any manual edits they make to the form fields between messages.
+	stateModifier: `You are a friendly assistant helping social workers submit prepaid card requests. You help fill out a form based on their natural language requests.
 
 Current time in London: ${formatLondonTime()}
 
 Current social worker details (use these to auto-fill fields if they are the card recipient):
 Name: ${socialWorker.name}
-Address: ${socialWorker.address.line1}
+Address Line 1: ${socialWorker.address.line1}
 Town: ${socialWorker.address.town}
 Postcode: ${socialWorker.address.postcode}
 
 Key points:
-- Each request needs a case number (use lookupCaseNumberByChildName if given a child's name)
-- Social workers can manually edit form fields between messages - you'll receive a note about any changes
-- The prepaid card recipient's name and address must be specified
-- Only update fields that have new information - don't resend unchanged values
-- Keep responses friendly but concise, asking for only 1-2 pieces of information at a time
-- Use proper grammar and capitalization in all fields
-- The expense might not be directly for a child, but still needs a case number
-- Social workers often remember children's names better than case numbers
-
-When handling a request:
-1. Check existing form values and any notes about manual edits
-2. Extract any new information from the message
-3. ONLY update fields that should change based on new information
-4. If no case number, ask for a child's name or case number
-5. If recipient unclear, ask if card should go to the social worker
-6. If they say the card is for them, auto-fill their details (but only if not already set)
-
-Using the updateFormFields tool:
-- Only include fields that need to change in the updates array
-- Don't resend values that are already correct in the form
-- When auto-filling social worker details, only fill empty fields
-- Example: If just updating amount, only send the amount field
+- Each request needs a case number - if given a child's name, look it up using the lookupCaseNumberByChildName tool
+- Keep responses friendly and concise
+- Only update fields that have new information
+- Ask for only 1-2 pieces of information at a time
+- If they say the card is for them, auto-fill their details
+- Update fields immediately upon recieiving relevant information
+- Use correct grammar and punctuation in form fields, eg "Car seat for Charlie". Feel free to reword the social worker's reason for clarity.
+- If you receive new information that contradicts previous information, update the fields accordingly using updateFormFields
+- Social workers can manually edit the form fields between messages. These updates are already recorded in the form state, so don't repeat them with updateFormFields calls.
 
 Message formatting:
-- Use double newlines (\\n\\n) between paragraphs
-- Use single newlines (\\n) for lists
-- When confirming details, put each item on a new line
-- Keep questions on their own line
-- Example format:
-  "I've noted down the details for the car seat.\\n\\nHere's what I've updated:\\n- Amount: £100\\n- Reason: Car seat purchase for Charlie Bucket\\n\\nShould I send the prepaid card to you, or someone else?"
+- Be conversational but efficient
+- Ask clear, simple questions
+
+Examples:
+Social worker: "I need £100 to buy a car seat for Charlie Bucket"
+Assistant: 
+[calls lookupCaseNumberByChildName with "Charlie Bucket"]
+[calls updateFormFields with [{field: "caseNumber", value: "12345", type: "string"}, {field: "reason", value: "Car seat for Charlie Bucket", type: "string"}, {field: "amount", value: "100", type: "number"}]]
+"I've noted the £100 for Charlie's car seat. When do you need the card by?"
+Social worker: "Wait, I actually need £110"
+Assistant: [calls updateFormFields with [{field: "amount", value: "110", type: "number"}]]
+"I've updated the amount to £110. When do you need the card by?"
+
+Social worker: "I need £50 by tomorrow"
+Assistant: [calls updateFormFields with [{field: "amount", value: "50", type: "number"}, {field: "dateRequired.day", value: new Date(Date.now() + 86400000).getDate(), type: "number"}, {field: "dateRequired.month", value: new Date(Date.now() + 86400000).getMonth() + 1, type: "number"}, {field: "dateRequired.year", value: new Date(Date.now() + 86400000).getFullYear(), type: "number"}]]
+"I see. Which child is this expense for?"
 
 Form fields available:
-- caseNumber (string) - REQUIRED, use lookupCaseNumberByChildName if given a child's name
-- reason (string) - REQUIRED, clear description with proper grammar (e.g., "Car seat purchase for Charlie Bucket")
-- amount (number) - REQUIRED, the amount needed in pounds (remove £ symbol)
-- dateRequired.day (number) - REQUIRED, when the prepaid card is needed
-- dateRequired.month (number) - REQUIRED
-- dateRequired.year (number) - REQUIRED
-- firstName (string) - REQUIRED, first name of person who will receive the prepaid card (properly capitalized)
-- lastName (string) - REQUIRED, last name of person who will receive the prepaid card (properly capitalized)
-- address.line1 (string) - REQUIRED, address where the prepaid card should be sent (properly formatted)
-- address.line2 (string) - Optional additional address line (properly formatted)
-- address.town (string) - REQUIRED, town/city for the card delivery (properly capitalized)
-- address.postcode (string) - REQUIRED, postcode for the card delivery (proper format)
+- caseNumber (string) - REQUIRED - Case number of the child the expense is for
+- reason (string) - REQUIRED - Reason for the expense
+- amount (number) - REQUIRED - Amount of the expense (remove any currency symbols)
+- dateRequired.day (number) - REQUIRED - Day of the month the expense is needed by
+- dateRequired.month (number) - REQUIRED - Month the expense is needed by
+- dateRequired.year (number) - REQUIRED - Year the expense is needed by
+- firstName (string) - REQUIRED - First name of the card recipient
+- lastName (string) - REQUIRED - Last name of the card recipient
+- address.line1 (string) - REQUIRED - First line of the card recipient's address
+- address.line2 (string) - Optional - Second line of the card recipient's address
+- address.town (string) - REQUIRED - Town of the card recipient's address
+- address.postcode (string) - REQUIRED - Postcode of the card recipient's address
 
-Example interactions:
-1. User: "I need £100 to buy a car seat for charlie bucket"
-   Assistant: "I've noted down the car seat request.\\n\\nI've updated:\\n- Amount: £100\\n- Reason: Car seat purchase for Charlie Bucket\\n- Case: #12345 (Charlie Bucket)\\n\\nShould I send the prepaid card to you, or someone else?"
-
-2. User: "Yes, send it to me"
-   Assistant: "I'll send it to your address.\\n\\nI've updated:\\n- Name and address details with your information\\n\\nWhen do you need the card by?"
-
-3. User: "I need £50 for school supplies"
-   Assistant: "I can help you with that.\\n\\nI've updated:\\n- Amount: £50\\n- Reason: School supplies purchase\\n\\nWhich child's case is this for? You can give me their name or case number."
-
-Be natural but efficient. If you receive a note about manual edits, acknowledge them and continue with any missing information. Always confirm only the fields you've actually changed.`,
+Remember:
+- Ask directly about form details (e.g. "Are you the card recipient?") rather than offering help (e.g. "Should I send the card to your address?")
+- Be natural and friendly
+- Ask for missing information one step at a time`,
 });
 
 export const handler: Schema["norm"]["functionHandler"] = async (event) => {
