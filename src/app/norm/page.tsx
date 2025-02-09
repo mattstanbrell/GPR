@@ -200,8 +200,8 @@ export default function NormPage() {
 		},
 	});
 
-	const [animatingFields, setAnimatingFields] = useState<Set<string>>(
-		new Set(),
+	const [animatingFields, setAnimatingFields] = useState<Map<string, boolean>>(
+		new Map(),
 	);
 
 	const animateField = React.useCallback(
@@ -209,24 +209,37 @@ export default function NormPage() {
 			fieldName: string,
 			newValue: string | number | null,
 			oldValue: string | number | null,
+			isMention = false,
 		) => {
+			console.log(`=== Animation Check for ${fieldName} ===`);
+			console.log("New value:", newValue);
+			console.log("Old value:", oldValue);
+			console.log("Is mention:", isMention);
+			console.log(
+				"JSON comparison:",
+				JSON.stringify(newValue) !== JSON.stringify(oldValue),
+			);
+
 			// Only animate if the values are different
 			if (JSON.stringify(newValue) !== JSON.stringify(oldValue)) {
+				console.log("Triggering animation");
 				setAnimatingFields((prev) => {
-					const newSet = new Set(prev);
-					newSet.add(fieldName);
-					return newSet;
+					const newMap = new Map(prev);
+					newMap.set(fieldName, isMention);
+					return newMap;
 				});
 
 				const timeoutId = setTimeout(() => {
 					setAnimatingFields((prev) => {
-						const newSet = new Set(prev);
-						newSet.delete(fieldName);
-						return newSet;
+						const newMap = new Map(prev);
+						newMap.delete(fieldName);
+						return newMap;
 					});
 				}, 3000);
 
 				return () => clearTimeout(timeoutId);
+			} else {
+				console.log("No animation needed - values are the same");
 			}
 		},
 		[],
@@ -237,6 +250,7 @@ export default function NormPage() {
 		obj: FormState,
 		path: string,
 	): string | number | null => {
+		console.log(`=== Getting nested value for ${path} ===`);
 		const parts = path.split(".");
 		let value: unknown = obj;
 
@@ -244,10 +258,12 @@ export default function NormPage() {
 			if (value && typeof value === "object" && part in value) {
 				value = (value as Record<string, unknown>)[part];
 			} else {
+				console.log("Value not found in object, returning null");
 				return null;
 			}
 		}
 
+		console.log("Found value:", value);
 		if (
 			typeof value === "string" ||
 			typeof value === "number" ||
@@ -255,14 +271,25 @@ export default function NormPage() {
 		) {
 			return value;
 		}
+		console.log("Value is not a primitive type, returning null");
 		return null;
 	};
 
 	// Function to safely animate field changes
-	const safeAnimateField = (field: string) => {
+	const safeAnimateField = (field: string, isMention = false) => {
+		console.log(`\n=== Safe Animate Field: ${field} ===`);
+		console.log("Current form data:", formData);
+		console.log("Previous form data:", previousFormData);
+
 		const newValue = getNestedValue(formData, field);
 		const oldValue = getNestedValue(previousFormData, field);
-		animateField(field, newValue, oldValue);
+
+		console.log("Comparing values for animation:");
+		console.log("New:", newValue);
+		console.log("Old:", oldValue);
+		console.log("Is mention:", isMention);
+
+		animateField(field, newValue, oldValue, isMention);
 	};
 
 	const [messages, setMessages] = useState<Message[]>([]);
@@ -342,32 +369,29 @@ export default function NormPage() {
 						parsedResponse.formData,
 					);
 
-					// Update form data while preserving the case number if it hasn't changed
-					setFormData((prev) => ({
-						...prev,
+					console.log("Changed fields:", changedFields);
+
+					// Animate all changed fields BEFORE updating the states
+					for (const field of changedFields) {
+						const oldValue = getNestedValue(formData, field);
+						const newValue = getNestedValue(parsedResponse.formData, field);
+						console.log(`Animating ${field}:`, { oldValue, newValue });
+						animateField(field, newValue, oldValue, false);
+					}
+
+					// Now update the states
+					const newFormData = {
+						...formData,
 						...parsedResponse.formData,
 						// Preserve the case number if it hasn't changed in the response
 						caseNumber:
-							parsedResponse.formData.caseNumber === prev.caseNumber
-								? prev.caseNumber
+							parsedResponse.formData.caseNumber === formData.caseNumber
+								? formData.caseNumber
 								: parsedResponse.formData.caseNumber,
-					}));
+					};
 
-					// Update previousFormData to match the agent's response
-					setPreviousFormData((prev) => ({
-						...prev,
-						...parsedResponse.formData,
-						// Keep the same case number preservation logic
-						caseNumber:
-							parsedResponse.formData.caseNumber === prev.caseNumber
-								? prev.caseNumber
-								: parsedResponse.formData.caseNumber,
-					}));
-
-					// Animate all changed fields
-					for (const field of changedFields) {
-						safeAnimateField(field);
-					}
+					setFormData(newFormData);
+					setPreviousFormData(newFormData);
 				}
 
 				// Add the assistant's response to messages
@@ -412,7 +436,7 @@ export default function NormPage() {
 						},
 					};
 					// Compare old and new values for animation
-					safeAnimateField(`dateRequired.${datePart}`);
+					safeAnimateField(`dateRequired.${datePart}`, false);
 				} else if (field.startsWith("address.")) {
 					const addressPart = field.split(".")[1];
 					newData = {
@@ -423,7 +447,7 @@ export default function NormPage() {
 						},
 					};
 					// Compare old and new values for animation
-					safeAnimateField(`address.${addressPart}`);
+					safeAnimateField(`address.${addressPart}`, false);
 				} else {
 					// Handle numeric fields
 					let processedValue: string | number | null = value;
@@ -437,7 +461,7 @@ export default function NormPage() {
 						[field]: processedValue,
 					};
 					// Compare old and new values for animation
-					safeAnimateField(field);
+					safeAnimateField(field, false);
 				}
 				return newData;
 			});
@@ -549,9 +573,9 @@ export default function NormPage() {
 											<input
 												className={`govuk-input ${
 													animatingFields.has("caseNumber")
-														? formData.caseNumber === previousCaseNumber
-															? "field-animation"
-															: "field-animation-mention"
+														? animatingFields.get("caseNumber")
+															? "field-animation-mention"
+															: "field-animation"
 														: ""
 												}`}
 												id="caseNumber"
@@ -600,7 +624,11 @@ export default function NormPage() {
 										</label>
 										<textarea
 											className={`govuk-textarea ${
-												animatingFields.has("reason") ? "field-animation" : ""
+												animatingFields.has("reason")
+													? animatingFields.get("reason")
+														? "field-animation-mention"
+														: "field-animation"
+													: ""
 											}`}
 											id="reason"
 											name="reason"
@@ -620,7 +648,11 @@ export default function NormPage() {
 											</div>
 											<input
 												className={`govuk-input govuk-input--width-5 ${
-													animatingFields.has("amount") ? "field-animation" : ""
+													animatingFields.has("amount")
+														? animatingFields.get("amount")
+															? "field-animation-mention"
+															: "field-animation"
+														: ""
 												}`}
 												id="amount"
 												name="amount"
@@ -652,7 +684,9 @@ export default function NormPage() {
 														<input
 															className={`govuk-input govuk-date-input__input govuk-input--width-2 ${
 																animatingFields.has("dateRequired.day")
-																	? "field-animation"
+																	? animatingFields.get("dateRequired.day")
+																		? "field-animation-mention"
+																		: "field-animation"
 																	: ""
 															}`}
 															id="date-required-day"
@@ -677,7 +711,9 @@ export default function NormPage() {
 														<input
 															className={`govuk-input govuk-date-input__input govuk-input--width-2 ${
 																animatingFields.has("dateRequired.month")
-																	? "field-animation"
+																	? animatingFields.get("dateRequired.month")
+																		? "field-animation-mention"
+																		: "field-animation"
 																	: ""
 															}`}
 															id="date-required-month"
@@ -702,7 +738,9 @@ export default function NormPage() {
 														<input
 															className={`govuk-input govuk-date-input__input govuk-input--width-4 ${
 																animatingFields.has("dateRequired.year")
-																	? "field-animation"
+																	? animatingFields.get("dateRequired.year")
+																		? "field-animation-mention"
+																		: "field-animation"
 																	: ""
 															}`}
 															id="date-required-year"
@@ -738,7 +776,9 @@ export default function NormPage() {
 										<input
 											className={`govuk-input ${
 												animatingFields.has("firstName")
-													? "field-animation"
+													? animatingFields.get("firstName")
+														? "field-animation-mention"
+														: "field-animation"
 													: ""
 											}`}
 											id="firstName"
@@ -755,7 +795,11 @@ export default function NormPage() {
 										</label>
 										<input
 											className={`govuk-input ${
-												animatingFields.has("lastName") ? "field-animation" : ""
+												animatingFields.has("lastName")
+													? animatingFields.get("lastName")
+														? "field-animation-mention"
+														: "field-animation"
+													: ""
 											}`}
 											id="lastName"
 											name="lastName"
@@ -772,7 +816,9 @@ export default function NormPage() {
 										<input
 											className={`govuk-input ${
 												animatingFields.has("address.line1")
-													? "field-animation"
+													? animatingFields.get("address.line1")
+														? "field-animation-mention"
+														: "field-animation"
 													: ""
 											}`}
 											id="address-line-1"
@@ -791,7 +837,9 @@ export default function NormPage() {
 										<input
 											className={`govuk-input ${
 												animatingFields.has("address.line2")
-													? "field-animation"
+													? animatingFields.get("address.line2")
+														? "field-animation-mention"
+														: "field-animation"
 													: ""
 											}`}
 											id="address-line-2"
@@ -810,7 +858,9 @@ export default function NormPage() {
 										<input
 											className={`govuk-input govuk-input--width-20 ${
 												animatingFields.has("address.town")
-													? "field-animation"
+													? animatingFields.get("address.town")
+														? "field-animation-mention"
+														: "field-animation"
 													: ""
 											}`}
 											id="address-town"
@@ -829,7 +879,9 @@ export default function NormPage() {
 										<input
 											className={`govuk-input govuk-input--width-10 ${
 												animatingFields.has("address.postcode")
-													? "field-animation"
+													? animatingFields.get("address.postcode")
+														? "field-animation-mention"
+														: "field-animation"
 													: ""
 											}`}
 											id="address-postcode"
@@ -949,11 +1001,20 @@ export default function NormPage() {
 												}
 												// Ensure we're setting the case number as a string
 												const caseNumberString = lastMention.id.toString();
+												const oldValue = formData.caseNumber;
+
+												// Trigger animation before state update
+												animateField(
+													"caseNumber",
+													caseNumberString,
+													oldValue,
+													true,
+												);
+
 												setFormData((prev) => ({
 													...prev,
 													caseNumber: caseNumberString,
 												}));
-												safeAnimateField("caseNumber");
 											}
 										}}
 										onSubmit={handleMessageSubmit}
