@@ -13,9 +13,7 @@ export default async function Home() {
 			<div className="govuk-width-container">
 				<div className="govuk-grid-row">
 					<div className="govuk-grid-column-two-thirds">
-						<h1 className="govuk-heading-xl">
-							Welcome to Hounslow Critical Service
-						</h1>
+						<h1 className="govuk-heading-xl">Welcome to Audily</h1>
 						<p className="govuk-body">Please sign in to access the service.</p>
 						<SignInButton />
 					</div>
