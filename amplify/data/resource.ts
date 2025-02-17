@@ -1,47 +1,65 @@
-import { type ClientSchema, a, defineData } from '@aws-amplify/backend';
+import { a, defineData, type ClientSchema } from '@aws-amplify/backend';
 
-const schema = a
-  .schema({
-    Customer: a
-      .model({
-        customerId: a.id().required(),
-        // fields can be of various scalar types,
-        // such as string, boolean, float, integers etc.
-        name: a.string(),
-        // fields can be of custom types
-        location: a.customType({
-          // fields can be required or optional
-          lat: a.float().required(),
-          long: a.float().required(),
-        }),
-        // fields can be enums
-        engagementStage: a.enum(["PROSPECT", "INTERESTED", "PURCHASED"]),
-        collectionId: a.id(),
-        collection: a.belongsTo("Collection", "collectionId")
-        // Use custom identifiers. By default, it uses an `id: a.id()` field
-      })
-      .identifier(["customerId"]),
-    Collection: a
-      .model({
-        customers: a.hasMany("Customer", "collectionId"), // setup relationships between types
-        tags: a.string().array(), // fields can be arrays
-        representativeId: a.id().required(),
-        // customize secondary indexes to optimize your query performance
-      })
-      .secondaryIndexes((index) => [index("representativeId")]),
-  })
-  .authorization((allow) => [allow.publicApiKey()]);
+const schema = a.schema({
+    User: a.model({
+        userID: a.id().required(), // Unique ID from Tenant Login
+        email: a.string().required(), // Email from Tenant Login
+        name: a.string().required(), // Users Name
+        permissionGroup: a.enum(["ADMIN"," MANAGER","SOCIAL_WORKER"]).required(), // User role
+        lastLogin: a.awsDateTime(), // Timestamp of last login
+    }).identifier(['userID']),
 
-export type Schema = ClientSchema<typeof schema>;
 
-export const data = defineData({
-  schema,
-  authorizationModes: {
-    defaultAuthorizationMode: "apiKey",
-    apiKeyAuthorizationMode: {
-      expiresInDays: 30,
-    },
-  },
+    Form: a.model({
+        caseNumber: a.string(),
+        reason: a.string(),
+        amount: a.float(),
+        dateRequiredDay: a.integer(),
+        dateRequiredMonth: a.integer(),
+        dateRequiredYear: a.integer(),
+        firstName: a.string(),
+        lastName: a.string(),
+        addressLineOne: a.string(),
+        addressLineTwo: a.string(),
+        addessTown: a.string(),
+        addressPostcode: a.string(),
+    }).identifier(['caseNumber']),
 });
 
-//test to see if updated ssh works
+export type schema = ClientSchema<typeof schema>
+
+export const data = defineData({
+    schema,
+    authorizationModes: {
+        defaultAuthorizationMode: 'apiKey',
+        apiKeyAuthorizationMode: {
+            expiresInDays: 30,
+        },
+    },
+});
+
+/*
+can interact with data models using the generated GraphQL API.
+Example: Fetching Users
+query ListUsers {
+  listUsers {
+    items {
+      userId
+      email
+    }
+  }
+}
+
+
+Creating a New User
+
+mutation CreateForm {
+  createForm(input: {
+    userID: "unique-id",
+    email: "user email",
+    name: "users name",
+    permissionGroup: "SOCIAL_WORKER"
+  }) 
+}
+
+*/

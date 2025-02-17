@@ -19,7 +19,7 @@
 		"sass": "^1.83.4"
 	},
 	"devDependencies": {
-		"@aws-amplify/backend": "^1.14.0",
+		"@aws-amplify/backend": "^1.14.1",
 		"@aws-amplify/backend-cli": "^1.4.9",
 		"@eslint/eslintrc": "^3",
 		"@types/node": "^20",
