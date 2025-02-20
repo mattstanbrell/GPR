@@ -22,7 +22,7 @@ function renderButtons(role: string) {
 }
 
 const Home = async () => {
-	let user = exampleUser;
+	const user = exampleUser;
 	if (!user) {
 		redirect("/");
 	}
