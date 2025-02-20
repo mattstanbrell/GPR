@@ -5,9 +5,9 @@ const schema = a.schema({
         userID: a.id().required(), // Unique ID from Tenant Login
         email: a.string().required(), // Email from Tenant Login
         name: a.string().required(), // Users Name
-        permissionGroup: a.enum(["ADMIN"," MANAGER","SOCIAL_WORKER"]).required(), // User role
-        lastLogin: a.awsDateTime(), // Timestamp of last login
-    }).identifier(['userID']),
+        permissionGroup: a.enum(["ADMIN","MANAGER","SOCIAL_WORKER"]), // User role
+        lastLogin: a.datetime(), // Timestamp of last login
+    }).authorization(allow => [allow.publicApiKey()]),
 
 
     Form: a.model({
@@ -23,7 +23,7 @@ const schema = a.schema({
         addressLineTwo: a.string(),
         addessTown: a.string(),
         addressPostcode: a.string(),
-    }).identifier(['caseNumber']),
+    }).authorization(allow => [allow.publicApiKey()])
 });
 
 export type schema = ClientSchema<typeof schema>
