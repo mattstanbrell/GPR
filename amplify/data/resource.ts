@@ -52,7 +52,6 @@ const schema = a.schema({
       paymentMethod: a.string(),
       subtotal: a.float(),
       itemDesc: a.string(),
-      whoPurchased: a.belongsTo('User', 'userID')
     }).authorization((allow) => [allow.owner()]),
 });
 
