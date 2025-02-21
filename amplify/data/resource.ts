@@ -26,7 +26,7 @@ const schema = a.schema({
     }).authorization(allow => [allow.publicApiKey()])
 });
 
-export type schema = ClientSchema<typeof schema>
+export type Schema = ClientSchema<typeof schema>
 
 export const data = defineData({
     schema,
