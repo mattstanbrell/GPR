@@ -41,7 +41,7 @@ const schema = a.schema({
       dateOfBirth: a.date().required(),
       sex: a.string().required(),
       gender: a.string().required()
-    }),
+    }).authorization((allow) => [allow.owner()]),
 
     Receipt: a.model({
       recepitID: a.id().required(),
@@ -53,7 +53,7 @@ const schema = a.schema({
       subtotal: a.float(),
       itemDesc: a.string(),
       whoPurchased: a.belongsTo('User', 'userID')
-    })
+    }).authorization((allow) => [allow.owner()]),
 });
 
 export type Schema = ClientSchema<typeof schema>
