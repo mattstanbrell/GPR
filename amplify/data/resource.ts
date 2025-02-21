@@ -7,7 +7,7 @@ const schema = a.schema({
         name: a.string().required(), // Users Name
         permissionGroup: a.enum(["ADMIN","MANAGER","SOCIAL_WORKER"]), // User role
         lastLogin: a.datetime(), // Timestamp of last login
-    }).authorization(allow => [allow.publicApiKey()]),
+    }).authorization(allow => [allow.owner()]),
 
 
     Form: a.model({
@@ -23,7 +23,11 @@ const schema = a.schema({
         addressLineTwo: a.string(),
         addessTown: a.string(),
         addressPostcode: a.string(),
-    }).authorization(allow => [allow.publicApiKey()])
+    }).authorization(allow => [allow.owner()]),
+
+    Todo: a.model({
+      content: a.string(),
+    }).authorization((allow) => [allow.owner()]),
 });
 
 export type Schema = ClientSchema<typeof schema>
