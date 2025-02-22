@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from "react";
 import type { AuthUser } from "@aws-amplify/auth";
 import { generateClient } from "aws-amplify/data";
-import { getCurrentUser } from "aws-amplify/auth";
+import { getCurrentUser, fetchAuthSession } from "aws-amplify/auth";
 import type { Schema } from "../../../amplify/data/resource";
 
 const client = generateClient<Schema>();
@@ -14,6 +14,9 @@ interface TodoClientProps {
 
 export default function TodoClient({ initialTodos, user }: TodoClientProps) {
 	const [todos, setTodos] = useState<TodoType[]>(initialTodos);
+	const [userGroups, setUserGroups] = useState<string[]>([]);
+	const [userRoles, setUserRoles] = useState<string[]>([]);
+
 	// Define the subscription as a callback.
 	const listTodos = useCallback(() => {
 		const subscription = client.models.Todo.observeQuery().subscribe({
@@ -22,18 +25,36 @@ export default function TodoClient({ initialTodos, user }: TodoClientProps) {
 		return () => subscription.unsubscribe();
 	}, []);
 
+	// Add this function to get groups and roles
+	const fetchUserGroupsAndRoles = useCallback(async () => {
+		try {
+			const session = await fetchAuthSession();
+			const claims = session.tokens?.idToken?.payload;
+			
+			// Ensure we're getting arrays of strings and handle type safety
+			const groups = claims?.groups;
+			const roles = claims?.roles;
+			
+			setUserGroups(Array.isArray(groups) ? groups.filter((g): g is string => typeof g === 'string') : []);
+			setUserRoles(Array.isArray(roles) ? roles.filter((r): r is string => typeof r === 'string') : []);
+		} catch (error) {
+			console.error('Error fetching user groups and roles:', error);
+		}
+	}, []);
+
 	//On mount, re-initialize client-side auth so the Amplify client gets the proper session.
 	//Once initialized, start the live query subscription.
 
 	useEffect(() => {
 		getCurrentUser()
 			.then(() => {
-				// Auth is initialized; start subscription.
+				// Auth is initialized; start subscription and fetch groups/roles
 				const unsubscribe = listTodos();
+				fetchUserGroupsAndRoles();
 				return unsubscribe;
 			})
 			.catch((err) => console.error("Client auth initialization failed", err));
-	}, [listTodos]);
+	}, [listTodos, fetchUserGroupsAndRoles]);
 	const deleteTodo = useCallback((id: string) => {
 		client.models.Todo.delete({ id });
 	}, []);
@@ -52,6 +73,36 @@ export default function TodoClient({ initialTodos, user }: TodoClientProps) {
 		<>
 			<h1 className="govuk-heading-xl">Todo List</h1>
 			<p className="govuk-body">Welcome {user.username}</p>
+			
+			{/* Add groups and roles display */}
+			<div className="govuk-grid-row">
+				<div className="govuk-grid-column-one-half">
+					<h2 className="govuk-heading-m">Your Groups</h2>
+					{userGroups.length > 0 ? (
+						<ul className="govuk-list govuk-list--bullet">
+							{userGroups.map((group) => (
+								<li key={group}>{group}</li>
+							))}
+						</ul>
+					) : (
+						<p className="govuk-body">No groups assigned</p>
+					)}
+				</div>
+				
+				<div className="govuk-grid-column-one-half">
+					<h2 className="govuk-heading-m">Your Roles</h2>
+					{userRoles.length > 0 ? (
+						<ul className="govuk-list govuk-list--bullet">
+							{userRoles.map((role) => (
+								<li key={role}>{role}</li>
+							))}
+						</ul>
+					) : (
+						<p className="govuk-body">No roles assigned</p>
+					)}
+				</div>
+			</div>
+
 			<button
 				type="button"
 				className="govuk-button"
