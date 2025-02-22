@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Atkinson_Hyperlegible } from "next/font/google";
 import "./globals.scss";
 import ConfigureAmplifyClientSide from "./components/ConfigureAmplify";
-import { hounslowPrimary } from "./theme";
+import { audilyPrimary } from "./theme";
 import Link from "next/link";
 import { GovUKFrontend } from "./components/GovUKInitialiser";
 
@@ -30,7 +30,7 @@ export default function RootLayout({
 			className={`${atkinson.className} antialiased govuk-template`}
 		>
 			<head>
-				<meta name="theme-color" content={hounslowPrimary} />
+				<meta name="theme-color" content={audilyPrimary} />
 			</head>
 			<body className="govuk-template__body">
 				<ConfigureAmplifyClientSide />

@@ -1,1 +1,1 @@
-export const hounslowPrimary = "#642f6c";
+export const audilyPrimary = "#642f6c";
