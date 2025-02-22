@@ -1,11 +1,12 @@
 import SignInButton from "./components/SignInButton";
+import { HOME } from "./constants/urls";
 import { redirect } from "next/navigation";
 import { AuthGetCurrentUserServer } from "@/utils/amplifyServerUtils";
 
 export default async function Home() {
 	const user = await AuthGetCurrentUserServer();
 	if (user) {
-		redirect("/todo");
+		redirect(HOME);
 	}
 
 	return (

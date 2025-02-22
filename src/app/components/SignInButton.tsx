@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Hub } from "aws-amplify/utils";
 import { getCurrentUser } from "aws-amplify/auth";
+import { HOME } from "../constants/urls";
 
 export default function SignInButton() {
 	const router = useRouter();
@@ -12,13 +13,13 @@ export default function SignInButton() {
 	useEffect(() => {
 		Hub.listen("auth", ({ payload }) => {
 			if (payload.event === "signInWithRedirect") {
-				router.push("/todo");
+				router.push(HOME);
 			}
 		});
 
 		// Check if already authenticated
 		getCurrentUser()
-			.then(() => router.push("/todo"))
+			.then(() => router.push(HOME))
 			.catch(() => {
 				/* Not signed in */
 			});
