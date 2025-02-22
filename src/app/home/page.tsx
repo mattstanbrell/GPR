@@ -17,7 +17,7 @@ function renderButtons(role: string) {
 		case 'admin':
 			return <AdminButtons />
 		default:
-			return <div>page</div>
+			return <div>This is the default home page, you should not be here</div>
 	}
 }
 
