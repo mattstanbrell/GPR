@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { Hub } from "aws-amplify/utils";
 import { getCurrentUser } from "aws-amplify/auth";
 
-export default function SignInButton() {
+export default function NavSignInButton() {
 	const router = useRouter();
 	const [isSignedIn, setIsSignedIn] = useState(false);
 
