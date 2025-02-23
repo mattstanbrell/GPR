@@ -4,8 +4,10 @@ import { AuthGetCurrentUserServer } from "@/utils/amplifyServerUtils";
 
 export default async function Home() {
 	const user = await AuthGetCurrentUserServer();
-	if (user) {
-		redirect("/todo");
+
+	// Only redirect if we have a valid user
+	if (user?.userId) {
+		redirect("/home");
 	}
 
 	return (
