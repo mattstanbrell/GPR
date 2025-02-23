@@ -7,7 +7,7 @@ export default async function Home() {
 
 	// Only redirect if we have a valid user
 	if (user?.userId) {
-		redirect("/home");
+		redirect("/todo");
 	}
 
 	return (
