@@ -1,5 +1,6 @@
-$hounslow-primary: #642f6c;
+@use "tailwindcss";
 
+$hounslow-primary: #642f6c;
 
 // Import GOV.UK Frontend with custom configuration
 @use "node_modules/govuk-frontend/dist/govuk" with (
@@ -11,6 +12,7 @@ $hounslow-primary: #642f6c;
   $govuk-include-default-font-face: false,
   $govuk-assets-path: "/govuk-assets/"
 );
+
 
 
 // Define the public variables that can be used by other modules
