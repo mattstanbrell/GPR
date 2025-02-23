@@ -1,13 +1,14 @@
-import Button from "./Button"
+import { NewFormButton, FormBoardButton, AllFormsButton, UpdatesButton } from "./Buttons"
+import ButtonsContainer from "./ButtonsContainer"
 
 const SocialWorkerButtons = async () => {
   return (
-    <div>
-      <Button/>
-      <Button/>
-      <Button/>
-      <Button/>
-    </div>
+    <ButtonsContainer>
+      <NewFormButton/>
+      <FormBoardButton/>
+      <AllFormsButton/>
+      <UpdatesButton/>
+    </ButtonsContainer>
   )
 }
 

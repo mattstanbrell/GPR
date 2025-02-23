@@ -1,12 +1,12 @@
-import Button from "./Button"
+import { NewFormButton } from "./Buttons"
 
 const ManagerButtons = async () => {
   return (
     <div>
-      <Button/>
-      <Button/>
-      <Button/>
-      <Button/>
+      <NewFormButton/>
+      <NewFormButton/>
+      <NewFormButton/>
+      <NewFormButton/>
     </div>
   )
 }
