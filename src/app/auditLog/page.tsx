@@ -11,11 +11,17 @@ export default async function AuditLogPage() {
     redirect("/");
   }
 
+  // const todosResponse = await cookiesClient.models.Todo.list();
+  const auditLogs = [
+    { action: "John Doe approved a form", date: new Date(2025, 1, 23, 14, 30) },
+    { action: "Jane Doe submitted a form", date: new Date(2025, 1, 22, 14, 30) },
+  ];
+
   return (
     <main className="govuk-main-wrapper">
       <div className="govuk-width-container">
         <div className="govuk-grid-row">
-            <AuditLogClient />
+            <AuditLogClient logs={auditLogs}/>
         </div>
       </div>
     </main>
