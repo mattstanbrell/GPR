@@ -1,8 +1,11 @@
+'use client'
+import { useRouter } from "next/navigation";
+
 interface AuditLogEntry {
+  id: string;
   action: string;
   date: Date;
 }
-
 interface AuditLogClientProps {
   logs: AuditLogEntry[];
 }
@@ -24,6 +27,12 @@ function formatDate(date: Date): string {
 }
 
 export default function AuditLogClient({ logs }: AuditLogClientProps) {
+  const router = useRouter();
+
+  const viewLogDetails = (id: string) => {
+    router.push(`/auditLog/${id}`);
+  };
+
   return (
     <table className="govuk-table">
       <caption className="govuk-table__caption govuk-table__caption--xl">Audit Log</caption>
@@ -35,15 +44,20 @@ export default function AuditLogClient({ logs }: AuditLogClientProps) {
       </thead>
       <tbody className="govuk-table__body">
         {logs.length > 0 ? (
-          logs.map((log, index) => (
-            <tr key={index} className="govuk-table__row">
+          logs.map((log) => (
+            <tr 
+            key={log.id} 
+            className="govuk-table__row"
+            onClick={() => viewLogDetails(log.id)} // Navigate to a new page
+            style={{ cursor: "pointer" }} // Make it clear it's clickable
+            >
               <th scope="row" className="govuk-table__header">{log.action}</th>
               <td className="govuk-table__cell">{formatDate(log.date)}</td>
             </tr>
           ))
         ) : (
           <tr className="govuk-table__row">
-            <td className="govuk-table__cell" colSpan={2}>No audit log entries found.</td>
+            <td className="govuk-table__header" colSpan={2}>No audit log entries found.</td>
           </tr>
         )}
       </tbody>
