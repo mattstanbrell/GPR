@@ -1,4 +1,4 @@
-import { ALL_FORMS, FORM_BOARD, NEW_FORM, UPDATES } from "@/app/constants/urls";
+import { ALL_FORMS, FORM_BOARD, NEW_FORM, UPDATES, ADMIN } from "@/app/constants/urls";
 import Image from "next/image"
 import Link from "next/link"
 
@@ -54,4 +54,10 @@ const UpdatesButton = () => {
 	)
 }
 
-export { Button, NewFormButton, FormBoardButton, AllFormsButton, UpdatesButton }
+const AdminButton = () => {
+	return (
+		<Button text='Admin' link={ADMIN} /> 
+	)
+}
+
+export { Button, NewFormButton, FormBoardButton, AllFormsButton, UpdatesButton, AdminButton }
