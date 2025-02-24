@@ -19,3 +19,7 @@ $hounslow-primary: #642f6c;
 :root {
   --hounslow-primary: #{$hounslow-primary};
 }
+
+h1 {
+  @extend .govuk-heading-xl;
+}
