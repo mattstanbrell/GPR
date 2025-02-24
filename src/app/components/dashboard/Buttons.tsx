@@ -3,10 +3,8 @@ import Link from "next/link"
 
 const Button = ({text}: {text: string}) => {
 	return (
-		<Link href="/new-form">
-			<button 
-				className="text-xl font-bold  border-2 grid max-w-20 h-30  bg-blue-50 justify-items-center content-center"
-			>
+		<Link href="/new-form" className="text-3xl font-bold md:flex-none flex-1 min-w-35 border-2 grid  h-30  bg-blue-200">
+			<button className="grid justify-items-center content-center">
 				<Image
 					className="bg-red-500"
 					src="/file.svg"
