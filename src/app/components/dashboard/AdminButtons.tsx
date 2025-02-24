@@ -1,13 +1,13 @@
-import { NewFormButton } from "./Buttons"
+import { AllFormsButton, AdminButton, ActionLogsButton } from "./Buttons"
+import ButtonsContainer from "./ButtonsContainer"
 
 const AdminButtons = async () => {
   return (
-    <div>
-      <NewFormButton/>
-      <NewFormButton/>
-      <NewFormButton/>
-      <NewFormButton/>
-    </div>
+    <ButtonsContainer>
+      <AdminButton />
+      <ActionLogsButton />
+      <AllFormsButton />
+    </ButtonsContainer>
   )
 }
 

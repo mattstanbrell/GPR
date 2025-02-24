@@ -39,26 +39,32 @@ const NewFormButton = () => {
 
 const FormBoardButton = () => {
 	return (
-		<Button text='Form Board' link={FORM_BOARD} src='/formboard.svg' alt='picture of a file with plus sign' />
+		<Button text='Form Board' link={FORM_BOARD} src='/formboard.svg' alt='picture of a bar graph with various bar heights' />
 	)
 }
 
 const AllFormsButton = () => {
 	return (
-		<Button text='All Forms' link={ALL_FORMS} src='/file.svg' alt='picture of a file with plus sign' />
+		<Button text='All Forms' link={ALL_FORMS} src='/file.svg' alt='picture of a file with lines to represent text' />
 	)
 }
 
 const UpdatesButton = () => {
 	return (
-		<Button text='Updates' link={UPDATES} src='/updates.svg' alt='picture of a file with plus sign' />
+		<Button text='Updates' link={UPDATES} src='/updates.svg' alt='A filled cirle with an unfilled exclaimation mark in the middle' />
 	)
 }
 
 const AdminButton = () => {
 	return (
-		<Button text='Admin' link={ADMIN} /> 
+		<Button text='Admin' link={ADMIN} src='/admin.svg' alt="A filled outline of a person with a cog symbol"/> 
 	)
 }
 
-export { Button, NewFormButton, FormBoardButton, AllFormsButton, UpdatesButton, AdminButton }
+const ActionLogsButton = () => {
+	return (
+		<Button text='Action Log' link={ADMIN} src='/shield.svg' alt="A picture of a filled shield."/> 
+	)
+}
+
+export { Button, NewFormButton, FormBoardButton, AllFormsButton, UpdatesButton, AdminButton, ActionLogsButton }
