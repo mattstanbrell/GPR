@@ -12,16 +12,17 @@ const Button = ({ text, link, src, alt }: { text: string, link: string, src: str
 		secondLine = null;
 	}
 	return (
-		<Link href={link} className="text-3xl font-bold md:flex-none w-full flex-1 min-w-35 max-w-40 border-2 grid  h-50  bg-blue-200">
+		<Link href={link} className="text-3xl font-bold md:flex-none w-full flex-1 min-w-35 max-w-40 border-2 grid  h-50">
 			<button className="cursor-pointer flex flex-col">
 				<Image
-					className="bg-red-500 flex-1/2 w-20 self-center place-self-center"
+					className="flex-1/2 w-15 self-center place-self-center"
 					src={src}
 					alt={alt}
 					width={24}
 					height={24}
+					style={{filter: "brightness(0) saturate(100%) invert(22%) sepia(9%) saturate(5876%) hue-rotate(253deg) brightness(93%) contrast(89%)"}}
 				/>
-				<div className="grid flex-1/3 self-center place-items-center text-3xl">
+				<div className="grid flex-1/3 self-center place-items-center text-3xl text-(--hounslow-primary)">
 					{firstLine}
 					{secondLine ? (<><br />{secondLine}</>) : null}
 				</div>
@@ -32,13 +33,13 @@ const Button = ({ text, link, src, alt }: { text: string, link: string, src: str
 
 const NewFormButton = () => {
 	return (
-		<Button text='New Form' link={NEW_FORM} src='/file.svg' alt='picture of a file with plus sign' />
+		<Button text='New Form' link={NEW_FORM} src='/file-plus.svg' alt='picture of a file with plus sign' />
 	)
 }
 
 const FormBoardButton = () => {
 	return (
-		<Button text='Form Board' link={FORM_BOARD} src='/file.svg' alt='picture of a file with plus sign' />
+		<Button text='Form Board' link={FORM_BOARD} src='/formboard.svg' alt='picture of a file with plus sign' />
 	)
 }
 
@@ -50,7 +51,7 @@ const AllFormsButton = () => {
 
 const UpdatesButton = () => {
 	return (
-		<Button text='Updates' link={UPDATES} src='/file.svg' alt='picture of a file with plus sign' />
+		<Button text='Updates' link={UPDATES} src='/updates.svg' alt='picture of a file with plus sign' />
 	)
 }
 
