@@ -1,7 +1,8 @@
+import { ALL_FORMS, FORM_BOARD, NEW_FORM, UPDATES } from "@/app/constants/urls";
 import Image from "next/image"
 import Link from "next/link"
 
-const Button = ({ text }: { text: string }) => {
+const Button = ({ text, link }: { text: string, link: string }) => {
 	const textList = text.split(" ");
 	const firstLine = textList[0];
 	let secondLine = null;
@@ -11,18 +12,18 @@ const Button = ({ text }: { text: string }) => {
 		secondLine = null;
 	}
 	return (
-		<Link href="/new-form" className="text-3xl font-bold md:flex-none w-full flex-1 min-w-35 max-w-40 border-2 grid  h-50  bg-blue-200">
-			<button className="grid justify-items-center ">
+		<Link href={link} className="text-3xl font-bold md:flex-none w-full flex-1 min-w-35 max-w-40 border-2 grid  h-50  bg-blue-200">
+			<button className="flex flex-col">
 				<Image
-					className="bg-red-500 w-20 self-center"
+					className="bg-red-500 flex-1/2 w-20 self-center place-self-center"
 					src="/file.svg"
 					alt="picture of a file with plus sign"
 					width={24}
 					height={24}
 				/>
-				<div className="grid place-items-center h-full">
+				<div className="grid flex-1/3 self-center place-items-center text-3xl">
 					{firstLine}
-					{secondLine?<span>{secondLine}</span>:null}
+					{secondLine ? (<><br />{secondLine}</>) : null}
 				</div>
 			</button>
 		</Link>
@@ -31,25 +32,25 @@ const Button = ({ text }: { text: string }) => {
 
 const NewFormButton = () => {
 	return (
-		<Button text='New Form' />
+		<Button text='New Form' link={NEW_FORM} />
 	)
 }
 
 const FormBoardButton = () => {
 	return (
-		<Button text='Form Board' />
+		<Button text='Form Board' link={FORM_BOARD} />
 	)
 }
 
 const AllFormsButton = () => {
 	return (
-		<Button text='All Forms' />
+		<Button text='All Forms' link={ALL_FORMS} />
 	)
 }
 
 const UpdatesButton = () => {
 	return (
-		<Button text='Updates' />
+		<Button text='Updates' link={UPDATES} />
 	)
 }
 

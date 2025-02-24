@@ -5,11 +5,14 @@ import AdminButtons from "../components/dashboard/AdminButtons";
 
 
 const exampleUser = {
-	role: "socialworker"
+	firstName: "John",
+	permissionGroup: "socialworker"
 }
 
-function renderButtons(role: string) {
-	switch (role) {
+
+
+function renderButtons(permissionGroup: string) {
+	switch (permissionGroup) {
 		case 'socialworker':
 			return <SocialWorkerButtons />
 		case 'manager':
@@ -28,7 +31,8 @@ const Home = async () => {
 	}
 	return (
 		<div>
-			{renderButtons(user.role)}
+			<h1 className="self-center border">Welcome {user.firstName}</h1>
+			{renderButtons(user.permissionGroup)}
 		</div>
 	)
 }
