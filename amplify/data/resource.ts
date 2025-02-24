@@ -61,6 +61,12 @@ const schema = a.schema({
       subtotal: a.float(),
       itemDesc: a.string(),
     }).authorization((allow) => [allow.owner()]),
+    
+    AuditLog: a.model({
+      auditID: a.id().required(),
+      action: a.string().required(),
+      date: a.date().required(),
+    }).authorization((allow) => [allow.owner()])
 });
 
 export type Schema = ClientSchema<typeof schema>
