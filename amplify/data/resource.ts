@@ -8,6 +8,10 @@ const schema = a.schema({
         lastName: a.string().required(),
         permissionGroup: a.enum(["ADMIN","MANAGER","SOCIAL_WORKER"]), // User role (SUBJECT TO CHANGE)
         lastLogin: a.datetime(), // Timestamp of last login
+        createdAt: a.datetime(),
+        modifiedAt: a.datetime(),
+        forms: a.hasMany('Form', 'userID'),
+        children: a.hasMany('Child','userID')
     }).authorization(allow => [allow.owner()]),
 
 
@@ -25,7 +29,9 @@ const schema = a.schema({
         addressLineTwo: a.string(),
         addessTown: a.string(),
         addressPostcode: a.string(),
-        receipt: a.hasOne('Receipt','formID')
+        receipt: a.hasMany('Receipt','formID'),
+        userID: a.id(),
+        user: a.belongsTo('User', 'userID')
     }).authorization(allow => [allow.owner()]),
 
     Todo: a.model({
@@ -40,7 +46,9 @@ const schema = a.schema({
       lastName: a.string().required(),
       dateOfBirth: a.date().required(),
       sex: a.string().required(),
-      gender: a.string().required()
+      gender: a.string().required(),
+      userID: a.id(),
+      user: a.belongsTo('User', 'userID')
     }).authorization((allow) => [allow.owner()]),
 
     Receipt: a.model({
@@ -66,3 +74,29 @@ export const data = defineData({
         },
     },
 });
+
+/*
+Amplify Gen 2 takes care of provisioning a fully functional, real‐time GraphQL 
+API backed by DynamoDB for you. This means you don’t have to manually create
+endpoints for CRUD operations—the framework automatically creates them for each model in your schema.
+
+e.g.
+
+import { generateClient } from 'aws-amplify/data';
+import type { Schema } from '../amplify/data/resource';
+
+const client = generateClient<Schema>();
+
+// Create a new User record
+await client.models.User.create({
+  email: "user@example.com",
+  firstName: "Jane",
+  lastName: "Doe",
+  permissionGroup: "ADMIN",
+  // ... other fields
+});
+
+// Query User records
+const { data: users, errors } = await client.models.User.list();
+
+*/
