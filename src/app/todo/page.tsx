@@ -7,6 +7,8 @@ import {
 
 export default async function TodoPage() {
 	const user = await AuthGetCurrentUserServer();
+
+	// middleware.ts handles this, but this fixes the 'null' is not assignable lint error
 	if (!user) {
 		redirect("/");
 	}
