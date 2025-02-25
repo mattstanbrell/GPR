@@ -18,7 +18,7 @@ export default async function Home() {
 							Welcome to Audily
 						</h1>
 						<p className="govuk-body">Please sign in to access the service.</p>
-						<HomeSignInButton />
+						<SignInButton />
 					</div>
 				</div>
 			</div>
