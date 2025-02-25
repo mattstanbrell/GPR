@@ -2,7 +2,6 @@ import { a, defineData, type ClientSchema } from '@aws-amplify/backend';
 
 const schema = a.schema({
     User: a.model({
-        userID: a.id().required(), // Unique ID from Tenant Login
         email: a.string().required(), // Email from Tenant Login
         firstName: a.string().required(), // Users Name
         lastName: a.string().required(),
@@ -12,11 +11,13 @@ const schema = a.schema({
         modifiedAt: a.datetime(),
         forms: a.hasMany('Form', 'userID'),
         children: a.hasMany('Child','userID')
-    }).authorization(allow => [allow.owner()]),
+    }).authorization(allow => [
+      allow.group('ADMIN'), //Admins have full CRUD on users
+      allow.owner() // Users can manage their own User record
+    ]),
 
 
     Form: a.model({
-        formID: a.id().required(),
         caseNumber: a.string(),
         reason: a.string(),
         amount: a.float(),
@@ -31,8 +32,13 @@ const schema = a.schema({
         addressPostcode: a.string(),
         receipt: a.hasMany('Receipt','formID'),
         userID: a.id(),
-        user: a.belongsTo('User', 'userID')
-    }).authorization(allow => [allow.owner()]),
+        user: a.belongsTo('User', 'userID'),
+        status: a.enum(['DRAFT','SUBMITTED','AUTHORISED'])
+    }).authorization(allow => [
+      allow.publicApiKey().to(['read']), //everyne can view forms
+      allow.group('ADMIN'), // adims have full CRUD on forms
+      allow.owner() //Owners have full crud
+    ]),
 
     Todo: a.model({
       content: a.string(),
@@ -41,7 +47,6 @@ const schema = a.schema({
 
     // Child model from the Persons table in the SQL Schema
     Child: a.model({
-      childId: a.id().required(),
       firstName: a.string().required(),
       lastName: a.string().required(),
       dateOfBirth: a.date().required(),
@@ -49,10 +54,12 @@ const schema = a.schema({
       gender: a.string().required(),
       userID: a.id(),
       user: a.belongsTo('User', 'userID')
-    }).authorization((allow) => [allow.owner()]),
+    }).authorization((allow) => [
+      allow.group('ADMIN'),
+      allow.owner()
+      ]),
 
     Receipt: a.model({
-      recepitID: a.id().required(),
       formID: a.id(),
       form: a.belongsTo('Form', 'formID'),
       transactionDate: a.date(),
@@ -60,13 +67,18 @@ const schema = a.schema({
       paymentMethod: a.string(),
       subtotal: a.float(),
       itemDesc: a.string(),
-    }).authorization((allow) => [allow.owner()]),
+    }).authorization((allow) => [
+      allow.group('ADMIN'),
+      allow.owner()
+    ]),
     
     AuditLog: a.model({
-      auditID: a.id().required(),
       action: a.string().required(),
       date: a.date().required(),
-    }).authorization((allow) => [allow.owner()])
+    }).authorization((allow) => [
+      allow.owner().to(['read']),
+      allow.group('ADMIN')
+    ])
 });
 
 export type Schema = ClientSchema<typeof schema>
@@ -74,7 +86,7 @@ export type Schema = ClientSchema<typeof schema>
 export const data = defineData({
     schema,
     authorizationModes: {
-        defaultAuthorizationMode: 'apiKey',
+        defaultAuthorizationMode: 'userPool',
         apiKeyAuthorizationMode: {
             expiresInDays: 30,
         },
