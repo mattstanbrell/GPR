@@ -4,19 +4,19 @@ import { redirect } from 'next/navigation';
 
 const FormboardTable = ({boardTitle, boardForms} : {boardTitle: string, boardForms: Array<any>}) => {
     return (
-        <table className="table-fixed w-full bg-white">
-            <thead className="bg-gray-300 h-8">
+        <table className="w-full bg-white text-left">
+            <thead className="h-8 bg-gray-300">
                 <tr>
-                    <th className="w-3/5">Form</th>
-                    <th className="w-2/5">{ boardTitle }</th>
+                    <th className="pl-2 pr-2">Form</th>
+                    <th className="pl-2 pr-2">{ boardTitle }</th>
                 </tr>
             </thead>
             <tbody>
                 {boardForms && boardForms.length > 0 ? (
                     boardForms.map((record, index) => (
-                        <tr key={ index } onClick={() => redirect(`/${record.id}`)} className='cursor-pointer'>
-                            <td><StatusIcon formStatus={ record.status } /> { record.firstName } { record.lastName }</td>
-                            <td>{ record.date }</td>
+                        <tr key={ index } onClick={() => redirect(`/${record.id}`)} className='h-8 cursor-pointer'>
+                            <td className='flex p-2 text-clip text-nowrap overflow-hidden'><StatusIcon formStatus={ record.status } /> <p className='pl-1'>{ record.firstName } { record.lastName }</p></td>
+                            <td className='p-2'>{ record.date }</td>
                         </tr>
                     ))
                 ) : (
