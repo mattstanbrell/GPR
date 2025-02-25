@@ -2,18 +2,17 @@ import { a, defineData, type ClientSchema } from '@aws-amplify/backend';
 
 const schema = a.schema({
     User: a.model({
-        email: a.string().required(), // Email from Tenant Login
-        firstName: a.string().required(), // Users Name
+        email: a.string().required(), 
+        firstName: a.string().required(), 
         lastName: a.string().required(),
-        permissionGroup: a.enum(["ADMIN","MANAGER","SOCIAL_WORKER"]), // User role (SUBJECT TO CHANGE)
-        lastLogin: a.datetime(), // Timestamp of last login
-        createdAt: a.datetime(),
-        modifiedAt: a.datetime(),
+        permissionGroup: a.enum(["ADMIN","MANAGER","SOCIAL_WORKER"]), 
+        lastLogin: a.datetime(), 
         forms: a.hasMany('Form', 'userID'),
-        children: a.hasMany('Child','userID')
+        children: a.hasMany('Child','userID'),
+        audits: a.hasMany('AuditLog','userID')
     }).authorization(allow => [
-      allow.group('ADMIN'), //Admins have full CRUD on users
-      allow.owner() // Users can manage their own User record
+      allow.group('ADMIN'), 
+      allow.owner()
     ]),
 
 
@@ -24,8 +23,6 @@ const schema = a.schema({
         dateRequiredDay: a.integer(),
         dateRequiredMonth: a.integer(),
         dateRequiredYear: a.integer(),
-        firstName: a.string(),
-        lastName: a.string(),
         addressLineOne: a.string(),
         addressLineTwo: a.string(),
         addessTown: a.string(),
@@ -33,11 +30,12 @@ const schema = a.schema({
         receipt: a.hasMany('Receipt','formID'),
         userID: a.id(),
         user: a.belongsTo('User', 'userID'),
-        status: a.enum(['DRAFT','SUBMITTED','AUTHORISED'])
+        status: a.enum(['DRAFT','SUBMITTED','AUTHORISED','VALIDATED','COMPLETED']),
+        child: a.hasOne('Child','formID')
     }).authorization(allow => [
-      allow.publicApiKey().to(['read']), //everyne can view forms
-      allow.group('ADMIN'), // adims have full CRUD on forms
-      allow.owner() //Owners have full crud
+      allow.publicApiKey().to(['read']), 
+      allow.group('ADMIN'), 
+      allow.owner() 
     ]),
 
     Todo: a.model({
@@ -45,7 +43,7 @@ const schema = a.schema({
     }).authorization((allow) => [allow.owner()]),
 
 
-    // Child model from the Persons table in the SQL Schema
+
     Child: a.model({
       firstName: a.string().required(),
       lastName: a.string().required(),
@@ -53,7 +51,9 @@ const schema = a.schema({
       sex: a.string().required(),
       gender: a.string().required(),
       userID: a.id(),
-      user: a.belongsTo('User', 'userID')
+      user: a.belongsTo('User', 'userID'),
+      formID: a.id(),
+      form: a.belongsTo('Form','formID')
     }).authorization((allow) => [
       allow.group('ADMIN'),
       allow.owner()
@@ -75,6 +75,8 @@ const schema = a.schema({
     AuditLog: a.model({
       action: a.string().required(),
       date: a.date().required(),
+      userID: a.id(),
+      user: a.belongsTo('User','userID')
     }).authorization((allow) => [
       allow.owner().to(['read']),
       allow.group('ADMIN')
@@ -93,28 +95,3 @@ export const data = defineData({
     },
 });
 
-/*
-Amplify Gen 2 takes care of provisioning a fully functional, real‐time GraphQL 
-API backed by DynamoDB for you. This means you don’t have to manually create
-endpoints for CRUD operations—the framework automatically creates them for each model in your schema.
-
-e.g.
-
-import { generateClient } from 'aws-amplify/data';
-import type { Schema } from '../amplify/data/resource';
-
-const client = generateClient<Schema>();
-
-// Create a new User record
-await client.models.User.create({
-  email: "user@example.com",
-  firstName: "Jane",
-  lastName: "Doe",
-  permissionGroup: "ADMIN",
-  // ... other fields
-});
-
-// Query User records
-const { data: users, errors } = await client.models.User.list();
-
-*/
