@@ -5,10 +5,6 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Hub } from "aws-amplify/utils";
 import { getCurrentUser } from "aws-amplify/auth";
-import { generateClient } from 'aws-amplify/data';
-import type { Schema } from '../../../amplify/data/resource';
-
-const client = generateClient<Schema>();
 
 export default function SignInButton() {
 	const router = useRouter();
