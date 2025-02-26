@@ -42,7 +42,8 @@ const schema = a.schema({
       userID: a.id(),
       user: a.belongsTo('User', 'userID'),
       childID: a.id(),
-      child: a.belongsTo('Child', 'childID')
+      child: a.belongsTo('Child', 'childID'),
+      audits: a.hasMany('AuditLog','formID')
     }).authorization(allow => [
       allow.publicApiKey().to(['read']), 
       allow.group('ADMIN'), 
@@ -86,7 +87,9 @@ const schema = a.schema({
       action: a.string().required(),
       date: a.date().required(),
       userID: a.id(),
-      user: a.belongsTo('User','userID')
+      user: a.belongsTo('User','userID'),
+      formID: a.id(),
+      form: a.belongsTo('Form','formID')
     }).authorization((allow) => [
       allow.owner().to(['read']),
       allow.group('ADMIN')
