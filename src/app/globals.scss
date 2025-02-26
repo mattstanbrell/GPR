@@ -1,4 +1,7 @@
+@use "tailwindcss";
+
 $hounslow-primary: #642f6c;
+$hounslow-primary-filter: "brightness(0) saturate(100%) invert(22%) sepia(9%) saturate(5876%) hue-rotate(253deg) brightness(93%) contrast(89%)";
 
 
 // Import GOV.UK Frontend with custom configuration
@@ -13,7 +16,15 @@ $hounslow-primary: #642f6c;
 );
 
 
+
 // Define the public variables that can be used by other modules
 :root {
   --hounslow-primary: #{$hounslow-primary};
+  --hounslow-primary-filter: #{$hounslow-primary-filter};
 }
+
+
+h1 {
+  @extend .govuk-heading-xl;
+}
+

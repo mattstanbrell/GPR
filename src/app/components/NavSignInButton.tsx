@@ -5,9 +5,9 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Hub } from "aws-amplify/utils";
 import { getCurrentUser } from "aws-amplify/auth";
-import { HOME } from "../constants/urls";
+import { HOME } from "@/app/constants/urls"
 
-export default function SignInButton() {
+export default function NavSignInButton() {
 	const router = useRouter();
 	const [isSignedIn, setIsSignedIn] = useState(false);
 
@@ -15,10 +15,6 @@ export default function SignInButton() {
 		Hub.listen("auth", ({ payload }) => {
 			if (payload.event === "signInWithRedirect") {
 				router.push(HOME);
-			}
-			if (payload.event === "signedOut") {
-				setIsSignedIn(false);
-				router.push("/");
 			}
 			if (payload.event === "signedOut") {
 				setIsSignedIn(false);
