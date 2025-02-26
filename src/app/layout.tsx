@@ -5,6 +5,7 @@ import ConfigureAmplifyClientSide from "./components/ConfigureAmplify";
 import { audilyPrimary } from "./theme";
 import Link from "next/link";
 import { GovUKFrontend } from "./components/GovUKInitialiser";
+import NavSignInButton from "./components/NavSignInButton";
 
 const atkinson = Atkinson_Hyperlegible({
 	subsets: ["latin"],
@@ -37,13 +38,24 @@ export default function RootLayout({
 				<GovUKFrontend />
 				<header className="govuk-header" data-module="govuk-header">
 					<div className="govuk-header__container govuk-width-container">
-						<div className="govuk-header__content">
+						<div
+							className="govuk-header__content"
+							style={{
+								display: "flex",
+								justifyContent: "space-between",
+								alignItems: "baseline",
+								width: "100%",
+							}}
+						>
 							<Link
 								href="/"
 								className="govuk-header__link govuk-header__service-name"
 							>
 								Audily
 							</Link>
+							<div>
+								<NavSignInButton />
+							</div>
 						</div>
 					</div>
 				</header>
