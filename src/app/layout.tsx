@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Atkinson_Hyperlegible } from "next/font/google";
 import "./globals.scss";
 import ConfigureAmplifyClientSide from "./components/ConfigureAmplify";
-import { hounslowPrimary } from "./theme";
+import { audilyPrimary } from "./theme";
 import Link from "next/link";
 import { GovUKFrontend } from "./components/GovUKInitialiser";
 import NavSignInButton from "./components/NavSignInButton";
@@ -16,8 +16,8 @@ const atkinson = Atkinson_Hyperlegible({
 });
 
 export const metadata: Metadata = {
-	title: "Audily",
-	description: "",
+	title: "AudilyAI",
+	description: "An auditable expenditure form management system",
 };
 
 export default function RootLayout({
@@ -31,7 +31,7 @@ export default function RootLayout({
 			className={`${atkinson.className} antialiased govuk-template`}
 		>
 			<head>
-				<meta name="theme-color" content={hounslowPrimary} />
+				<meta name="theme-color" content={audilyPrimary} />
 			</head>
 			<body className="govuk-template__body">
 				<ConfigureAmplifyClientSide />
