@@ -8,12 +8,10 @@ async function getAuditLogDetails(auditLogId: string) {
   ];
 }
 
-type AuditLogDetailProps = {
-  id: string;
-};
+type AuditLogDetailProps = Promise<{id: string}>
 
-export default async function AuditLogDetail({ params }: { params: AuditLogDetailProps }) {
-  params = await params;
+export default async function AuditLogDetail(props: { params: AuditLogDetailProps }) {
+  const params = await props.params;
   console.log(params)
   /**  Without this there is a warning `params` should be awaited before using its properties.
   Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis */
