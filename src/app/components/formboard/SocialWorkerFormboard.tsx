@@ -14,7 +14,7 @@ const SocialWorkerFormboard = () => {
     const forms = [form];
 
     return (
-        <div className="md:min-w-4xl md:flex overflow-clip">
+        <div className="w-full md:flex overflow-clip">
             <Formboard boardTitle="Draft" boardForms={ forms } />
             <Formboard boardTitle="Submitted" boardForms={ forms } />
             <Formboard boardTitle="Authorised" boardForms={ forms } />

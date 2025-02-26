@@ -2,7 +2,9 @@
 
 $hounslow-primary: #642f6c;
 $hounslow-primary-filter: "brightness(0) saturate(100%) invert(22%) sepia(9%) saturate(5876%) hue-rotate(253deg) brightness(93%) contrast(89%)";
-
+$formboard-primary: #b35900;
+$formboard-secondary: #fff;
+$formboard-table-header-colour: #c9c9c9;
 
 // Import GOV.UK Frontend with custom configuration
 @use "node_modules/govuk-frontend/dist/govuk" with (
@@ -21,6 +23,9 @@ $hounslow-primary-filter: "brightness(0) saturate(100%) invert(22%) sepia(9%) sa
 :root {
   --hounslow-primary: #{$hounslow-primary};
   --hounslow-primary-filter: #{$hounslow-primary-filter};
+  --formboard-primary: #{$formboard-primary};
+  --formboard-secondary: #{$formboard-secondary};
+  --formboard-table-header-colour: #{$formboard-table-header-colour};
 }
 
 
