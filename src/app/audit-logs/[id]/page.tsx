@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 
 async function getAuditLogDetails(auditLogId: string) {
   // REPLACE with call to DB to fetch the single audit log by id
+  console.log(auditLogId)
   return [
     { allocationId: "8765C", workerId: "W1111", caseId: "C123", activity: "submit form" },
   ];
