@@ -8,7 +8,7 @@ const schema = a.schema({
         permissionGroup: a.enum(["ADMIN","MANAGER","SOCIAL_WORKER"]), 
         lastLogin: a.datetime(), 
         forms: a.hasMany('Form', 'userID'),
-        children: a.hasMany('Child','userID'),
+        children: a.hasMany('UserChild','userID'),
         audits: a.hasMany('AuditLog','userID')
     }).authorization(allow => [
       allow.group('ADMIN'), 
@@ -17,30 +17,37 @@ const schema = a.schema({
 
 
     Form: a.model({
-        caseNumber: a.string(),
-        reason: a.string(),
-        amount: a.float(),
-        dateRequiredDay: a.integer(),
-        dateRequiredMonth: a.integer(),
-        dateRequiredYear: a.integer(),
-        addressLineOne: a.string(),
-        addressLineTwo: a.string(),
-        addessTown: a.string(),
-        addressPostcode: a.string(),
-        receipt: a.hasMany('Receipt','formID'),
-        userID: a.id(),
-        user: a.belongsTo('User', 'userID'),
-        status: a.enum(['DRAFT','SUBMITTED','AUTHORISED','VALIDATED','COMPLETED']),
-        child: a.hasOne('Child','formID')
+      caseNumber: a.string(),
+      reason: a.string(),
+      amount: a.float(),
+      dateRequired: a.customType({
+          day: a.integer(),
+          month: a.integer(),
+          year: a.integer()
+      }),
+      recipientDetails: a.customType({
+          name: a.customType({
+              firstName: a.string(),
+              lastName: a.string()
+          }),
+          address: a.customType({
+              lineOne: a.string(),
+              lineTwo: a.string(),
+              townOrCity: a.string(),
+              postcode: a.string()
+          })
+      }),
+      status: a.enum(['DRAFT', 'SUBMITTED', 'AUTHORISED', 'VALIDATED', 'COMPLETED']),
+      receipt: a.hasMany('Receipt', 'formID'),
+      userID: a.id(),
+      user: a.belongsTo('User', 'userID'),
+      childID: a.id(),
+      child: a.belongsTo('Child', 'childID')
     }).authorization(allow => [
       allow.publicApiKey().to(['read']), 
       allow.group('ADMIN'), 
-      allow.owner() 
-    ]),
-
-    Todo: a.model({
-      content: a.string(),
-    }).authorization((allow) => [allow.owner()]),
+      allow.owner()
+  ]),
 
 
 
@@ -50,10 +57,8 @@ const schema = a.schema({
       dateOfBirth: a.date().required(),
       sex: a.string().required(),
       gender: a.string().required(),
-      userID: a.id(),
-      user: a.belongsTo('User', 'userID'),
-      formID: a.id(),
-      form: a.belongsTo('Form','formID')
+      user: a.hasMany('UserChild', 'childID'),
+      form: a.hasMany('Form','childID')
     }).authorization((allow) => [
       allow.group('ADMIN'),
       allow.owner()
@@ -80,7 +85,14 @@ const schema = a.schema({
     }).authorization((allow) => [
       allow.owner().to(['read']),
       allow.group('ADMIN')
-    ])
+    ]),
+
+    UserChild: a.model({
+      childID: a.id().required(),
+      userID: a.id().required(),
+      child: a.belongsTo('Child','childID'),
+      user: a.belongsTo('User','userID')
+    }).authorization((allow) => allow.publicApiKey())
 });
 
 export type Schema = ClientSchema<typeof schema>
