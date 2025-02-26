@@ -12,6 +12,7 @@ interface TodoClientProps {
 	user: AuthUser;
 }
 
+
 export default function TodoClient({ initialTodos, user }: TodoClientProps) {
 	const [todos, setTodos] = useState<TodoType[]>(initialTodos);
 	// Define the subscription as a callback.
