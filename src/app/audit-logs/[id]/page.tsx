@@ -11,7 +11,7 @@ async function getAuditLogDetails(auditLogId: string) {
 export default async function AuditLogDetail({ params }: { params: { id: string } }) {
   /**  Without this there is a warning `params` should be awaited before using its properties.
   Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis */
-  params = await params;
+  // params = await params;
   
   const auditLogId = params.id;  // Extract the ID from params
 
