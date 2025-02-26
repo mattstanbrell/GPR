@@ -5,7 +5,7 @@ const schema = a.schema({
         email: a.string().required(), 
         firstName: a.string().required(), 
         lastName: a.string().required(),
-        permissionGroup: a.enum(["admin","manager","socialworker"]), 
+        permissionGroup: a.enum(["ADMIN","MANAGER","SOCIAL_WORKER"]), 
         lastLogin: a.datetime(), 
         forms: a.hasMany('Form', 'userID'),
         children: a.hasMany('UserChild','userID'),
