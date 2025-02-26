@@ -49,6 +49,11 @@ const schema = a.schema({
       allow.owner()
   ]),
 
+  
+    Todo: a.model({
+      content: a.string(),
+    }).authorization((allow) => [allow.owner()]),
+
 
 
     Child: a.model({
