@@ -21,6 +21,12 @@ export const data = defineData({
 	authorizationModes: {
 		defaultAuthorizationMode: "userPool",
 	},
+	/*
+	.authorization(allow => [
+      		allow.owner().identityClaim('user_id'), https://docs.amplify.aws/react/build-a-backend/data/customize-authz/configure-custom-identity-and-group-claim/
+      		allow.groups(['Moderator']).withClaimIn('user_groups'),
+    	]),
+   	*/
 });
 
 /*== STEP 2 ===============================================================
