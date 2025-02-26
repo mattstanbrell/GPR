@@ -1,8 +1,7 @@
 import { redirect } from "next/navigation";
-import AuditLogClient from "./AuditLogClient"
+import AuditLogsClient from "./AuditLogsClient"
 import {
   AuthGetCurrentUserServer,
-  cookiesClient,
 } from "@/utils/amplifyServerUtils";
 
 async function getAuditLogs() {
@@ -13,7 +12,7 @@ async function getAuditLogs() {
   ];
 }
 
-export default async function AuditLogPage() {
+export default async function AuditLogsPage() {
   const user = await AuthGetCurrentUserServer();
   if (!user) {
     redirect("/");
@@ -24,7 +23,7 @@ export default async function AuditLogPage() {
     <main className="govuk-main-wrapper">
       <div className="govuk-width-container">
         <div className="govuk-grid-row">
-            <AuditLogClient logs={auditLogs}/>
+            <AuditLogsClient logs={auditLogs}/>
         </div>
       </div>
     </main>

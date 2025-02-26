@@ -1,4 +1,4 @@
-import { ALL_FORMS, FORM_BOARD, NEW_FORM, UPDATES, ADMIN } from "@/app/constants/urls";
+import { ALL_FORMS, FORM_BOARD, NEW_FORM, UPDATES, ADMIN, ACTION_LOG } from "@/app/constants/urls";
 import Image from "next/image"
 import Link from "next/link"
 
@@ -63,7 +63,7 @@ const AdminButton = () => {
 
 const ActionLogsButton = () => {
 	return (
-		<Button text='Action Log' link={ADMIN} src='/shield.svg' alt="A picture of a filled shield."/> 
+		<Button text='Action Log' link={ACTION_LOG} src='/shield.svg' alt="A picture of a filled shield."/> 
 	)
 }
 
