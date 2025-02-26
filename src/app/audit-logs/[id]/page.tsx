@@ -1,19 +1,5 @@
 import { notFound } from "next/navigation";
 
-// Define the type for the audit log details.
-interface AuditLogId {
-  id: string;
-}
-
-interface AuditLogDetailProps {
-  auditLog: {
-    allocationId: string;
-    workerId: string;
-    caseId: string;
-    activity: string;
-  } | null;
-}
-
 async function getAuditLogDetails(auditLogId: string) {
   // REPLACE with call to DB to fetch the single audit log by id
   return [
