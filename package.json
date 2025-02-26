@@ -10,13 +10,16 @@
 	},
 	"dependencies": {
 		"@aws-amplify/adapter-nextjs": "^1.4.2",
+		"@tailwindcss/postcss": "^4.0.8",
 		"@types/govuk-frontend": "^5.7.0",
 		"aws-amplify": "^6.12.2",
 		"govuk-frontend": "^5.8.0",
 		"next": "15.1.6",
+		"postcss": "^8.5.3",
 		"react": "^19.0.0",
 		"react-dom": "^19.0.0",
-		"sass": "^1.83.4"
+		"sass": "^1.83.4",
+		"tailwindcss": "^4.0.8"
 	},
 	"devDependencies": {
 		"@aws-amplify/backend": "^1.14.0",
