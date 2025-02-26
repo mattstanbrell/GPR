@@ -10,6 +10,7 @@ const StatusIcon = ({ formStatus }: { formStatus: string }) => {
             alt = 'picture of a file with lines as text';
             break;
         case 'authorised':
+        case 'validated':
             src = '/incomplete.svg';
             alt = 'picture of a filled circle with an exclaimation mark in the middle';
             break;
@@ -18,7 +19,7 @@ const StatusIcon = ({ formStatus }: { formStatus: string }) => {
             alt = 'picture of a filled circle with a tick in the middle';
             break;
         default:
-            src = '/menu.svg';
+            src = '/file.svg';
             alt = 'Error finding form status';
             break;
     }
