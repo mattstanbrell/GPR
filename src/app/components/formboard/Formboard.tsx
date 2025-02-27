@@ -3,9 +3,9 @@
 
 import Image from 'next/image';
 import FormboardTable from "@/app/components/formboard/FormboardTable";
-import Link from 'next/link';
+import { type Schema } from '../../../../amplify/data/resource'
 
-const Formboard = ({ boardTitle, boardForms, handleIndex }: { boardTitle: string, boardForms: Array<any>, handleIndex: Function }) => {
+const Formboard = ({ boardTitle, boardForms, handleIndex }: { boardTitle: string, boardForms: Array<any>, handleIndex: (isIncrement: boolean) => void }) => {
     return (
         <div className="md:w-full sm:w-[95%] m-2">
             <div className="flex w-full p-2 text-center font-bold text-xl">

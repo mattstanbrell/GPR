@@ -1,6 +1,7 @@
 
 import StatusIcon from '@/app/components/form/Icons'
 import { redirect } from 'next/navigation';
+import { type Schema } from '../../../../amplify/data/resource'
 
 const FormboardTable = ({boardTitle, boardForms} : {boardTitle: string, boardForms: Array<any>}) => {
     return (
@@ -15,7 +16,7 @@ const FormboardTable = ({boardTitle, boardForms} : {boardTitle: string, boardFor
             <tbody>
                 {boardForms && boardForms.length > 0 ? (
                     boardForms.map((record, index) => (
-                        <tr key={ index } onClick={() => redirect(`/${record.id}`)} className='h-8 cursor-pointer border-2 border-dotted border-transparent border-b-black '>
+                        <tr key={ index } onClick={() => redirect(`/${ record.id }`)} className='h-8 cursor-pointer border-2 border-dotted border-transparent border-b-black '>
                             <td className='w-full flex p-2 text-clip text-nowrap overflow-hidden'><StatusIcon formStatus={ record.status } /> <p className='pl-1'>{ record.firstName } { record.lastName }</p></td>
                             <td className='p-2'>{ record.date }</td>
                         </tr>

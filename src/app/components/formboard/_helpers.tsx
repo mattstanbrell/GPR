@@ -1,5 +1,5 @@
 
-const updateIndexHelper = ({isIncrement, index, setIndex, TOTAL_BOARDS} : {isIncrement: boolean, index: number, setIndex: Function, TOTAL_BOARDS: number}) => {
+const updateIndexHelper = ({isIncrement, index, setIndex, TOTAL_BOARDS} : {isIncrement: boolean, index: number, setIndex: (index: number) => void, TOTAL_BOARDS: number}) => {
     if (isIncrement) {
         setIndex((index + 1) % TOTAL_BOARDS);
     } else {

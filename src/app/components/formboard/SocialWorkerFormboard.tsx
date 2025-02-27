@@ -22,7 +22,7 @@ const SocialWorkerFormboard = () => {
         return () => window.removeEventListener("resize", handleResize);
     }, []);
 
-    const updateIndex = ({isIncrement} : {isIncrement: boolean}) => {
+    const updateIndex = (isIncrement: boolean) => {
         updateIndexHelper({ isIncrement, index, setIndex, TOTAL_BOARDS }); 
     }
 
@@ -33,12 +33,14 @@ const SocialWorkerFormboard = () => {
         { title: "Validated", forms: getUserValidatedForms() }
     ];
 
-    const boards = boardDetails.map(({title, forms}) => (
-        <Formboard boardTitle={ title } boardForms={ forms } handleIndex={ updateIndex } />
+    const boards = boardDetails.map(({title, forms}, index) => (
+        <div key={ index }>
+            <Formboard boardTitle={ title } boardForms={ forms } handleIndex={ updateIndex } />
+        </div>
     ));
 
     return (
-        <div key={ index } className="w-full md:flex overflow-clip">
+        <div className="w-full md:flex overflow-clip">
             {
                 isMobile ? (
                     boards[index]
