@@ -20,7 +20,7 @@ const Button = ({ text, link, src, alt }: { text: string, link: string, src: str
 					alt={alt}
 					width={24}
 					height={24}
-					style={{filter: "brightness(0) saturate(100%) invert(22%) sepia(9%) saturate(5876%) hue-rotate(253deg) brightness(93%) contrast(89%)"}}
+					style={{filter: "var(--hounslow-primary-filter"}}
 				/>
 				<div className="grid flex-1/3 self-center place-items-center text-3xl text-(--hounslow-primary)">
 					{firstLine}
