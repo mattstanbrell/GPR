@@ -2,17 +2,17 @@ import { a, defineData, type ClientSchema } from '@aws-amplify/backend';
 
 const schema = a.schema({
     User: a.model({
-        email: a.string().required(), 
-        firstName: a.string().required(), 
+        email: a.string().required(),
+        firstName: a.string().required(),
         lastName: a.string().required(),
-        permissionGroup: a.enum(["ADMIN","MANAGER","SOCIAL_WORKER"]), 
-        lastLogin: a.datetime(), 
+        permissionGroup: a.enum(["ADMIN","MANAGER","SOCIAL_WORKER"]),
+        lastLogin: a.datetime(),
         forms: a.hasMany('Form', 'userID'),
         children: a.hasMany('UserChild','userID'),
         audits: a.hasMany('AuditLog','userID')
     }).authorization(allow => [
-      allow.group('ADMIN'), 
-      allow.owner()
+        allow.owner().identityClaim('user_id'),
+        allow.groups(['Admin']).withClaimIn('user_groups'),
     ]),
 
 
@@ -45,12 +45,12 @@ const schema = a.schema({
       child: a.belongsTo('Child', 'childID'),
       audits: a.hasMany('AuditLog','formID')
     }).authorization(allow => [
-      allow.publicApiKey().to(['read']), 
-      allow.group('ADMIN'), 
-      allow.owner()
+        allow.publicApiKey().to(['read']),
+        allow.owner().identityClaim('user_id'),
+        allow.groups(['Admin']).withClaimIn('user_groups'),
   ]),
 
-  
+
     Todo: a.model({
       content: a.string(),
     }).authorization((allow) => [allow.owner()]),
@@ -66,8 +66,8 @@ const schema = a.schema({
       user: a.hasMany('UserChild', 'childID'),
       form: a.hasMany('Form','childID')
     }).authorization((allow) => [
-      allow.group('ADMIN'),
-      allow.owner()
+        allow.owner().identityClaim('user_id'),
+        allow.groups(['Admin']).withClaimIn('user_groups'),
       ]),
 
     Receipt: a.model({
@@ -79,10 +79,10 @@ const schema = a.schema({
       subtotal: a.float(),
       itemDesc: a.string(),
     }).authorization((allow) => [
-      allow.group('ADMIN'),
-      allow.owner()
+        allow.group('ADMIN'),
+        allow.owner()
     ]),
-    
+
     AuditLog: a.model({
       action: a.string().required(),
       date: a.date().required(),
@@ -115,3 +115,31 @@ export const data = defineData({
     },
 });
 
+/*== STEP 2 ===============================================================
+Go to your frontend source code. From your client-side code, generate a
+Data client to make CRUDL requests to your table. (THIS SNIPPET WILL ONLY
+WORK IN THE FRONTEND CODE FILE.)
+
+Using JavaScript or Next.js React Server Components, Middleware, Server 
+Actions or Pages Router? Review how to generate Data clients for those use
+cases: https://docs.amplify.aws/gen2/build-a-backend/data/connect-to-API/
+=========================================================================*/
+
+/*
+"use client"
+import { generateClient } from "aws-amplify/data";
+import type { Schema } from "@/amplify/data/resource";
+
+const client = generateClient<Schema>() // use this Data client for CRUDL requests
+*/
+
+/*== STEP 3 ===============================================================
+Fetch records from the database and use them in your frontend component.
+(THIS SNIPPET WILL ONLY WORK IN THE FRONTEND CODE FILE.)
+=========================================================================*/
+
+/* For example, in a React component, you can use this snippet in your
+  function's RETURN statement */
+// const { data: todos } = await client.models.Todo.list()
+
+// return <ul>{todos.map(todo => <li key={todo.id}>{todo.content}</li>)}</ul>
