@@ -4,9 +4,9 @@ import { redirect } from 'next/navigation';
 
 const FormboardTable = ({boardTitle, boardForms} : {boardTitle: string, boardForms: Array<any>}) => {
     return (
-        <div className='size-full bg-[var(--formboard-secondary)] align-middle'>
+        <div className='size-full bg-white align-middle'>
         <table className="w-full text-left border-collapse border-spacing-0 border-none">
-            <thead className="h-8 bg-[var(--formboard-table-header-colour)]">
+            <thead className="h-8 bg-[var(--color-background-medium)] text-white">
                 <tr>
                     <th className="w-full pl-2 pr-2">Form</th>
                     <th className="w-1/5 pl-2 pr-2">{ boardTitle }</th>

@@ -16,7 +16,7 @@ function renderFormboard(permissionGroup: string) {
 }
 
 const Formboard = async () => {
-    const dummy = PERMISSION_GROUP.SOCIAL_WORKER;
+    const dummy = PERMISSION_GROUP.MANAGER;
 
 	return (
 		<div>
