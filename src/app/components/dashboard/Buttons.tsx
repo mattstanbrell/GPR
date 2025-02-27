@@ -12,17 +12,17 @@ const Button = ({ text, link, src, alt }: { text: string, link: string, src: str
 		secondLine = null;
 	}
 	return (
-		<Link href={link} className="text-3xl font-bold md:flex-none w-full flex-1 min-w-35 max-w-40 border-2 grid  h-50">
-			<button className="cursor-pointer flex flex-col">
+		<Link href={link} className="text-3xl font-bold md:flex-none w-full flex-1 min-w-35 max-w-40 border-4 border-(--color-secondary) grid  h-47">
+			<button className="cursor-pointer flex flex-col place-content-center">
 				<Image
-					className="flex-1/2 w-15 self-center place-self-center"
+					className="flex-1/2 w-13 pb-2 self-center object-bottom object-contain"
 					src={src}
 					alt={alt}
 					width={24}
 					height={24}
-					style={{filter: "brightness(0) saturate(100%) invert(22%) sepia(9%) saturate(5876%) hue-rotate(253deg) brightness(93%) contrast(89%)"}}
+					style={{filter: "var(--hounslow-primary-filter)"}}
 				/>
-				<div className="grid flex-1/3 self-center place-items-center text-3xl text-(--hounslow-primary)">
+				<div className="flex-1/2 grid self-center place-items-center text-3xl/10 text-(--hounslow-primary)">
 					{firstLine}
 					{secondLine ? (<><br />{secondLine}</>) : null}
 				</div>
@@ -63,7 +63,7 @@ const AdminButton = () => {
 
 const ActionLogsButton = () => {
 	return (
-		<Button text='Action Log' link={ADMIN} src='/shield.svg' alt="A picture of a filled shield."/> 
+		<Button text='Action Log' link={ADMIN} src='/action-log.svg' alt="A picture of a filled shield."/> 
 	)
 }
 

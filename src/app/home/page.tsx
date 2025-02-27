@@ -31,7 +31,7 @@ const Home = async () => {
 	}
 	return (
 		<div>
-			<h1 className="text-center pb-7" style={{color: "var(--hounslow-primary)"}}>Welcome {user.firstName}!</h1>
+			<h1 className="text-center pb-7">Welcome {user.firstName}!</h1>
 			{renderButtons(user.permissionGroup)}
 		</div>
 	)

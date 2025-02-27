@@ -1,3 +1,5 @@
+@use "styles/colours" as *;
+@use "styles/govuk-overrides";
 @use "tailwindcss";
 
 $hounslow-primary: #642f6c;
