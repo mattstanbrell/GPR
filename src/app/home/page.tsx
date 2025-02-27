@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import SocialWorkerButtons from "../components/dashboard/SocialWorkerButtons";
 import ManagerButtons from "../components/dashboard/ManagerButtons";
 import AdminButtons from "../components/dashboard/AdminButtons";
+import { fetchUserAttributes } from "aws-amplify/auth";
 
 
 const exampleUser = {
@@ -25,6 +26,7 @@ function renderButtons(permissionGroup: string) {
 }
 
 const Home = async () => {
+	console.log(await fetchUserAttributes());
 	const user = exampleUser;
 	if (!user) {
 		redirect("/");
