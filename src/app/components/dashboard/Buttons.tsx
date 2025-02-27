@@ -12,7 +12,7 @@ const Button = ({ text, link, src, alt }: { text: string, link: string, src: str
 		secondLine = null;
 	}
 	return (
-		<Link href={link} className="text-3xl font-bold md:flex-none w-full flex-1 min-w-35 max-w-40 border-2 grid  h-50">
+		<Link href={link} className="text-3xl font-bold md:flex-none w-full flex-1 min-w-35 max-w-40 border-4 grid  h-50">
 			<button className="cursor-pointer flex flex-col">
 				<Image
 					className="flex-1/2 w-15 self-center place-self-center"
