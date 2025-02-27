@@ -3,11 +3,13 @@
 
 import { useState, useEffect } from 'react';
 import Formboard from '@/app/components/formboard/Formboard';
+import { updateIndexHelper, getUserAuthorisedForms, getUserAssignedForms} from '@/app/components/formboard/_helpers'
 
 const ManagerFormboard = () => {
 
     const [isMobile, setIsMobile] = useState(false);
     const [index, setIndex] = useState(0); 
+    const TOTAL_BOARDS = 2;
 
     useEffect(() => {
         const mediumWindowSize = 768;
@@ -20,31 +22,18 @@ const ManagerFormboard = () => {
         return () => window.removeEventListener("resize", handleResize);
     }, []);
 
-    // retrieve the outstanding forms to show
-    const form1 = {
-        id: 1,
-        status: "submitted",
-        firstName: "Charlie",
-        lastName: "Bucket",
-        date: "25/02/25"
-    };
+    const updateIndex = ({isIncrement} : {isIncrement: boolean}) => {
+        updateIndexHelper({ isIncrement, index, setIndex, TOTAL_BOARDS }); 
+    }
 
-    const form2 = {
-        id: 2,
-        status: "authorised",
-        firstName: "Jill",
-        lastName: "Doe",
-        date: "21/02/25"
-    };
+    const boardDetails = [
+        { title: "Assigned", forms: getUserAssignedForms() },
+        { title: "Authorised", forms: getUserAuthorisedForms() },
+    ];
 
-    // to be changed to getter methods when DB is has been merged
-    const assignedForms: Array<object> = [form1];
-    const authorisedForms: Array<object> = [form2];
-
-    const boards = [
-        <Formboard boardTitle="Assigned" boardForms={ assignedForms } index={ index } setIndex={ setIndex } size = { 2 } />,
-        <Formboard boardTitle="Authorised" boardForms={ authorisedForms } index={ index } setIndex={ setIndex } size = { 2 } />
-    ]
+    const boards = boardDetails.map(({title, forms}) => (
+        <Formboard boardTitle={ title } boardForms={ forms } handleIndex={ updateIndex } />
+    ));
 
     return (
         <div key={ index } className="w-full md:flex overflow-clip">
