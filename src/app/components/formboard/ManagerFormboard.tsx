@@ -23,7 +23,7 @@ const ManagerFormboard = () => {
     }, []);
 
     const updateIndex = (isIncrement: boolean) => {
-        updateIndexHelper({ isIncrement, index, setIndex, TOTAL_BOARDS }); 
+        updateIndexHelper(isIncrement, index, setIndex, TOTAL_BOARDS); 
     }
 
     const boardDetails = [
@@ -32,13 +32,13 @@ const ManagerFormboard = () => {
     ];
 
     const boards = boardDetails.map(({title, forms}, index) => (
-        <div key={ index }>
+        <div key={ index } className='h-full md:w-1/4 xs:sm:w-full m-2'>
             <Formboard boardTitle={ title } boardForms={ forms } handleIndex={ updateIndex } />
         </div>
     ));
 
     return (
-        <div className='w-full md:flex overflow-clip'>
+        <>
             {
                 isMobile ? (
                     boards[index] 
@@ -46,7 +46,7 @@ const ManagerFormboard = () => {
                     boards
                 )
             }
-        </div>
+        </>
     )
 }
 

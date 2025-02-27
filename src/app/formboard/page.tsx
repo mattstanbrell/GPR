@@ -19,7 +19,7 @@ const Formboard = async () => {
     const dummy = PERMISSION_GROUP.SOCIAL_WORKER;
 
 	return (
-		<div>
+		<div className="h-120 xs:sm:h-40 md:flex justify-center">
 			{ renderFormboard(dummy) }
 		</div>
 	)

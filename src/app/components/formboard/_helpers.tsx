@@ -1,9 +1,9 @@
 
-const updateIndexHelper = ({isIncrement, index, setIndex, TOTAL_BOARDS} : {isIncrement: boolean, index: number, setIndex: (index: number) => void, TOTAL_BOARDS: number}) => {
+const updateIndexHelper = (isIncrement: boolean, index: number, setIndex: (index: number) => void, TOTAL_BOARDS: number) => {
     if (isIncrement) {
         setIndex((index + 1) % TOTAL_BOARDS);
     } else {
-        setIndex((index + TOTAL_BOARDS - 1) % TOTAL_BOARDS);
+        setIndex((index - 1 + TOTAL_BOARDS) % TOTAL_BOARDS);
     }
 }
 
@@ -38,7 +38,7 @@ const getUserDraftForms = () => {
 }
 
 const getUserSubmittedForms = () => {
-    return [form1]
+    return [form1, form1, form1, form1, form1, form1, form1, form1, form1, form1, form1, form1, form1, form1, form1]
 }
 
 const getUserAuthorisedForms = () => {
@@ -50,7 +50,7 @@ const getUserValidatedForms = () => {
 }
 
 const getUserAssignedForms = () => {
-    return [form1]
+    return [form1, form1, form1, form1, form1, form1, form1, form1, form1, form1, form1, form1, form1, form1, form1]
 }
 
 export { 
