@@ -20,9 +20,9 @@ const Button = ({ text, link, src, alt }: { text: string, link: string, src: str
 					alt={alt}
 					width={24}
 					height={24}
-					style={{filter: "saturate(100%) invert(22%) sepia(9%) saturate(5876%) hue-rotate(253deg) brightness(93%) contrast(89%)"}}
+					style={{filter: "var(--hounslow-primary-filter)"}}
 				/>
-				<div className="grid  flex-1/2 self-center place-items-center text-3xl/10 text-(--hounslow-primary)">
+				<div className="flex-1/2 grid self-center place-items-center text-3xl/10 text-(--hounslow-primary)">
 					{firstLine}
 					{secondLine ? (<><br />{secondLine}</>) : null}
 				</div>
