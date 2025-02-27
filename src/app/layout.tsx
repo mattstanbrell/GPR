@@ -52,7 +52,7 @@ export default function RootLayout({
 							style={{
 								display: "flex",
 								justifyContent: "space-between",
-								alignItems: "baseline",
+								alignItems: "center",
 								width: "100%",
 							}}
 						>
