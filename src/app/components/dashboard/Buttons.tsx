@@ -20,7 +20,7 @@ const Button = ({ text, link, src, alt }: { text: string, link: string, src: str
 					alt={alt}
 					width={24}
 					height={24}
-					style={{filter: "var(--hounslow-primary-filter)"}}
+					style={{filter: "var(--hounslow-primary-filter"}}
 				/>
 				<div className="flex-1/2 grid self-center place-items-center text-3xl/10 text-(--hounslow-primary)">
 					{firstLine}
