@@ -16,14 +16,20 @@ export default function SignInButton() {
 			if (payload.event === "signInWithRedirect") {
 				router.push(HOME);
 			}
+			if (payload.event === "signedOut") {
+				setIsSignedIn(false);
+				router.push("/");
+			}
+			if (payload.event === "signedOut") {
+				setIsSignedIn(false);
+				router.push("/");
+			}
 		});
 
 		// Check if already authenticated
 		getCurrentUser()
-			.then(() => router.push(HOME))
-			.catch(() => {
-				/* Not signed in */
-			});
+			.then(() => setIsSignedIn(true))
+			.catch(() => setIsSignedIn(false));
 	}, [router]);
 
 	const handleClick = async () => {
