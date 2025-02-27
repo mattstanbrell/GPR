@@ -1,37 +1,3 @@
 @use "styles/colours" as *;
 @use "styles/govuk-overrides";
 @use "tailwindcss";
-
-$hounslow-primary: #642f6c;
-$hounslow-primary-filter: "brightness(0) saturate(100%) invert(22%) sepia(9%) saturate(5876%) hue-rotate(253deg) brightness(93%) contrast(89%)";
-$formboard-primary: #b35900;
-$formboard-secondary: #fff;
-$formboard-table-header-colour: #c9c9c9;
-
-// Import GOV.UK Frontend with custom configuration
-@use "node_modules/govuk-frontend/dist/govuk" with (
-  $govuk-brand-colour: $hounslow-primary,
-  // Use Atkinson Hyperlegible instead of GDS Transport
-  // Because we are not an official GOV.UK service, we can't use GDS Transport
-  $govuk-font-family: var(--font-atkinson),
-  // Disable the default GDS Transport font-face
-  $govuk-include-default-font-face: false,
-  $govuk-assets-path: "/govuk-assets/"
-);
-
-
-
-// Define the public variables that can be used by other modules
-:root {
-  --hounslow-primary: #{$hounslow-primary};
-  --hounslow-primary-filter: #{$hounslow-primary-filter};
-  --formboard-primary: #{$formboard-primary};
-  --formboard-secondary: #{$formboard-secondary};
-  --formboard-table-header-colour: #{$formboard-table-header-colour};
-}
-
-
-h1 {
-  @extend .govuk-heading-xl;
-}
-
