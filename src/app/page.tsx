@@ -2,7 +2,6 @@ import HomeSignInButton from "./components/HomeSignInButton";
 import { HOME } from "./constants/urls";
 import { redirect } from "next/navigation";
 import { AuthGetCurrentUserServer } from "@/utils/amplifyServerUtils";
-import { createUser } from "../../amplify/data/queries.util";
 
 export default async function Home() {
 	const user = await AuthGetCurrentUserServer();
