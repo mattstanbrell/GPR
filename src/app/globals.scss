@@ -12,9 +12,8 @@ $hounslow-primary-filter: "brightness(0) saturate(100%) invert(22%) sepia(9%) sa
   $govuk-font-family: var(--font-atkinson),
   // Disable the default GDS Transport font-face
   $govuk-include-default-font-face: false,
-  $govuk-assets-path: "/govuk-assets/"
+  $govuk-assets-path: "/govuk-assets/",
 );
-
 
 
 // Define the public variables that can be used by other modules
@@ -26,5 +25,9 @@ $hounslow-primary-filter: "brightness(0) saturate(100%) invert(22%) sepia(9%) sa
 
 h1 {
   @extend .govuk-heading-xl;
+}
+
+.govuk-heading-xl {
+  color: $hounslow-primary;
 }
 
