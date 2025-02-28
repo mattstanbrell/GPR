@@ -1,14 +1,15 @@
+import { Amplify } from "aws-amplify";
 import { generateClient } from 'aws-amplify/data';
 import type { Schema } from './resource';
+import outputs from "../../amplify_outputs.json";
 
-
+Amplify.configure(outputs);
 const client = generateClient<Schema>();
 
 export async function createUser(user: {
     email: string;
     firstName: string;
     lastName: string;
-    permissionGroup: 'ADMIN' | 'MANAGER' | 'SOCIAL_WORKER';
 }) {
     const { data, errors } = await client.models.User.create(user);
     if (errors && errors.length > 0) {
