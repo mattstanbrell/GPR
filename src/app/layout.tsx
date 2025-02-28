@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Atkinson_Hyperlegible } from "next/font/google";
+import { Atkinson_Hyperlegible, Lexend } from "next/font/google";
 import "./globals.scss";
 import ConfigureAmplifyClientSide from "./components/ConfigureAmplify";
 import { audilyPrimary } from "./theme";
@@ -15,6 +15,15 @@ const atkinson = Atkinson_Hyperlegible({
 	variable: "--font-atkinson",
 });
 
+// Alternative font which was used in the figma design
+const lexend = Lexend({
+	subsets: ["latin"],
+	style: ["normal"],
+	weight: ["400", "700"],
+	display: "swap",
+	variable: "--font-lexend",
+});
+
 export const metadata: Metadata = {
 	title: "AudilyAI",
 	description: "An auditable expenditure form management system",
@@ -28,7 +37,7 @@ export default function RootLayout({
 	return (
 		<html
 			lang="en"
-			className={`${atkinson.className} antialiased govuk-template`}
+			className={`${lexend.className} antialiased govuk-template`}
 		>
 			<head>
 				<meta name="theme-color" content={audilyPrimary} />
@@ -43,7 +52,7 @@ export default function RootLayout({
 							style={{
 								display: "flex",
 								justifyContent: "space-between",
-								alignItems: "baseline",
+								alignItems: "center",
 								width: "100%",
 							}}
 						>
