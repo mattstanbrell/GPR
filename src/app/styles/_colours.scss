@@ -1,0 +1,66 @@
+// Description: Define the colour variables for the application
+
+$hounslow-primary: #642f6c; // Main brand colour
+/* Filter of Main Colour for icons */
+$hounslow-primary-filter: "brightness(0) saturate(100%) invert(22%) sepia(9%) saturate(5876%) hue-rotate(253deg) brightness(93%) contrast(89%)";
+
+/* Used for headers excl. main header */
+$color-secondary: #986f9e;
+
+/* Use on links or to highlight important text */
+$color-accent: #DD57F0;
+
+
+/* Use for buttons and icons */
+$color-button-primary: #352238;
+/* Filter for icons */
+$color-button-primary-filter: "brightness(0) saturate(100%) invert(22%) sepia(9%) saturate(5876%) hue-rotate(253deg) brightness(93%) contrast(89%)";
+$color-button-secondary: #A080A0;
+
+
+/* Use for success messages/icons */
+$color-reject: #C76565;
+$color-accept: #5E9A5E;
+$color-suggestion: #FF90F2;
+$color-warning: #D2D47B;
+
+/* Respective filters for icons */
+$color-reject-filter: "brightness(0) saturate(100%) invert(22%) sepia(9%) saturate(5876%) hue-rotate(253deg) brightness(93%) contrast(89%)";
+$color-accept-filter: "brightness(0) saturate(100%) invert(22%) sepia(9%) saturate(5876%) hue-rotate(253deg) brightness(93%) contrast(89%)";
+$color-suggestion-filter: "brightness(0) saturate(100%) invert(22%) sepia(9%) saturate(5876%) hue-rotate(253deg) brightness(93%) contrast(89%)";
+$color-warning-filter: "brightness(0) saturate(100%) invert(22%) sepia(9%) saturate(5876%) hue-rotate(253deg) brightness(93%) contrast(89%)";
+
+$color-text-light: #FFFCFF; //Use for text on dark backgrounds
+$color-text-subheading: #797979; //Use for less important text
+
+/* BACKGROUND COLOURS */
+$color-background-darkest: #2A002A;
+$color-background-dark: #540253;
+$color-background-medium: #A080A0;
+$color-background-light: #F1E6F2; // Use for variation in background colours
+
+
+// Define the public variables that can be used by other modules
+:root {
+  --hounslow-primary: #{$hounslow-primary};
+  --hounslow-primary-filter: #{$hounslow-primary-filter};
+  --color-secondary: #{$color-secondary};
+  --color-accent: #{$color-accent};
+  --color-button-primary: #{$color-button-primary};
+  --color-button-primary-filter: #{$color-button-primary-filter};
+  --color-button-secondary: #{$color-button-secondary};
+  --color-reject: #{$color-reject};
+  --color-accept: #{$color-accept};
+  --color-suggestion: #{$color-suggestion};
+  --color-warning: #{$color-warning};
+  --color-reject-filter: #{$color-reject-filter};
+  --color-accept-filter: #{$color-accept-filter};
+  --color-suggestion-filter: #{$color-suggestion-filter};
+  --color-warning-filter: #{$color-warning-filter};
+  --color-text-light: #{$color-text-light};
+  --color-text-subheading: #{$color-text-subheading};
+  --color-background-darkest: #{$color-background-darkest};
+  --color-background-dark: #{$color-background-dark};
+  --color-background-medium: #{$color-background-medium};
+  --color-background-light: #{$color-background-light};
+}
