@@ -1,5 +1,5 @@
 import { generateClient } from '@aws-amplify/api';
-import { getCurrentUser } from 'aws-amplify/auth';
+// import { getCurrentUser } from 'aws-amplify/auth';
 import { Schema } from '../../amplify/data/resource';
 
 const client = generateClient<Schema>();
