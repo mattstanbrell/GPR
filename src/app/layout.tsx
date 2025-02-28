@@ -7,14 +7,6 @@ import Link from "next/link";
 import { GovUKFrontend } from "./components/GovUKInitialiser";
 import NavSignInButton from "./components/NavSignInButton";
 
-const atkinson = Atkinson_Hyperlegible({
-	subsets: ["latin"],
-	style: ["normal", "italic"],
-	weight: ["400", "700"],
-	display: "swap",
-	variable: "--font-atkinson",
-});
-
 // Alternative font which was used in the figma design
 const lexend = Lexend({
 	subsets: ["latin"],
