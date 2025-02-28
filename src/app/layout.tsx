@@ -25,7 +25,7 @@ const lexend = Lexend({
 });
 
 export const metadata: Metadata = {
-	title: "AudilyAI",
+	title: "Audily",
 	description: "An auditable expenditure form management system",
 };
 
