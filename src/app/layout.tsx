@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Atkinson_Hyperlegible, Lexend } from "next/font/google";
+import { Lexend } from "next/font/google";
 import "./globals.scss";
 import ConfigureAmplifyClientSide from "./components/ConfigureAmplify";
 import { audilyPrimary } from "./theme";
