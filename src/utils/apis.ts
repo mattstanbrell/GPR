@@ -4,7 +4,7 @@ import { Schema } from '../../amplify/data/resource';
 
 const client = generateClient<Schema>();
 
-// Create a new user
+// Create a new user (needs changing depending on what parameters will be given)
 export async function createUser(email: string, firstName: string, lastName: string) {
   const { data, errors } = await client.models.User.create({
     email,
