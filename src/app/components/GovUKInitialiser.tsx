@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { listUsers,getUserIdByEmail } from '../../utils/apis';
+import { listUsers, getUserIdByEmail, updateUser , deleteUser} from '../../utils/apis';
 import { type Schema } from '../../../amplify/data/resource';
 
 type User = Schema['User']['type'];
@@ -9,7 +9,6 @@ type User = Schema['User']['type'];
 export function GovUKFrontend() {
   // State to store the list of users
   const [users, setUsers] = useState<User[]>([]);
-  console.log(users);
 
   useEffect(() => {
     // Add js-enabled and govuk-frontend-supported classes
@@ -30,9 +29,28 @@ export function GovUKFrontend() {
       })
       .catch((error) => console.error(error));
 
-	  getUserIdByEmail('yes')
+    // Fetch user ID by email and update the user's first name
+    getUserIdByEmail('yes')
       .then((userId) => {
         console.log("User ID by email:", userId);
+
+        if (userId) {
+          // Update the user's first name
+          updateUser(userId, { firstName: "ohyeah" })
+            .then((updatedUser) => {
+              console.log("User updated successfully:", updatedUser);
+            })
+            .catch((error) => {
+              console.error("Error updating user:", error);
+            });
+		deleteUser(userId).then((deletedUser) => {
+			console.log('user deleted',deletedUser);
+		}).catch((error) => {
+			console.log('error deleting user',error)
+		})
+        } else {
+          console.log("No user found with the given email.");
+        }
       })
       .catch((error) => {
         console.error("Error fetching user ID by email:", error);
