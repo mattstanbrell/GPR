@@ -17,6 +17,19 @@ export async function createUser(email: string, firstName: string, lastName: str
   return data;
 }
 
+// Get user ID by email
+export async function getUserIdByEmail(email:string) {
+    const { data, errors } = await client.models.User.list({
+        filter: {
+            email: { eq: email}
+        }
+    });
+    if (errors) {
+        throw new Error(errors[0].message);
+    }
+    return data;
+}
+
 // Get a user by ID
 export async function getUserById(userId: string) {
   const { data, errors } = await client.models.User.get({ id: userId });
