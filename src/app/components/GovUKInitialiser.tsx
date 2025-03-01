@@ -9,6 +9,7 @@ type User = Schema['User']['type'];
 export function GovUKFrontend() {
   // State to store the list of users
   const [users, setUsers] = useState<User[]>([]);
+  console.log(users);
 
   useEffect(() => {
     // Add js-enabled and govuk-frontend-supported classes
@@ -28,7 +29,7 @@ export function GovUKFrontend() {
         }
       })
       .catch((error) => console.error(error));
-	  
+
 	  getUserIdByEmail('yes')
       .then((userId) => {
         console.log("User ID by email:", userId);
