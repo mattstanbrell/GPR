@@ -5,19 +5,21 @@ import AdminButtons from "../components/dashboard/AdminButtons";
 
 const exampleUser = {
 	firstName: "John",
-	permissionGroup: "admin",
-};
+	permissionGroup: "admin"
+}
+
+
 
 function renderButtons(permissionGroup: string) {
 	switch (permissionGroup) {
-		case "socialworker":
-			return <SocialWorkerButtons />;
-		case "manager":
-			return <ManagerButtons />;
-		case "admin":
-			return <AdminButtons />;
+		case 'socialworker':
+			return <SocialWorkerButtons />
+		case 'manager':
+			return <ManagerButtons />
+		case 'admin':
+			return <AdminButtons />
 		default:
-			return <div>This is the default home page, you should not be here</div>;
+			return <div>This is the default home page, you should not be here</div>
 	}
 }
 
@@ -28,10 +30,14 @@ const Home = async () => {
 	}
 	return (
 		<div>
-			<h1 className="text-center pb-7">Welcome {user.firstName}!</h1>
+			<h1 className="text-center pb-7" style={{color: "var(--hounslow-primary)"}}>Welcome {user.firstName}!</h1>
 			{renderButtons(user.permissionGroup)}
 		</div>
-	);
-};
+	)
+}
+
 
 export default Home;
+
+
+
