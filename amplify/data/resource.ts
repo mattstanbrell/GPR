@@ -74,6 +74,9 @@ const schema = a.schema({
 			user: a.hasMany("UserChild", "childID"),
 			form: a.hasMany("Form", "childID"),
 		})
+		.secondaryIndexes((index) => [
+			index("lastName").sortKeys(["firstName"]).queryField("findByName"),
+		])
 		.authorization((allow) => [allow.group("ADMIN"), allow.owner()]),
 
 	Receipt: a
@@ -136,7 +139,6 @@ const schema = a.schema({
 			messages: a.string().required(),
 			formID: a.id().required(),
 			form: a.belongsTo("Form", "formID"),
-			currentFormState: a.string().required(),
 		})
 		.authorization((allow) => [allow.owner()]),
 });
