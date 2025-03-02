@@ -35,7 +35,7 @@ export default function AuditLogsClient({ logs }: AuditLogsClientProps) {
 
   return (
     <table className="govuk-table">
-      <caption className="govuk-table__caption govuk-table__caption--xl">Audit Logs</caption>
+      <caption className="govuk-table__caption govuk-table__caption--l">Audit Logs</caption>
       <thead className="govuk-table__head">
         <tr className="govuk-table__row">
           <th scope="col" className="govuk-table__header">Event</th>

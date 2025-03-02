@@ -20,12 +20,12 @@ export default async function AuditLogsPage() {
   const auditLogs = await getAuditLogs();
 
   return (
-    <main className="govuk-main-wrapper">
-      <div className="govuk-width-container">
-        <div className="govuk-grid-row">
-            <AuditLogsClient logs={auditLogs}/>
+    <div className="govuk-width-container">
+      <div className="govuk-grid-row">
+        <div className="govuk-grid-column-two-thirds">
+          <AuditLogsClient logs={auditLogs}/>
         </div>
       </div>
-    </main>
+    </div>
   );
 }
