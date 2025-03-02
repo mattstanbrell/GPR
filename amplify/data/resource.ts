@@ -101,21 +101,20 @@ const schema = a.schema({
     ]),
 
     Message: a.model({
-        messageID: a.id(),
         userID: a.id().required(),
         threadID: a.id().required(),
-        content: a.string().required(),
-        timeSent: a.datetime().required(),
         user: a.belongsTo('User','userID'),
         thread: a.belongsTo('Thread','threadID'),
+        content: a.string().required(),
+        timeSent: a.datetime().required()
     }).authorization((allow) => [
         allow.owner().to(['read']),
         allow.group('ADMIN')
     ]),
 
     UserThread: a.model({
-        threadID: a.id().required(),
         userID: a.id().required(),
+        threadID: a.id().required(),
         user: a.belongsTo('User','userID'),
         thread: a.belongsTo('Thread','threadID')
     }).authorization((allow) => [
@@ -126,17 +125,12 @@ const schema = a.schema({
 
 
     Thread: a.model({
-        threadID: a.id(),
-        userID: a.id().required(),
         formID: a.id(),
         form: a.belongsTo('Form','formID'),
         lastMessageTime: a.datetime().required(),
-        user: a.hasMany('UserThread','threadID'),
+        users: a.hasMany('UserThread','threadID'),
         messages: a.hasMany('Message','threadID')
-    }).authorization((allow) => [
-        allow.owner().to(['read']),
-        allow.group('ADMIN')
-    ]),
+    }).authorization((allow) => allow.publicApiKey()),
 
     UserChild: a.model({
       childID: a.id().required(),
