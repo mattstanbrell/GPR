@@ -44,7 +44,8 @@ const schema = a.schema({
       childID: a.id(),
       child: a.belongsTo('Child', 'childID'),
       audits: a.hasMany('AuditLog','formID'),
-      feedback: a.string()
+      feedback: a.string(),
+      assignerID: a.id()
     }).authorization(allow => [
       allow.publicApiKey().to(['read']), 
       allow.group('ADMIN'), 

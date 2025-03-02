@@ -26,6 +26,7 @@ type FormUpdates = {
   userID?: string;
   childID?: string;
   feedback?: string;
+  assignerID?: string;
 };
 
 type ChildUpdates = {
@@ -51,7 +52,7 @@ type AuditLogUpdates = {
   formID?: string;
 };
 
-// User APIs 
+// ----------User APIs----------- 
 
 // Create a new user
 export async function createUser(email: string, firstName: string, lastName: string) {
@@ -134,7 +135,7 @@ export async function deleteUser(userId: string) {
   return data;
 }
 
-// Form APIs 
+// ------------Form APIs -------------
 
 // Create a new form
 export async function createForm(
@@ -149,7 +150,8 @@ export async function createForm(
   status: "DRAFT" | "SUBMITTED" | "AUTHORISED" | "VALIDATED" | "COMPLETED",
   userID: string,
   childID?: string,
-  feedback?: string
+  feedback?: string,
+  assignerID?: string
 ) {
   const { data, errors } = await client.models.Form.create({
     caseNumber,
@@ -161,6 +163,7 @@ export async function createForm(
     userID,
     childID,
     feedback,
+    assignerID,
   });
   if (errors) {
     throw new Error(errors[0].message);
@@ -207,7 +210,119 @@ export async function deleteForm(formId: string) {
   return data;
 }
 
-// Child APIs 
+
+// Returns all forms linked to a specific user by userID. Returns array of form objects.
+export async function getFormsForUser(userId: string) {
+    const { data, errors } = await client.models.Form.list({
+      filter: {
+        userID: { eq: userId }, 
+        
+      },
+    });
+    if (errors) {
+      throw new Error(errors[0].message);
+    }
+    return data;
+  }
+
+// Returns all forms assigned to a specific assigner by assignerID. Returns array of form objects.
+export async function getFormsForAssigner(assignerId: string) {
+    const { data, errors } = await client.models.Form.list({
+      filter: {
+        assignerID: { eq: assignerId }, // Filter forms by assignerID
+      },
+    });
+    if (errors) {
+      throw new Error(errors[0].message);
+    }
+    return data;
+  }
+
+// ------------------ UserChild link APISs --------------
+
+export async function linkUserToChild(userId: string, childId: string) {
+    const { data, errors } = await client.models.UserChild.create({
+      userID: userId,
+      childID: childId,
+    });
+    if (errors) {
+      throw new Error(errors[0].message);
+    }
+    return data;
+  }
+
+
+export async function unlinkUserFromChild(userId: string, childId: string) {
+
+  const { data: links, errors: findErrors } = await client.models.UserChild.list({
+    filter: {
+      userID: { eq: userId },
+      childID: { eq: childId },
+    },
+  });
+  if (findErrors) {
+    throw new Error(findErrors[0].message);
+  }
+
+  if (links.length === 0) {
+    throw new Error("No link found between the user and child.");
+  }
+
+  const { data, errors } = await client.models.UserChild.delete({ id: links[0].id });
+  if (errors) {
+    throw new Error(errors[0].message);
+  }
+  return data;
+}
+
+export async function getChildrenForUser(userId: string) {
+    const { data: links, errors: findErrors } = await client.models.UserChild.list({
+      filter: {
+        userID: { eq: userId },
+      },
+    });
+    if (findErrors) {
+      throw new Error(findErrors[0].message);
+    }
+  
+    const children = await Promise.all(
+      links.map(async (link) => {
+        const { data: child, errors: childErrors } = await client.models.Child.get({ id: link.childID });
+        if (childErrors) {
+          throw new Error(childErrors[0].message);
+        }
+        return child;
+      })
+    );
+  
+    return children;
+  }
+
+export async function getUsersForChild(childId: string) {
+
+  const { data: links, errors: findErrors } = await client.models.UserChild.list({
+    filter: {
+      childID: { eq: childId },
+    },
+  });
+  if (findErrors) {
+    throw new Error(findErrors[0].message);
+  }
+
+  const users = await Promise.all(
+    links.map(async (link) => {
+      const { data: user, errors: userErrors } = await client.models.User.get({ id: link.userID });
+      if (userErrors) {
+        throw new Error(userErrors[0].message);
+      }
+      return user;
+    })
+  );
+
+  return users;
+}
+
+//------------------ Child APIs ------------------
 
 // Create a new child
 export async function createChild(
@@ -269,7 +384,7 @@ export async function deleteChild(childId: string) {
   return data;
 }
 
-// Receipt APIs 
+// --------- Receipt APIs ----------
 
 // Create a new receipt
 export async function createReceipt(
@@ -333,7 +448,7 @@ export async function deleteReceipt(receiptId: string) {
   return data;
 }
 
-//  AuditLog APIs 
+// -------------- AuditLog APIs --------------
 
 // Create a new audit log
 export async function createAuditLog(
