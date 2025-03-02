@@ -5,7 +5,7 @@ import AdminButtons from "../components/dashboard/AdminButtons";
 
 const exampleUser = {
 	firstName: "John",
-	permissionGroup: "admin",
+	permissionGroup: "socialworker",
 };
 
 function renderButtons(permissionGroup: string) {
