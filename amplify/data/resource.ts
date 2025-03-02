@@ -9,7 +9,9 @@ const schema = a.schema({
         lastLogin: a.datetime(), 
         forms: a.hasMany('Form', 'userID'),
         children: a.hasMany('UserChild','userID'),
-        audits: a.hasMany('AuditLog','userID')
+        audits: a.hasMany('AuditLog','userID'),
+        messages: a.hasMany('Message','userID'),
+        threads: a.hasMany('UserThread','userID'),
     }).authorization(allow => [
       allow.group('ADMIN'), 
       allow.owner()
@@ -43,6 +45,7 @@ const schema = a.schema({
       user: a.belongsTo('User', 'userID'),
       childID: a.id(),
       child: a.belongsTo('Child', 'childID'),
+        thread: a.hasOne('Thread', 'formID'),
       audits: a.hasMany('AuditLog','formID'),
       feedback: a.string()
     }).authorization(allow => [
@@ -95,6 +98,44 @@ const schema = a.schema({
     }).authorization((allow) => [
       allow.owner().to(['read']),
       allow.group('ADMIN')
+    ]),
+
+    Message: a.model({
+        messageID: a.id(),
+        userID: a.id().required(),
+        threadID: a.id().required(),
+        content: a.string().required(),
+        timeSent: a.datetime().required(),
+        user: a.belongsTo('User','userID'),
+        thread: a.belongsTo('Thread','threadID'),
+    }).authorization((allow) => [
+        allow.owner().to(['read']),
+        allow.group('ADMIN')
+    ]),
+
+    UserThread: a.model({
+        threadID: a.id().required(),
+        userID: a.id().required(),
+        user: a.belongsTo('User','userID'),
+        thread: a.belongsTo('Thread','threadID')
+    }).authorization((allow) => [
+        allow.owner().to(['read']),
+        allow.group('ADMIN')
+    ]),
+
+
+
+    Thread: a.model({
+        threadID: a.id(),
+        userID: a.id().required(),
+        formID: a.id(),
+        form: a.belongsTo('Form','formID'),
+        lastMessageTime: a.datetime().required(),
+        user: a.hasMany('UserThread','threadID'),
+        messages: a.hasMany('Message','threadID')
+    }).authorization((allow) => [
+        allow.owner().to(['read']),
+        allow.group('ADMIN')
     ]),
 
     UserChild: a.model({
