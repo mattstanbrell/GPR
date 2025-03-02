@@ -3,11 +3,6 @@
 import { generateClient } from "aws-amplify/api";
 import type { Schema } from "../../../amplify/data/resource";
 import { useState } from "react";
-import { Amplify } from "aws-amplify";
-import outputs from "../../../amplify_outputs.json";
-
-// Configure Amplify
-Amplify.configure(outputs);
 
 export default function NewFormPage() {
 	const [result, setResult] = useState<string | null>(null);
