@@ -1,4 +1,4 @@
-import ThreadButton from "./ThreadButton"
+import ThreadButton from "./ThreadRow"
 
 
 const ThreadsSidebar = async () => {
