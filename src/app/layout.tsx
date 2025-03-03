@@ -1,19 +1,11 @@
 import type { Metadata } from "next";
-import { Atkinson_Hyperlegible, Lexend } from "next/font/google";
+import { Lexend } from "next/font/google";
 import "./globals.scss";
 import ConfigureAmplifyClientSide from "./components/ConfigureAmplify";
 import { audilyPrimary } from "./theme";
 import Link from "next/link";
 import { GovUKFrontend } from "./components/GovUKInitialiser";
 import NavSignInButton from "./components/NavSignInButton";
-
-const atkinson = Atkinson_Hyperlegible({
-	subsets: ["latin"],
-	style: ["normal", "italic"],
-	weight: ["400", "700"],
-	display: "swap",
-	variable: "--font-atkinson",
-});
 
 // Alternative font which was used in the figma design
 const lexend = Lexend({
@@ -25,7 +17,7 @@ const lexend = Lexend({
 });
 
 export const metadata: Metadata = {
-	title: "AudilyAI",
+	title: "Audily",
 	description: "An auditable expenditure form management system",
 };
 
