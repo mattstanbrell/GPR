@@ -135,7 +135,7 @@ export const handler: Schema["Norm"]["functionHandler"] = async (event) => {
 	const currentFormStateJSON = JSON.parse(currentFormState ?? "{}");
 
 	// Create or update the conversation record
-	let conversationRecord: Schema["NormConversation"]["type"] | null = null;
+	let conversation: Schema["NormConversation"]["type"] | null = null;
 	if (conversationID) {
 		// If we have a conversationID, get the existing conversation
 		const { data: existingConversation } =
@@ -151,7 +151,7 @@ export const handler: Schema["Norm"]["functionHandler"] = async (event) => {
 					messages: messages,
 					formID: formID,
 				});
-			conversationRecord = updatedConversation;
+			conversation = updatedConversation;
 		} else {
 			// Create a new conversation if the ID doesn't exist
 			const { data: newConversation } =
@@ -159,7 +159,7 @@ export const handler: Schema["Norm"]["functionHandler"] = async (event) => {
 					messages: messages,
 					formID: formID,
 				});
-			conversationRecord = newConversation;
+			conversation = newConversation;
 		}
 	} else {
 		// Create a new conversation if no ID is provided
@@ -168,7 +168,11 @@ export const handler: Schema["Norm"]["functionHandler"] = async (event) => {
 				messages: messages,
 				formID: formID,
 			});
-		conversationRecord = newConversation;
+		conversation = newConversation;
+	}
+
+	if (!conversation) {
+		throw new Error("Failed to create or update conversation record");
 	}
 
 	// Hardcoded lookup call for "Charlie Bucket"
@@ -194,23 +198,19 @@ export const handler: Schema["Norm"]["functionHandler"] = async (event) => {
 
 	// For now, we'll use a simple response while we're testing the data access
 	// In a real implementation, we would call OpenAI here
-	// const completion = await openai.beta.chat.completions.parse({
-	// 	model: "gpt-4o",
-	// 	messages: messagesJSON,
-	// 	tools,
-	// 	response_format: zodResponseFormat(llmResponseSchema, "schema"),
-	// });
-
-	if (!conversationRecord) {
-		throw new Error("Failed to create or update conversation record");
-	}
+	const completion = await openai.beta.chat.completions.parse({
+		model: "gpt-4o",
+		messages: messagesJSON,
+		tools,
+		response_format: zodResponseFormat(llmResponseSchema, "schema"),
+	});
 
 	// Return the conversation ID and a simple follow-up message
 	return {
 		followUp: childInfo
 			? `I found ${childInfo.name} with case number ${childInfo.caseNumber}. How can I help you with this form?`
 			: "How can I help you with this form?",
-		conversationID: conversationRecord.id,
+		conversationID: conversation.id,
 		messages: messages,
 		formID: formID,
 		currentFormState: currentFormState,

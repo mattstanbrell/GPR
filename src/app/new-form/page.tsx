@@ -14,14 +14,9 @@ export default function NewFormPage() {
 	const [message, setMessage] = useState("");
 	const [messages, setMessages] = useState<
 		Array<{ id: number; role: "human" | "ai"; content: string }>
-	>([
-		{
-			id: 1,
-			role: "ai",
-			content:
-				"Hello! I'm Norm, your assistant. I can help you fill out this form. What would you like to know?",
-		},
-	]);
+	>([]);
+	const [conversationId, setConversationId] = useState<string | null>(null);
+	const [processingMessage, setProcessingMessage] = useState(false);
 
 	// Create a new form when the component mounts
 	useEffect(() => {
@@ -130,12 +125,14 @@ export default function NewFormPage() {
 		}
 	};
 
-	// Placeholder for message submission
-	const handleMessageSubmit = (e: React.FormEvent) => {
+	// Handle message submission to Norm
+	const handleMessageSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
-		if (!message.trim()) return;
+		if (!message.trim() || !form || processingMessage) return;
 
-		// Add user message
+		setProcessingMessage(true);
+
+		// Add user message to the UI
 		const userMessage = {
 			id: Date.now(),
 			role: "human" as const,
@@ -145,16 +142,100 @@ export default function NewFormPage() {
 		setMessages((prev) => [...prev, userMessage]);
 		setMessage("");
 
-		// Simulate AI response (placeholder)
-		setTimeout(() => {
-			const aiResponse = {
+		try {
+			// Generate client
+			const client = generateClient<Schema>();
+
+			// Prepare the message for the Norm function
+			// We only need to send the new user message - Norm function maintains the history
+			const messagePayload = JSON.stringify([
+				{
+					role: "user",
+					content: message,
+				},
+			]);
+
+			// Call the Norm function
+			const { data: normResponse, errors } = await client.queries.Norm({
+				conversationID: conversationId,
+				messages: messagePayload,
+				formID: form.id,
+				currentFormState: JSON.stringify(form),
+			});
+
+			if (errors) {
+				throw new Error(`Error calling Norm: ${JSON.stringify(errors)}`);
+			}
+
+			// Save the conversation ID for future messages
+			if (normResponse?.conversationID) {
+				setConversationId(normResponse.conversationID);
+			}
+
+			// If the Norm function returns a complete message history, use that
+			if (normResponse?.messages) {
+				try {
+					const messageHistory = JSON.parse(normResponse.messages);
+					if (Array.isArray(messageHistory) && messageHistory.length > 0) {
+						// Convert OpenAI format to our format with IDs
+						const formattedMessages = messageHistory.map((msg, index) => ({
+							id: Date.now() + index,
+							role: msg.role === "user" ? ("human" as const) : ("ai" as const),
+							content: msg.content,
+						}));
+						setMessages(formattedMessages);
+					}
+				} catch (parseError) {
+					console.error("Error parsing message history:", parseError);
+
+					// If we can't parse the message history, just add the AI response
+					const aiResponse = {
+						id: Date.now(),
+						role: "ai" as const,
+						content:
+							normResponse?.followUp ||
+							"I'm sorry, I couldn't process your request.",
+					};
+					setMessages((prev) => [...prev, aiResponse]);
+				}
+			} else {
+				// If no message history is returned, just add the AI response
+				const aiResponse = {
+					id: Date.now(),
+					role: "ai" as const,
+					content:
+						normResponse?.followUp ||
+						"I'm sorry, I couldn't process your request.",
+				};
+				setMessages((prev) => [...prev, aiResponse]);
+			}
+
+			// If the response includes form updates, apply them
+			if (normResponse?.currentFormState) {
+				try {
+					const updatedForm = JSON.parse(normResponse.currentFormState);
+					if (updatedForm) {
+						setForm(updatedForm);
+					}
+				} catch (parseError) {
+					console.error("Error parsing updated form state:", parseError);
+				}
+			}
+		} catch (err) {
+			console.error("Error submitting message to Norm:", err);
+
+			// Add error message
+			const errorResponse = {
 				id: Date.now(),
 				role: "ai" as const,
 				content:
-					"This is a placeholder response. The chatbot functionality will be implemented later.",
+					"Sorry, I encountered an error processing your request. Please try again.",
 			};
-			setMessages((prev) => [...prev, aiResponse]);
-		}, 1000);
+
+			setMessages((prev) => [...prev, errorResponse]);
+		} finally {
+			setProcessingMessage(false);
+		}
 	};
 
 	// Function to handle key down events for the message input
@@ -286,6 +367,41 @@ export default function NewFormPage() {
 					backdrop-filter: blur(5px);
 					z-index: -1;
 					border-top: 1px solid rgba(177, 180, 182, 0.3);
+				}
+
+				@keyframes blink {
+					0% { opacity: 0.2; }
+					20% { opacity: 1; }
+					100% { opacity: 0.2; }
+				}
+				
+				.typing-indicator {
+					display: inline-flex;
+					align-items: center;
+				}
+				
+				.dot {
+					display: inline-block;
+					width: 8px;
+					height: 8px;
+					border-radius: 50%;
+					background-color: var(--hounslow-primary);
+					margin-right: 4px;
+					animation: blink 1.4s infinite both;
+				}
+				
+				.dot:nth-child(2) {
+					animation-delay: 0.2s;
+				}
+				
+				.dot:nth-child(3) {
+					animation-delay: 0.4s;
+				}
+				
+				.govuk-inset-text--purple {
+					background-color: var(--color-background-light);
+					border-color: var(--hounslow-primary);
+					border-left-width: 5px;
 				}
 			`}</style>
 
@@ -675,7 +791,7 @@ export default function NewFormPage() {
 									<div
 										key={msg.id}
 										className={`govuk-inset-text ${
-											msg.role === "ai" ? "govuk-inset-text--blue" : ""
+											msg.role === "ai" ? "govuk-inset-text--purple" : ""
 										}`}
 										style={{
 											marginLeft: msg.role === "human" ? "auto" : "0",
@@ -684,8 +800,13 @@ export default function NewFormPage() {
 											marginTop: 0,
 											marginBottom: 0,
 											backgroundColor:
-												msg.role === "human" ? "#f3f2f1" : "#f0f7ff",
-											borderColor: msg.role === "human" ? "#505a5f" : "#1d70b8",
+												msg.role === "human"
+													? "#f3f2f1"
+													: "var(--color-background-light)",
+											borderColor:
+												msg.role === "human"
+													? "#505a5f"
+													: "var(--hounslow-primary)",
 											borderLeftWidth: msg.role === "ai" ? "5px" : "0",
 											borderRightWidth: msg.role === "human" ? "5px" : "0",
 											borderStyle: "solid",
@@ -696,7 +817,16 @@ export default function NewFormPage() {
 										<ReactMarkdown
 											components={{
 												p: ({ children }) => (
-													<p className="govuk-body" style={{ margin: 0 }}>
+													<p
+														className="govuk-body"
+														style={{
+															margin: 0,
+															color:
+																msg.role === "ai"
+																	? "var(--color-button-primary)"
+																	: "inherit",
+														}}
+													>
 														{renderMessageContent(children?.toString() ?? "")}
 													</p>
 												),
@@ -716,7 +846,36 @@ export default function NewFormPage() {
 										</ReactMarkdown>
 									</div>
 								))}
+
+								{processingMessage && (
+									<div
+										className="govuk-inset-text govuk-inset-text--purple"
+										style={{
+											marginLeft: "0",
+											marginRight: "auto",
+											maxWidth: "80%",
+											marginTop: 0,
+											marginBottom: 0,
+											backgroundColor: "var(--color-background-light)",
+											borderColor: "var(--hounslow-primary)",
+											borderLeftWidth: "5px",
+											borderRightWidth: "0",
+											borderStyle: "solid",
+											borderTop: "none",
+											borderBottom: "none",
+										}}
+									>
+										<p className="govuk-body" style={{ margin: 0 }}>
+											<span className="typing-indicator">
+												<span className="dot" />
+												<span className="dot" />
+												<span className="dot" />
+											</span>
+										</p>
+									</div>
+								)}
 							</div>
+
 							<div
 								style={{
 									position: "relative",
@@ -738,6 +897,13 @@ export default function NewFormPage() {
 										pointerEvents: "none",
 									}}
 								/>
+								{processingMessage && (
+									<div style={{ marginBottom: "10px", textAlign: "center" }}>
+										<span className="govuk-body-s" style={{ color: "#505a5f" }}>
+											Norm is thinking...
+										</span>
+									</div>
+								)}
 								<input
 									className="govuk-input"
 									type="text"
@@ -746,6 +912,7 @@ export default function NewFormPage() {
 									onKeyDown={handleKeyDown}
 									placeholder="Type your message here..."
 									style={{ width: "100%", position: "relative", zIndex: 1 }}
+									disabled={processingMessage}
 								/>
 							</div>
 						</div>
