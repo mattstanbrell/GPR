@@ -147,92 +147,16 @@ export default function NewFormPage() {
 			}
 
 			console.log("Setting form state with loaded form");
-			// Set the form state with the loaded form
-			setForm({
-				...form,
-				id: existingForm.id,
-				status: existingForm.status || "DRAFT",
-				caseNumber: existingForm.caseNumber || "",
-				reason: existingForm.reason || "",
-				amount: existingForm.amount || 0,
-				dateRequired: {
-					day: existingForm.dateRequired?.day || null,
-					month: existingForm.dateRequired?.month || null,
-					year: existingForm.dateRequired?.year || null,
-				},
-				recipientDetails: {
-					name: {
-						firstName: existingForm.recipientDetails?.name?.firstName || "",
-						lastName: existingForm.recipientDetails?.name?.lastName || "",
-					},
-					address: {
-						lineOne: existingForm.recipientDetails?.address?.lineOne || "",
-						lineTwo: existingForm.recipientDetails?.address?.lineTwo || "",
-						townOrCity:
-							existingForm.recipientDetails?.address?.townOrCity || "",
-						postcode: existingForm.recipientDetails?.address?.postcode || "",
-					},
-				},
-			});
+			// Set the form state with the loaded form - trust the data from the database
+			setForm(existingForm as FormData);
 			setFormCreated(true);
 			console.log("Form loaded successfully");
 
-			// Try to load the conversation for this form
-			try {
-				console.log("Trying to load conversation for form ID:", formId);
-				const { data: conversations, errors: convErrors } =
-					await client.models.NormConversation.list({
-						filter: { formID: { eq: formId } },
-						authMode: "userPool",
-					});
-
-				console.log("Conversations found:", conversations);
-				console.log("Conversation errors:", convErrors);
-
-				if (convErrors) {
-					console.error("Errors loading conversations:", convErrors);
-				}
-
-				if (conversations && conversations.length > 0) {
-					const conversation = conversations[0];
-					console.log("Using conversation:", conversation);
-
-					// Set the conversation ID
-					setConversationId(conversation.id);
-
-					// Try to parse and load messages
-					if (conversation.messages) {
-						try {
-							const messageHistory = JSON.parse(conversation.messages);
-							console.log("Parsed message history:", messageHistory);
-
-							if (Array.isArray(messageHistory)) {
-								// Filter out system messages and format for our UI
-								const filteredMessages = messageHistory
-									.filter(
-										(msg) =>
-											msg.role === "user" ||
-											(msg.role === "assistant" && !msg.tool_calls),
-									)
-									.map((msg, index) => ({
-										id: index,
-										role: msg.role,
-										content: msg.content || "",
-									}));
-
-								console.log("Setting messages:", filteredMessages);
-								setMessages(filteredMessages);
-							}
-						} catch (parseErr) {
-							console.error("Error parsing conversation messages:", parseErr);
-						}
-					}
-				}
-			} catch (convErr) {
-				console.error("Error loading conversation:", convErr);
-			}
+			// Load the conversation for this form
+			await loadConversation(formId);
 		} catch (err) {
 			console.error("Error loading existing form:", err);
+			setError(err instanceof Error ? err.message : String(err));
 		}
 	};
 
@@ -306,28 +230,9 @@ export default function NewFormPage() {
 			// Create a new form with DRAFT status
 			const { data: newForm, errors } = await client.models.Form.create(
 				{
-					status: "DRAFT",
-					userID: effectiveUserId,
-					caseNumber: form.caseNumber || "",
-					reason: form.reason || "",
-					amount: form.amount || 0,
-					dateRequired: {
-						day: form.dateRequired?.day || null,
-						month: form.dateRequired?.month || null,
-						year: form.dateRequired?.year || null,
-					},
-					recipientDetails: {
-						name: {
-							firstName: form.recipientDetails?.name?.firstName || "",
-							lastName: form.recipientDetails?.name?.lastName || "",
-						},
-						address: {
-							lineOne: form.recipientDetails?.address?.lineOne || "",
-							lineTwo: form.recipientDetails?.address?.lineTwo || "",
-							townOrCity: form.recipientDetails?.address?.townOrCity || "",
-							postcode: form.recipientDetails?.address?.postcode || "",
-						},
-					},
+					...form, // Use spread operator to include all form fields
+					status: "DRAFT", // Ensure status is DRAFT
+					userID: effectiveUserId, // Add the userID which isn't in our FormData type
 				},
 				{ authMode: "userPool" },
 			);
@@ -374,14 +279,20 @@ export default function NewFormPage() {
 			// Generate client
 			const client = generateClient<Schema>();
 
+			// Create a properly typed object with a guaranteed id
+			const formToUpdate = {
+				...form,
+				id: form.id, // This ensures id is treated as a string, not string | undefined
+			};
+
 			// Update the form with current values
-			await client.models.Form.update(
-				{
-					id: form.id,
-					...form,
-				},
-				{ authMode: "userPool" },
-			);
+			const { errors } = await client.models.Form.update(formToUpdate, {
+				authMode: "userPool",
+			});
+
+			if (errors) {
+				console.error("Error updating form:", errors);
+			}
 		} catch (err) {
 			console.error("Error updating form:", err);
 			// Don't set error state here to avoid disrupting the user experience
@@ -545,18 +456,17 @@ export default function NewFormPage() {
 				]);
 			}
 
-			// If the response includes form updates, apply them
+			// Update form state if provided by Norm
 			if (normResponse?.currentFormState) {
 				try {
-					// Parse the form state - it should now be proper JSON
 					const updatedForm = JSON.parse(normResponse.currentFormState);
 					if (updatedForm) {
+						console.log("Updating form with data from Norm:", updatedForm);
 						setForm(updatedForm);
 					}
 				} catch (parseError) {
-					console.error("Error parsing updated form state:", parseError);
-					// If JSON parsing fails for some reason, fall back to manual parsing
-					parseFormStateManually(normResponse.currentFormState);
+					console.error("Error parsing form state from Norm:", parseError);
+					// Simply log the error instead of attempting complex recovery
 				}
 			}
 		} catch (err) {
@@ -574,109 +484,6 @@ export default function NewFormPage() {
 		} finally {
 			setProcessingMessage(false);
 		}
-	};
-
-	// Helper function to manually parse the form state string
-	const parseFormStateManually = (updatedFormString: string) => {
-		if (!form) return;
-
-		// Extract the main form fields we care about
-		const extractValue = (key: string, str: string): string | null => {
-			const regex = new RegExp(`${key}=([^,}]+)`);
-			const match = str.match(regex);
-			return match ? match[1] : null;
-		};
-
-		// Extract nested objects
-		const extractObject = (prefix: string, str: string): string | null => {
-			const regex = new RegExp(`${prefix}=\\{([^}]+)\\}`);
-			const match = str.match(regex);
-			return match ? match[1] : null;
-		};
-
-		// Extract the main fields
-		const id = extractValue("id", updatedFormString);
-		const caseNumber = extractValue("caseNumber", updatedFormString);
-		const reason = extractValue("reason", updatedFormString);
-		const amount = extractValue("amount", updatedFormString);
-		const statusValue = extractValue("status", updatedFormString);
-
-		// Ensure status is one of the allowed values
-		const status =
-			statusValue &&
-			["DRAFT", "SUBMITTED", "AUTHORISED", "VALIDATED", "COMPLETED"].includes(
-				statusValue,
-			)
-				? (statusValue as
-						| "DRAFT"
-						| "SUBMITTED"
-						| "AUTHORISED"
-						| "VALIDATED"
-						| "COMPLETED")
-				: form.status;
-
-		// Extract nested objects
-		const dateRequiredStr = extractObject("dateRequired", updatedFormString);
-		const dateRequired = dateRequiredStr
-			? {
-					day: Number.parseInt(extractValue("day", dateRequiredStr) || "0", 10),
-					month: Number.parseInt(
-						extractValue("month", dateRequiredStr) || "0",
-						10,
-					),
-					year: Number.parseInt(
-						extractValue("year", dateRequiredStr) || "0",
-						10,
-					),
-				}
-			: form.dateRequired;
-
-		// Extract recipient details
-		const recipientDetailsStr = extractObject(
-			"recipientDetails",
-			updatedFormString,
-		);
-		let recipientDetails = form.recipientDetails || {
-			name: { firstName: "", lastName: "" },
-			address: { lineOne: "", lineTwo: "", townOrCity: "", postcode: "" },
-		};
-
-		if (recipientDetailsStr) {
-			const nameStr = extractObject("name", recipientDetailsStr);
-			const addressStr = extractObject("address", recipientDetailsStr);
-
-			const name = nameStr
-				? {
-						firstName: extractValue("firstName", nameStr) || "",
-						lastName: extractValue("lastName", nameStr) || "",
-					}
-				: recipientDetails.name;
-
-			const address = addressStr
-				? {
-						lineOne: extractValue("lineOne", addressStr) || "",
-						lineTwo: extractValue("lineTwo", addressStr) || "",
-						townOrCity: extractValue("townOrCity", addressStr) || "",
-						postcode: extractValue("postcode", addressStr) || "",
-					}
-				: recipientDetails.address;
-
-			recipientDetails = { name, address };
-		}
-
-		// Update the form with the extracted values
-		const updatedForm = {
-			...form,
-			id: id || form.id,
-			caseNumber: caseNumber || form.caseNumber,
-			reason: reason || form.reason,
-			amount: amount ? Number.parseFloat(amount) : form.amount,
-			dateRequired,
-			recipientDetails,
-			status,
-		};
-
-		setForm(updatedForm);
 	};
 
 	// Function to handle key down events for the message input
@@ -700,19 +507,6 @@ export default function NewFormPage() {
 			return followUpMatch[1].replace(/\\"/g, '"');
 		}
 
-		// Try JSON parsing as fallback
-		if (content.trim().startsWith("{")) {
-			try {
-				const parsed = JSON.parse(content);
-				if (parsed && typeof parsed === "object" && parsed.followUp) {
-					return String(parsed.followUp);
-				}
-			} catch {
-				// Parsing failed, continue to return original content
-			}
-		}
-
-		// Return original content if no followUp found
 		return content;
 	};
 
