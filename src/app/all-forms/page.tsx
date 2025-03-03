@@ -1,7 +1,6 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { revalidatePath } from "next/cache";
 
 import {
 	AuthGetCurrentUserServer,
@@ -9,6 +8,7 @@ import {
 	cookiesClient,
 } from "@/utils/amplifyServerUtils";
 import type { Schema } from "../../../amplify/data/resource";
+import DeleteButton from "./DeleteButton";
 
 // Define a type for the form data
 type FormData = {
@@ -53,27 +53,6 @@ function formatSmartDate(dateString: string) {
 
 	// Older than a week - show full date
 	return date.toLocaleDateString();
-}
-
-// Server action to delete a form
-async function deleteForm(formId: string) {
-	"use server";
-
-	try {
-		await runWithAmplifyServerContext({
-			nextServerContext: { cookies },
-			operation: async (contextSpec) => {
-				const client = cookiesClient;
-				await client.models.Form.delete({ id: formId });
-			},
-		});
-
-		// Revalidate the path to refresh the data
-		revalidatePath("/all-forms");
-	} catch (err) {
-		console.error("Error deleting form:", err);
-		throw new Error(err instanceof Error ? err.message : String(err));
-	}
 }
 
 export default async function AllFormsPage() {
@@ -173,15 +152,7 @@ export default async function AllFormsPage() {
 												{formatSmartDate(form.updatedAt)}
 											</td>
 											<td className="govuk-table__cell">
-												<form action={deleteForm.bind(null, form.id)}>
-													<button
-														className="govuk-button govuk-button--warning"
-														data-module="govuk-button"
-														type="submit"
-													>
-														Delete
-													</button>
-												</form>
+												<DeleteButton formId={form.id} />
 											</td>
 										</tr>
 									))}
