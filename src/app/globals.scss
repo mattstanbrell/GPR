@@ -1,6 +1,7 @@
 @use "styles/colours" as *;
 @use "styles/govuk-overrides";
 @use "tailwindcss";
+@use "sass:color";
 
 .form__label--radio {
   padding: 1.5rem;
@@ -22,7 +23,7 @@
 }
 
 .settings-button--save:hover {
-background-color: darken($hounslow-primary, 10%);  // Darken on hover
+background-color: color.adjust($hounslow-primary, $lightness: -15%);  // Darken on hover
 }
 
 .settings-button--reset {
@@ -35,7 +36,7 @@ background-color: darken($hounslow-primary, 10%);  // Darken on hover
 }
 
 .settings-button--reset:hover {
-background-color: darken($color-button-primary, 10%);  // Darken on hover
+background-color: color.adjust($color-button-primary, $lightness: -15%);  // Darken on hover
 }
 
 .settings-button--preview {
@@ -48,8 +49,9 @@ background-color: darken($color-button-primary, 10%);  // Darken on hover
 }
 
 .settings-button--preview:hover {
-background-color: darken($color-accent, 10%);  // Darken on hover
+background-color: color.adjust($color-accent, $lightness: -15%);  // Darken on hover
 }
+
 @media screen and (max-width: 640px) {
   .settings-button--reset,
   .settings-button--save,
