@@ -34,3 +34,19 @@ h1 {
     margin-bottom: 0;
     font-size: 2rem;
 }
+
+
+.preset-light-background {
+    background-color: $color-background-light;
+    .alt-text {
+        color: $color-text-subheading;
+    }
+}
+
+.preset-secondary-background {
+    background-color: $color-secondary;
+    color: $color-text-light;
+    .alt-text {
+        color: $color-text-light-alt;
+    }
+}       
