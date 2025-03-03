@@ -106,6 +106,7 @@ const schema = a.schema({
         user: a.belongsTo('User','userID'),
         thread: a.belongsTo('Thread','threadID'),
         content: a.string().required(),
+        readStatus: a.boolean().required().default(false),
         timeSent: a.datetime().required()
     }).authorization((allow) => [
         allow.owner().to(['read']),
