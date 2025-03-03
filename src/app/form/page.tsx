@@ -362,8 +362,8 @@ export default function NewFormPage() {
 			// Generate client
 			const client = generateClient<Schema>();
 
-			// Prepare the message for the Norm function
-			// We need to send the entire message history
+			// Include all messages (including system messages) and the new user message
+			// No need to filter out system messages
 			const messagePayload = JSON.stringify(
 				messages.concat([userMessage]), // Include the new message
 			);
@@ -402,34 +402,14 @@ export default function NewFormPage() {
 
 			// Handle the response from Norm
 			if (normResponse?.messages) {
+				// Process messages from Norm - these already include the assistant's response
 				const formattedMessages = processMessages(normResponse.messages);
 
-				// Add the followUp message if needed
-				if (normResponse?.followUp && formattedMessages.length > 0) {
-					const lastMsg = formattedMessages[formattedMessages.length - 1];
-					if (lastMsg.role !== "assistant") {
-						formattedMessages.push({
-							id: Date.now() + formattedMessages.length,
-							role: "assistant",
-							content: normResponse.followUp || "",
-						});
-					}
-				}
-
+				// Set the messages directly - no need to manually append an assistant message
 				if (formattedMessages.length > 0) {
 					setMessages(formattedMessages);
-				} else if (normResponse?.followUp) {
-					// Fallback to just showing the followUp
-					setMessages((prev) => [
-						...prev,
-						{
-							id: Date.now(),
-							role: "assistant",
-							content: normResponse.followUp || "",
-						},
-					]);
 				} else {
-					// Last resort fallback
+					// Last resort fallback if no messages were processed
 					setMessages((prev) => [
 						...prev,
 						{
@@ -439,18 +419,8 @@ export default function NewFormPage() {
 						},
 					]);
 				}
-			} else if (normResponse?.followUp) {
-				// Just add the followUp if no messages
-				setMessages((prev) => [
-					...prev,
-					{
-						id: Date.now(),
-						role: "assistant",
-						content: normResponse.followUp || "",
-					},
-				]);
 			} else {
-				// No messages or followUp
+				// No messages returned from Norm
 				setMessages((prev) => [
 					...prev,
 					{
@@ -496,7 +466,7 @@ export default function NewFormPage() {
 		// Submit on Enter (without Shift)
 		if (e.key === "Enter" && !e.shiftKey) {
 			e.preventDefault();
-			handleMessageSubmit(e as unknown as React.FormEvent);
+			handleMessageSubmit(e);
 		}
 		// Allow new line on Shift+Enter (default textarea behavior)
 	};
