@@ -366,7 +366,7 @@ export default function NewFormPage() {
 
 			// Update the URL with the form ID using Next.js router
 			console.log("Updating URL with form ID:", newForm.id);
-			const newUrl = `/new-form?id=${newForm.id}`;
+			const newUrl = `/form?id=${newForm.id}`;
 			router.replace(newUrl);
 			console.log("URL updated to:", newUrl);
 		} catch (err) {

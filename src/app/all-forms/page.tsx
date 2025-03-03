@@ -129,7 +129,7 @@ export default async function AllFormsPage() {
 										<tr key={form.id} className="govuk-table__row">
 											<td className="govuk-table__cell">
 												<Link
-													href={`/new-form?id=${form.id}`}
+													href={`/form?id=${form.id}`}
 													className="govuk-link"
 													style={{ cursor: "pointer" }}
 												>
