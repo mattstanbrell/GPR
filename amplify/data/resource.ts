@@ -125,7 +125,7 @@ const schema = a.schema({
 
 
     Thread: a.model({
-        formID: a.id(),
+        formID: a.id().required(),
         form: a.belongsTo('Form','formID'),
         lastMessageTime: a.datetime().required(),
         users: a.hasMany('UserThread','threadID'),
