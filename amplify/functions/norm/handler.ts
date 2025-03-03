@@ -545,7 +545,7 @@ Remember:
 			})
 		: Promise.resolve({ data: currentFormStateJSON });
 
-	// Wait for BOTH operations to complete simultaneously
+	// Wait for both operations to complete simultaneously
 	const [conversationResult, formResult] = await Promise.all([
 		conversationUpdatePromise,
 		formUpdatePromise,

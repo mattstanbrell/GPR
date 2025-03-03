@@ -27,7 +27,10 @@ const Button = ({
 			href={link}
 			className="text-3xl font-bold md:flex-none w-full flex-1 min-w-35 max-w-40 border-4 border-(--color-secondary) grid  h-47"
 		>
-			<button className="cursor-pointer flex flex-col place-content-center">
+			<button
+				type="button"
+				className="cursor-pointer flex flex-col place-content-center"
+			>
 				<Image
 					className="flex-1/2 w-13 pb-2 self-center object-bottom object-contain"
 					src={src}
