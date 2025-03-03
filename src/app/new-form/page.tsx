@@ -147,13 +147,20 @@ export default function NewFormPage() {
 			const client = generateClient<Schema>();
 
 			// Prepare the message for the Norm function
-			// We only need to send the new user message - Norm function maintains the history
-			const messagePayload = JSON.stringify([
-				{
-					role: "user",
-					content: message,
-				},
-			]);
+			// We need to send the entire message history
+			const messagePayload = JSON.stringify(
+				messages
+					.map((msg) => ({
+						role: msg.role === "human" ? "user" : "assistant",
+						content: msg.content,
+					}))
+					.concat([
+						{
+							role: "user",
+							content: message,
+						},
+					]),
+			);
 
 			// Call the Norm function
 			const { data: normResponse, errors } = await client.queries.Norm({
@@ -162,6 +169,9 @@ export default function NewFormPage() {
 				formID: form.id,
 				currentFormState: JSON.stringify(form),
 			});
+
+			// Log the response for debugging
+			console.log("normResponse", normResponse);
 
 			if (errors) {
 				throw new Error(`Error calling Norm: ${JSON.stringify(errors)}`);
@@ -172,18 +182,55 @@ export default function NewFormPage() {
 				setConversationId(normResponse.conversationID);
 			}
 
-			// If the Norm function returns a complete message history, use that
+			// Handle the response from Norm
 			if (normResponse?.messages) {
 				try {
-					const messageHistory = JSON.parse(normResponse.messages);
+					// If messages is a string, parse it; otherwise, use it directly
+					const messageHistory =
+						typeof normResponse.messages === "string"
+							? JSON.parse(normResponse.messages)
+							: normResponse.messages;
+
 					if (Array.isArray(messageHistory) && messageHistory.length > 0) {
+						// Filter out system messages, tool calls, and other technical details
+						// Only keep user messages and AI responses without tool_calls
+						const filteredMessages = messageHistory.filter(
+							(msg) =>
+								msg.role === "user" ||
+								(msg.role === "assistant" && !msg.tool_calls),
+						);
+
 						// Convert OpenAI format to our format with IDs
-						const formattedMessages = messageHistory.map((msg, index) => ({
+						const formattedMessages = filteredMessages.map((msg, index) => ({
 							id: Date.now() + index,
 							role: msg.role === "user" ? ("human" as const) : ("ai" as const),
-							content: msg.content,
+							content: msg.content || "",
 						}));
+
+						// Add the latest followUp message if it's not already included
+						const lastMessage = filteredMessages[filteredMessages.length - 1];
+						if (
+							normResponse?.followUp &&
+							(!lastMessage || lastMessage.role !== "assistant")
+						) {
+							formattedMessages.push({
+								id: Date.now() + filteredMessages.length,
+								role: "ai" as const,
+								content: normResponse.followUp,
+							});
+						}
+
 						setMessages(formattedMessages);
+					} else {
+						// If messageHistory is not an array or is empty, just add the follow-up message
+						const aiResponse = {
+							id: Date.now(),
+							role: "ai" as const,
+							content:
+								normResponse?.followUp ||
+								"I'm sorry, I couldn't process your request.",
+						};
+						setMessages((prev) => [...prev, aiResponse]);
 					}
 				} catch (parseError) {
 					console.error("Error parsing message history:", parseError);
@@ -199,7 +246,7 @@ export default function NewFormPage() {
 					setMessages((prev) => [...prev, aiResponse]);
 				}
 			} else {
-				// If no message history is returned, just add the AI response
+				// If no message history is returned, just add the AI response with the follow-up message
 				const aiResponse = {
 					id: Date.now(),
 					role: "ai" as const,
@@ -213,12 +260,15 @@ export default function NewFormPage() {
 			// If the response includes form updates, apply them
 			if (normResponse?.currentFormState) {
 				try {
+					// Parse the form state - it should now be proper JSON
 					const updatedForm = JSON.parse(normResponse.currentFormState);
 					if (updatedForm) {
 						setForm(updatedForm);
 					}
 				} catch (parseError) {
 					console.error("Error parsing updated form state:", parseError);
+					// If JSON parsing fails for some reason, fall back to manual parsing
+					parseFormStateManually(normResponse.currentFormState);
 				}
 			}
 		} catch (err) {
@@ -238,16 +288,143 @@ export default function NewFormPage() {
 		}
 	};
 
+	// Helper function to manually parse the form state string
+	const parseFormStateManually = (updatedFormString: string) => {
+		if (!form) return;
+
+		// Extract the main form fields we care about
+		const extractValue = (key: string, str: string): string | null => {
+			const regex = new RegExp(`${key}=([^,}]+)`);
+			const match = str.match(regex);
+			return match ? match[1] : null;
+		};
+
+		// Extract nested objects
+		const extractObject = (prefix: string, str: string): string | null => {
+			const regex = new RegExp(`${prefix}=\\{([^}]+)\\}`);
+			const match = str.match(regex);
+			return match ? match[1] : null;
+		};
+
+		// Extract the main fields
+		const id = extractValue("id", updatedFormString);
+		const caseNumber = extractValue("caseNumber", updatedFormString);
+		const reason = extractValue("reason", updatedFormString);
+		const amount = extractValue("amount", updatedFormString);
+		const statusValue = extractValue("status", updatedFormString);
+
+		// Ensure status is one of the allowed values
+		const status =
+			statusValue &&
+			["DRAFT", "SUBMITTED", "AUTHORISED", "VALIDATED", "COMPLETED"].includes(
+				statusValue,
+			)
+				? (statusValue as
+						| "DRAFT"
+						| "SUBMITTED"
+						| "AUTHORISED"
+						| "VALIDATED"
+						| "COMPLETED")
+				: form.status;
+
+		// Extract nested objects
+		const dateRequiredStr = extractObject("dateRequired", updatedFormString);
+		const dateRequired = dateRequiredStr
+			? {
+					day: Number.parseInt(extractValue("day", dateRequiredStr) || "0", 10),
+					month: Number.parseInt(
+						extractValue("month", dateRequiredStr) || "0",
+						10,
+					),
+					year: Number.parseInt(
+						extractValue("year", dateRequiredStr) || "0",
+						10,
+					),
+				}
+			: form.dateRequired;
+
+		// Extract recipient details
+		const recipientDetailsStr = extractObject(
+			"recipientDetails",
+			updatedFormString,
+		);
+		let recipientDetails = form.recipientDetails || {
+			name: { firstName: "", lastName: "" },
+			address: { lineOne: "", lineTwo: "", townOrCity: "", postcode: "" },
+		};
+
+		if (recipientDetailsStr) {
+			const nameStr = extractObject("name", recipientDetailsStr);
+			const addressStr = extractObject("address", recipientDetailsStr);
+
+			const name = nameStr
+				? {
+						firstName: extractValue("firstName", nameStr) || "",
+						lastName: extractValue("lastName", nameStr) || "",
+					}
+				: recipientDetails.name;
+
+			const address = addressStr
+				? {
+						lineOne: extractValue("lineOne", addressStr) || "",
+						lineTwo: extractValue("lineTwo", addressStr) || "",
+						townOrCity: extractValue("townOrCity", addressStr) || "",
+						postcode: extractValue("postcode", addressStr) || "",
+					}
+				: recipientDetails.address;
+
+			recipientDetails = { name, address };
+		}
+
+		// Update the form with the extracted values
+		const updatedForm = {
+			...form,
+			id: id || form.id,
+			caseNumber: caseNumber || form.caseNumber,
+			reason: reason || form.reason,
+			amount: amount ? Number.parseFloat(amount) : form.amount,
+			dateRequired,
+			recipientDetails,
+			status,
+		};
+
+		setForm(updatedForm);
+	};
+
 	// Function to handle key down events for the message input
 	const handleKeyDown = (e: React.KeyboardEvent) => {
+		// Submit on Enter (without Shift)
 		if (e.key === "Enter" && !e.shiftKey) {
 			e.preventDefault();
 			handleMessageSubmit(e as unknown as React.FormEvent);
 		}
+		// Allow new line on Shift+Enter (default textarea behavior)
 	};
 
 	// Function to render message content
-	const renderMessageContent = (content: string) => {
+	const renderMessageContent = (content: string): string => {
+		// Early return if content is not a string or is empty
+		if (!content) return "";
+
+		// Try regex approach first - most reliable for our use case
+		const followUpMatch = content.match(/"followUp"\s*:\s*"([^"]*?)"/);
+		if (followUpMatch?.[1]) {
+			return followUpMatch[1].replace(/\\"/g, '"');
+		}
+
+		// Try JSON parsing as fallback
+		if (content.trim().startsWith("{")) {
+			try {
+				const parsed = JSON.parse(content);
+				if (parsed && typeof parsed === "object" && parsed.followUp) {
+					return String(parsed.followUp);
+				}
+			} catch {
+				// Parsing failed, continue to return original content
+			}
+		}
+
+		// Return original content if no followUp found
 		return content;
 	};
 
@@ -881,7 +1058,7 @@ export default function NewFormPage() {
 									position: "relative",
 									background: "rgba(255, 255, 255, 0.8)",
 									backdropFilter: "blur(5px)",
-									padding: "15px 0",
+									padding: "15px 0 0 0",
 									borderTop: "1px solid rgba(177, 180, 182, 0.3)",
 								}}
 							>
@@ -904,14 +1081,22 @@ export default function NewFormPage() {
 										</span>
 									</div>
 								)}
-								<input
-									className="govuk-input"
-									type="text"
+								<textarea
+									className="govuk-textarea"
 									value={message}
 									onChange={(e) => setMessage(e.target.value)}
 									onKeyDown={handleKeyDown}
+									rows={4}
+									style={{
+										resize: "none",
+										height: "100px",
+										width: "100%",
+										padding: "10px",
+										position: "relative",
+										zIndex: 1,
+										margin: "10px",
+									}}
 									placeholder="Type your message here..."
-									style={{ width: "100%", position: "relative", zIndex: 1 }}
 									disabled={processingMessage}
 								/>
 							</div>

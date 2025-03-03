@@ -13,6 +13,12 @@ const schema = a
 				forms: a.hasMany("Form", "userID"),
 				children: a.hasMany("UserChild", "userID"),
 				audits: a.hasMany("AuditLog", "userID"),
+				address: a.customType({
+					lineOne: a.string(),
+					lineTwo: a.string(),
+					townOrCity: a.string(),
+					postcode: a.string(),
+				}),
 			})
 			.authorization((allow) => [allow.group("ADMIN"), allow.owner()]),
 
@@ -60,10 +66,6 @@ const schema = a
 				allow.group("ADMIN"),
 				allow.owner(),
 			]),
-
-		// Todo: a.model({
-		//   content: a.string(),
-		// }).authorization((allow) => [allow.owner()]),
 
 		Child: a
 			.model({
