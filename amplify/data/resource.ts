@@ -45,7 +45,7 @@ const schema = a.schema({
       user: a.belongsTo('User', 'userID'),
       childID: a.id(),
       child: a.belongsTo('Child', 'childID'),
-        thread: a.hasOne('Thread', 'formID'),
+      thread: a.hasOne('Thread', 'formID'),
       audits: a.hasMany('AuditLog','formID'),
       feedback: a.string()
     }).authorization(allow => [

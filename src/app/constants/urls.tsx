@@ -5,3 +5,5 @@ export const ALL_FORMS = "/all-forms"
 export const UPDATES = "/updates"
 export const ADMIN = '/admin'
 export const ACTION_LOG = "/logs"
+export const THREADS = "/threads"
+export const THREAD = "/threads/"
