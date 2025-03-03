@@ -11,12 +11,11 @@ import type { Schema } from "../../../amplify/data/resource";
 import DeleteButton from "./DeleteButton";
 
 // Define a type for the form data
-type FormData = {
+type FormData = Pick<
+	Schema["Form"]["type"],
+	"status" | "caseNumber" | "reason" | "amount"
+> & {
 	id: string;
-	status: "DRAFT" | "SUBMITTED" | "AUTHORISED" | "VALIDATED" | "COMPLETED";
-	caseNumber: string | null;
-	reason: string | null;
-	amount: number;
 	createdAt: string;
 	updatedAt: string;
 };
