@@ -1,8 +1,8 @@
+import ThreadsContainer from '../components/threads/ThreadsContainer'
+
 const AllThreads = async () => {
   return (
-    <div>
-      <h1>AllThreads</h1>
-    </div>
+      <ThreadsContainer/>
   )
 }
 
