@@ -10,6 +10,9 @@ import {
 import type { Schema } from "../../../amplify/data/resource";
 import DeleteButton from "./DeleteButton";
 
+// Add dynamic route segment config
+export const dynamic = "force-dynamic";
+
 // Define a type for the form data
 type FormData = Pick<
 	Schema["Form"]["type"],

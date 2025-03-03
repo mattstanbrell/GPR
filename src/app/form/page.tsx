@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, Suspense } from "react";
 import { generateClient } from "aws-amplify/api";
 import { getCurrentUser } from "aws-amplify/auth";
 import type { Schema } from "../../../amplify/data/resource";
@@ -50,6 +50,16 @@ const processMessages = (messagesData: string | unknown): UIMessage[] => {
 };
 
 export default function NewFormPage() {
+	return (
+		<Suspense
+			fallback={<div className="govuk-width-container">Loading...</div>}
+		>
+			<FormContent />
+		</Suspense>
+	);
+}
+
+function FormContent() {
 	const router = useRouter();
 	const searchParams = useSearchParams();
 	const [loading, setLoading] = useState(false);
