@@ -21,7 +21,7 @@ const getTableBody = (boardForms: Array<any>) => {
                     const fullName = `${ record.firstName } ${ record.lastName }`
                     
                     return (
-                    <tr key={ index } onClick={() => redirect(`/${ record.id }`)} className='h-8 border-2 border-dotted border-transparent border-b-black cursor-pointer' title={ fullName }>
+                    <tr key={ index } onClick={() => redirect(`/${ record.id }`)} className='h-8 border-2 border-dotted border-transparent border-b-black cursor-pointer hover:bg-[var(--color-background-light)]' title={ fullName }>
                         <td className='flex p-2 text-clip text-nowrap overflow-hidden'><StatusIcon formStatus={ record.status } /> <p className='pl-1'>{ fullName }</p></td>
                         <td className='p-2 text-right'>{ record.date }</td>
                     </tr>
