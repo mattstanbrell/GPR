@@ -428,6 +428,35 @@ export default function NewFormPage() {
 		return content;
 	};
 
+	// Function to validate if all required fields are filled out
+	const isFormValid = (): boolean => {
+		if (!form) return false;
+
+		// Check required fields
+		if (!form.caseNumber?.trim()) return false;
+		if (!form.reason?.trim()) return false;
+		if (!form.amount || form.amount <= 0) return false;
+
+		// Check date required
+		if (
+			!form.dateRequired?.day ||
+			!form.dateRequired?.month ||
+			!form.dateRequired?.year
+		)
+			return false;
+
+		// Check recipient details - name
+		if (!form.recipientDetails?.name?.firstName?.trim()) return false;
+		if (!form.recipientDetails?.name?.lastName?.trim()) return false;
+
+		// Check recipient details - address
+		if (!form.recipientDetails?.address?.lineOne?.trim()) return false;
+		if (!form.recipientDetails?.address?.townOrCity?.trim()) return false;
+		if (!form.recipientDetails?.address?.postcode?.trim()) return false;
+
+		return true;
+	};
+
 	if (error) {
 		return (
 			<div className="govuk-width-container">
@@ -932,9 +961,16 @@ export default function NewFormPage() {
 									type="submit"
 									className="govuk-button"
 									onClick={handleSubmit}
-									style={{ marginBottom: 0, position: "relative", zIndex: 1 }}
+									disabled={!isFormValid() || loading}
+									style={{
+										marginBottom: 0,
+										position: "relative",
+										zIndex: 1,
+										opacity: isFormValid() ? 1 : 0.5,
+										cursor: isFormValid() ? "pointer" : "not-allowed",
+									}}
 								>
-									Submit
+									{loading ? "Submitting..." : "Submit"}
 								</button>
 							</div>
 						</div>
