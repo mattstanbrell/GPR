@@ -1130,7 +1130,7 @@ export default function NewFormPage() {
 										padding: "10px",
 										position: "relative",
 										zIndex: 1,
-										margin: "10px",
+										marginBottom: "10px",
 									}}
 									placeholder="Type your message here..."
 									disabled={processingMessage}

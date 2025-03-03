@@ -19,6 +19,15 @@ const client = generateClient<Schema>();
 
 const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
 
+// Helper function for timing operations
+function timeOperation<T>(name: string, fn: () => Promise<T>): Promise<T> {
+	const startTime = Date.now();
+	return fn().finally(() => {
+		const duration = Date.now() - startTime;
+		console.log(`TIMING: ${name} took ${duration}ms`);
+	});
+}
+
 const llmResponseSchema = z.object({
 	form: z.object({
 		caseNumber: z.string(),
@@ -71,19 +80,30 @@ const tools = [
 ];
 
 async function lookupCaseNumber(name: string, userID: string) {
-	// Hardcoded to look for "Charlie Bucket" for now
-	const firstName = "Charlie";
-	const lastName = "Bucket";
+	const lookupStartTime = Date.now();
 
-	// Find all UserChild records for the current user
+	// Extract first and last name
+	const [firstName, lastName] = name.split(" ");
+
+	if (!firstName || !lastName) {
+		throw new Error("Please provide both first and last name");
+	}
+
+	// First, get all UserChild records for this user
+	const userChildQueryStartTime = Date.now();
 	const { data: userChildren, errors: userChildErrors } =
 		await client.models.UserChild.list({
+			// @ts-ignore - The type definitions don't match the actual API
 			filter: { userID: { eq: userID } },
 		});
+	console.log(
+		`TIMING: user_child_query took ${Date.now() - userChildQueryStartTime}ms`,
+	);
 
 	if (userChildErrors) {
-		console.error("Error finding user's children:", userChildErrors);
-		throw new Error("Failed to retrieve children associated with the user");
+		throw new Error(
+			`Error querying user-child relationships: ${userChildErrors.map((e) => e.message).join(", ")}`,
+		);
 	}
 
 	if (!userChildren || userChildren.length === 0) {
@@ -93,32 +113,38 @@ async function lookupCaseNumber(name: string, userID: string) {
 	// Get all the child IDs associated with this user
 	const childIDs = userChildren.map((uc) => uc.childID);
 
-	// Find the specific child by name among the user's children
-	// Use multiple separate queries instead of 'in' operator which isn't supported in the type
-	const foundChildren: Array<Schema["Child"]["type"]> = [];
+	// Query each child individually using Promise.all for parallel execution
+	const childrenQueryStartTime = Date.now();
+	const childPromises = childIDs.map((id) => client.models.Child.get({ id }));
+	const childResults = await Promise.all(childPromises);
+	console.log(
+		`TIMING: children_query took ${Date.now() - childrenQueryStartTime}ms`,
+	);
 
-	// Query each child individually
-	for (const childID of childIDs) {
-		const { data: child, errors: childErrors } = await client.models.Child.get({
-			id: childID,
-		});
+	// Filter out any errors and extract the data
+	const children = childResults
+		.filter((result) => !result.errors && result.data)
+		.map((result) => result.data);
 
-		if (
-			!childErrors &&
-			child &&
-			child.firstName === firstName &&
-			child.lastName === lastName
-		) {
-			foundChildren.push(child);
-		}
+	if (children.length === 0) {
+		throw new Error("No children found for this user");
 	}
 
-	if (foundChildren.length === 0) {
+	// Find the child with the matching name
+	const foundChild = children.find(
+		(child) =>
+			child && child.firstName === firstName && child.lastName === lastName,
+	);
+
+	if (!foundChild) {
 		throw new Error(`No child named ${name} found for this user`);
 	}
 
+	console.log(
+		`TIMING: lookup_case_number took ${Date.now() - lookupStartTime}ms`,
+	);
 	// Return the found child
-	return foundChildren[0];
+	return foundChild;
 }
 
 async function handleToolCalls(
@@ -129,9 +155,12 @@ async function handleToolCalls(
 	messages: ChatCompletionMessageParam[],
 	userID: string,
 ) {
-	// for each tool call
-	for (const toolCall of toolCalls) {
+	const handleToolCallsStartTime = Date.now();
+
+	// Process all tool calls in parallel
+	const toolCallPromises = toolCalls.map(async (toolCall) => {
 		const args = JSON.parse(toolCall.function.arguments);
+
 		switch (toolCall.function.name) {
 			case "lookupCaseNumber": {
 				const name = args.name;
@@ -146,7 +175,14 @@ async function handleToolCalls(
 				break;
 			}
 		}
-	}
+	});
+
+	// Wait for all tool calls to complete
+	await Promise.all(toolCallPromises);
+
+	console.log(
+		`TIMING: handle_tool_calls_total took ${Date.now() - handleToolCallsStartTime}ms`,
+	);
 }
 
 async function processLLMResponse(
@@ -156,6 +192,7 @@ async function processLLMResponse(
 	formID: string,
 	userID: string,
 ) {
+	const processStartTime = Date.now();
 	const llmMessage = completion.choices[0].message;
 
 	if (!llmMessage) {
@@ -169,15 +206,26 @@ async function processLLMResponse(
 			tool_calls: llmMessage.tool_calls,
 		});
 
+		const toolCallsStartTime = Date.now();
 		await handleToolCalls(llmMessage.tool_calls, messages, userID);
+		console.log(
+			`TIMING: handle_tool_calls took ${Date.now() - toolCallsStartTime}ms`,
+		);
 
+		const followUpStartTime = Date.now();
 		const followUpCompletion = await openai.beta.chat.completions.parse({
 			model: "gpt-4o",
 			messages,
 			tools,
 			response_format: zodResponseFormat(llmResponseSchema, "schema"),
 		});
+		console.log(
+			`TIMING: openai_followup_call took ${Date.now() - followUpStartTime}ms`,
+		);
 
+		console.log(
+			`TIMING: process_llm_with_tool_calls took ${Date.now() - processStartTime}ms`,
+		);
 		return processLLMResponse(
 			followUpCompletion,
 			messages,
@@ -192,6 +240,9 @@ async function processLLMResponse(
 		content: llmMessage.content || "",
 	});
 
+	console.log(
+		`TIMING: process_llm_without_tool_calls took ${Date.now() - processStartTime}ms`,
+	);
 	// Return messages and parsed form data without updating the form
 	return {
 		messages,
@@ -267,6 +318,9 @@ async function getUserDetails(userID: string) {
 }
 
 export const handler: Schema["Norm"]["functionHandler"] = async (event) => {
+	console.log(`TIMING: handler_start at ${Date.now()}`);
+	const totalStartTime = Date.now();
+
 	// Extract user ID directly from Cognito identity
 	const userIdFromIdentity = (event.identity as { sub: string }).sub;
 
@@ -424,67 +478,47 @@ Remember:
 		messagesWithSystem = [systemMessage, ...messagesJSON];
 	}
 
-	// Create or update the conversation record
-	let conversation: Schema["NormConversation"]["type"];
-	if (conversationID) {
-		// If we have a conversationID, get the existing conversation
-		const { data: existingConversation } =
-			await client.models.NormConversation.get({
-				id: conversationID,
-			});
+	// Get or create conversation
+	const conversationStartTime = Date.now();
 
-		if (existingConversation) {
-			// Update the existing conversation with new messages
-			const { data: updatedConversation } =
-				await client.models.NormConversation.update({
-					id: conversationID,
-					messages: JSON.stringify(messagesWithSystem),
-					formID: formID,
-				});
+	let conversationId = conversationID;
 
-			if (!updatedConversation) {
-				throw new Error("Failed to update conversation record");
-			}
+	// If no conversation ID is provided, create a new conversation
+	if (!conversationId) {
+		// Prepare the conversation data
+		const conversationData = {
+			messages: JSON.stringify(messagesWithSystem),
+			formID: formID,
+		};
 
-			conversation = updatedConversation;
-		} else {
-			// Create a new conversation if the ID doesn't exist
-			const { data: newConversation } =
-				await client.models.NormConversation.create({
-					messages: JSON.stringify(messagesWithSystem),
-					formID: formID,
-				});
-
-			if (!newConversation) {
-				throw new Error("Failed to create conversation record");
-			}
-
-			conversation = newConversation;
-		}
-	} else {
-		// Create a new conversation if no ID is provided
+		// Create a new conversation
 		const { data: newConversation } =
-			await client.models.NormConversation.create({
-				messages: JSON.stringify(messagesWithSystem),
-				formID: formID,
-			});
+			await client.models.NormConversation.create(conversationData);
 
 		if (!newConversation) {
 			throw new Error("Failed to create conversation record");
 		}
 
-		conversation = newConversation;
+		conversationId = newConversation.id;
 	}
 
-	// For now, we'll use a simple response while we're testing the data access
-	// In a real implementation, we would call OpenAI here
+	console.log(
+		`TIMING: conversation_retrieval took ${Date.now() - conversationStartTime}ms`,
+	);
+
+	// Call OpenAI with the messages
+	const openaiStartTime = Date.now();
 	const completion = await openai.beta.chat.completions.parse({
 		model: "gpt-4o",
 		messages: messagesWithSystem,
 		tools,
 		response_format: zodResponseFormat(llmResponseSchema, "schema"),
 	});
+	console.log(
+		`TIMING: openai_initial_call took ${Date.now() - openaiStartTime}ms`,
+	);
 
+	const processStartTime = Date.now();
 	const result = await processLLMResponse(
 		completion,
 		messagesWithSystem,
@@ -492,30 +526,45 @@ Remember:
 		formID,
 		userIdFromIdentity,
 	);
+	console.log(
+		`TIMING: process_llm_response took ${Date.now() - processStartTime}ms`,
+	);
 
-	// update conversation with new messages, assuming we always have a conversationID
-	await client.models.NormConversation.update({
-		id: conversation.id,
+	// Start both update operations in parallel
+	const updateStartTime = Date.now();
+	const conversationUpdatePromise = client.models.NormConversation.update({
+		id: conversationId,
 		messages: JSON.stringify(result.messages),
 	});
 
-	// Update form if we have form data from the LLM response
-	let updatedForm = currentFormStateJSON;
-	if (result.formData) {
-		const { data: formData } = await client.models.Form.update({
-			id: formID,
-			...result.formData,
-		});
+	// Only update the form if we have form data
+	const formUpdatePromise = result.formData
+		? client.models.Form.update({
+				id: formID,
+				...result.formData,
+			})
+		: Promise.resolve({ data: currentFormStateJSON });
 
-		if (formData) {
-			updatedForm = formData;
-		}
-	}
+	// Wait for BOTH operations to complete simultaneously
+	const [conversationResult, formResult] = await Promise.all([
+		conversationUpdatePromise,
+		formUpdatePromise,
+	]);
+	console.log(
+		`TIMING: parallel_updates took ${Date.now() - updateStartTime}ms`,
+	);
+
+	// Get the updated form data
+	const updatedForm = formResult.data || currentFormStateJSON;
+
+	console.log(
+		`TIMING: total_handler_execution took ${Date.now() - totalStartTime}ms`,
+	);
 
 	// Return the conversation ID and a simple follow-up message
 	return {
 		followUp: result.followUp || null,
-		conversationID: conversation.id,
+		conversationID: conversationId,
 		messages: JSON.stringify(result.messages),
 		formID: formID,
 		currentFormState: JSON.stringify(updatedForm),
