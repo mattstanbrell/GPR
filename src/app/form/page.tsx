@@ -201,20 +201,25 @@ export default function NewFormPage() {
 		}
 	};
 
-	// Handle form field changes - simplified to just update the form state and the database
-	const handleFormChange = (field: string, value: unknown) => {
+	// Handle form field changes - update state immediately, database only on blur
+	const handleFormChange = (
+		field: string,
+		value: unknown,
+		updateDb = false,
+	) => {
 		if (!form) return;
 
 		// Update the form state
-		setForm({
-			...form,
-			[field]: value,
-		});
+		setForm((prevForm) => {
+			const newForm = { ...prevForm, [field]: value };
 
-		// Update the form in the database if we have an ID
-		if (form.id) {
-			updateFormInDatabase();
-		}
+			// Update database only on blur (when updateDb is true) and if we have an ID
+			if (updateDb && newForm.id) {
+				updateFormInDatabase(newForm);
+			}
+
+			return newForm;
+		});
 	};
 
 	// Create the form silently in the background
@@ -272,21 +277,21 @@ export default function NewFormPage() {
 	};
 
 	// Update the form in the database
-	const updateFormInDatabase = async () => {
-		if (!form.id) return;
+	const updateFormInDatabase = async (formToUpdate = form) => {
+		if (!formToUpdate.id) return;
 
 		try {
 			// Generate client
 			const client = generateClient<Schema>();
 
 			// Create a properly typed object with a guaranteed id
-			const formToUpdate = {
-				...form,
-				id: form.id, // This ensures id is treated as a string, not string | undefined
+			const updateData = {
+				...formToUpdate,
+				id: formToUpdate.id, // This ensures id is treated as a string, not string | undefined
 			};
 
 			// Update the form with current values
-			const { errors } = await client.models.Form.update(formToUpdate, {
+			const { errors } = await client.models.Form.update(updateData, {
 				authMode: "userPool",
 			});
 
@@ -730,6 +735,13 @@ export default function NewFormPage() {
 												onChange={(e) =>
 													handleFormChange("caseNumber", e.target.value)
 												}
+												onBlur={() =>
+													handleFormChange(
+														"caseNumber",
+														form.caseNumber || "",
+														true,
+													)
+												}
 											/>
 										</div>
 
@@ -745,6 +757,9 @@ export default function NewFormPage() {
 												value={form.reason || ""}
 												onChange={(e) =>
 													handleFormChange("reason", e.target.value)
+												}
+												onBlur={() =>
+													handleFormChange("reason", form.reason || "", true)
 												}
 											/>
 										</div>
@@ -771,6 +786,9 @@ export default function NewFormPage() {
 															: 0;
 														handleFormChange("amount", numericValue);
 													}}
+													onBlur={() =>
+														handleFormChange("amount", form.amount || "", true)
+													}
 												/>
 											</div>
 										</div>
@@ -813,6 +831,13 @@ export default function NewFormPage() {
 																		day,
 																	});
 																}}
+																onBlur={() =>
+																	handleFormChange(
+																		"dateRequired",
+																		form.dateRequired || {},
+																		true,
+																	)
+																}
 															/>
 														</div>
 													</div>
@@ -845,6 +870,13 @@ export default function NewFormPage() {
 																		month,
 																	});
 																}}
+																onBlur={() =>
+																	handleFormChange(
+																		"dateRequired",
+																		form.dateRequired || {},
+																		true,
+																	)
+																}
 															/>
 														</div>
 													</div>
@@ -877,6 +909,13 @@ export default function NewFormPage() {
 																		year,
 																	});
 																}}
+																onBlur={() =>
+																	handleFormChange(
+																		"dateRequired",
+																		form.dateRequired || {},
+																		true,
+																	)
+																}
 															/>
 														</div>
 													</div>
@@ -914,6 +953,13 @@ export default function NewFormPage() {
 														},
 													})
 												}
+												onBlur={() =>
+													handleFormChange(
+														"recipientDetails",
+														form.recipientDetails || {},
+														true,
+													)
+												}
 											/>
 										</div>
 
@@ -936,6 +982,13 @@ export default function NewFormPage() {
 														},
 													})
 												}
+												onBlur={() =>
+													handleFormChange(
+														"recipientDetails",
+														form.recipientDetails || {},
+														true,
+													)
+												}
 											/>
 										</div>
 
@@ -957,6 +1010,13 @@ export default function NewFormPage() {
 															lineOne: e.target.value,
 														},
 													})
+												}
+												onBlur={() =>
+													handleFormChange(
+														"recipientDetails",
+														form.recipientDetails || {},
+														true,
+													)
 												}
 												autoComplete="address-line1"
 											/>
@@ -981,6 +1041,13 @@ export default function NewFormPage() {
 														},
 													})
 												}
+												onBlur={() =>
+													handleFormChange(
+														"recipientDetails",
+														form.recipientDetails || {},
+														true,
+													)
+												}
 												autoComplete="address-line2"
 											/>
 										</div>
@@ -1004,6 +1071,13 @@ export default function NewFormPage() {
 														},
 													})
 												}
+												onBlur={() =>
+													handleFormChange(
+														"recipientDetails",
+														form.recipientDetails || {},
+														true,
+													)
+												}
 												autoComplete="address-level2"
 											/>
 										</div>
@@ -1026,6 +1100,13 @@ export default function NewFormPage() {
 															postcode: e.target.value,
 														},
 													})
+												}
+												onBlur={() =>
+													handleFormChange(
+														"recipientDetails",
+														form.recipientDetails || {},
+														true,
+													)
 												}
 												autoComplete="postal-code"
 											/>
