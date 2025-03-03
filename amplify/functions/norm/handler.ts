@@ -120,30 +120,12 @@ async function lookupCaseNumber(name: string, userID: string) {
 	return foundChildren[0];
 }
 
-// Type for the identity object in AppSync events
-type AppSyncIdentity = {
-	sub?: string;
-	issuer?: string;
-	username?: string;
-	claims?: Record<string, string | number | boolean>;
-	sourceIp?: string[];
-	defaultAuthStrategy?: string;
-};
-
 export const handler: Schema["Norm"]["functionHandler"] = async (event) => {
-	// Extract user ID from the identity context
-	console.log(event);
-	const identity = event.identity as AppSyncIdentity;
+	// Extract user ID directly from Cognito identity
+	const userIdFromIdentity = (event.identity as { sub: string }).sub;
 
-	// Get user ID from the identity object, ensuring it's a string
-	let userIdFromIdentity: string | undefined;
-
-	if (identity?.sub) {
-		userIdFromIdentity = identity.sub;
-	} else if (identity?.claims?.sub && typeof identity.claims.sub === "string") {
-		userIdFromIdentity = identity.claims.sub;
-	} else if (identity?.username) {
-		userIdFromIdentity = identity.username;
+	if (!userIdFromIdentity) {
+		console.warn("No user ID found in the request identity");
 	}
 
 	const { conversationID, messages, formID, currentFormState } =

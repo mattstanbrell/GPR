@@ -1,195 +1,40 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { generateClient } from "aws-amplify/api";
-import type { Schema } from "../../../amplify/data/resource";
-import { useState, useEffect, useRef } from "react";
 import { getCurrentUser } from "aws-amplify/auth";
+import type { Schema } from "../../../amplify/data/resource";
 
 export default function NewFormPage() {
-	const [result, setResult] = useState<string | null>(null);
-	const [userId, setUserId] = useState<string | null>(null);
-	const [children, setChildren] = useState<Array<Schema["Child"]["type"]>>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
-	const [creatingChild, setCreatingChild] = useState(false);
-	const [childCreationResult, setChildCreationResult] = useState<string | null>(
-		null,
-	);
+	const [form, setForm] = useState<Schema["Form"]["type"] | null>(null);
+	const [userId, setUserId] = useState<string | null>(null);
 
-	// Use a ref for the client to avoid dependency issues
-	const clientRef = useRef(generateClient<Schema>());
-
-	// Fetch current user and their associated children
+	// Create a new form when the component mounts
 	useEffect(() => {
-		const client = clientRef.current;
-
-		async function fetchUserAndChildren() {
+		async function createNewForm() {
 			try {
-				// Get current user
+				// Get the current user
 				const user = await getCurrentUser();
 				const currentUserId = user.userId;
 				setUserId(currentUserId);
 
-				// Get UserChild records for the current user
-				const { data: userChildren, errors: userChildErrors } =
-					await client.models.UserChild.list({
-						filter: { userID: { eq: currentUserId } },
-					});
+				// Generate client
+				const client = generateClient<Schema>();
 
-				if (userChildErrors) {
-					console.error("Error fetching user's children:", userChildErrors);
-
-					// Check if it's an authorization error
-					const isAuthError = userChildErrors.some(
-						(err) =>
-							err.errorType === "Unauthorized" ||
-							err.message?.includes("Not Authorized"),
-					);
-
-					if (isAuthError) {
-						throw new Error(
-							"You don't have permission to view children records. Please contact your administrator.",
-						);
-					}
-
-					throw new Error(
-						`Error fetching user's children: ${JSON.stringify(userChildErrors)}`,
-					);
-				}
-
-				if (!userChildren || userChildren.length === 0) {
-					setChildren([]);
-					setLoading(false);
-					return;
-				}
-
-				// Get all child IDs associated with this user
-				const childIDs = userChildren.map((uc) => uc.childID);
-
-				// Fetch each child's details
-				const childrenDetails = [];
-				for (const childID of childIDs) {
-					const { data: child, errors: childErrors } =
-						await client.models.Child.get({
-							id: childID,
-						});
-
-					if (!childErrors && child) {
-						childrenDetails.push(child);
-					}
-				}
-
-				setChildren(childrenDetails);
-			} catch (err) {
-				console.error("Error fetching user or children:", err);
-				setError(err instanceof Error ? err.message : String(err));
-			} finally {
-				setLoading(false);
-			}
-		}
-
-		fetchUserAndChildren();
-	}, []);
-
-	// Function to create a test child and associate with current user
-	const createTestChild = async () => {
-		if (!userId) {
-			setChildCreationResult("Error: User not logged in");
-			return;
-		}
-
-		setCreatingChild(true);
-		setChildCreationResult(null);
-		const client = clientRef.current;
-
-		try {
-			// Step 1: Create a new Child record
-			const { data: newChild, errors: childErrors } =
-				await client.models.Child.create({
-					firstName: "Charlie",
-					lastName: "Bucket",
-					caseNumber: "12345",
-					dateOfBirth: "2015-01-01", // January 1, 2015
-					sex: "Male",
-					gender: "Male",
-				});
-
-			if (childErrors) {
-				throw new Error(`Error creating child: ${JSON.stringify(childErrors)}`);
-			}
-
-			if (!newChild) {
-				throw new Error("Failed to create child record");
-			}
-
-			// Step 2: Create UserChild association
-			const { data: userChild, errors: userChildErrors } =
-				await client.models.UserChild.create({
-					childID: newChild.id,
-					userID: userId,
-				});
-
-			if (userChildErrors) {
-				throw new Error(
-					`Error associating child with user: ${JSON.stringify(userChildErrors)}`,
-				);
-			}
-
-			// Step 3: Refresh the children list
-			const { data: userChildren } = await client.models.UserChild.list({
-				filter: { userID: { eq: userId } },
-			});
-
-			if (userChildren) {
-				const childIDs = userChildren.map((uc) => uc.childID);
-				const childrenDetails = [];
-
-				for (const childID of childIDs) {
-					const { data: child } = await client.models.Child.get({
-						id: childID,
-					});
-
-					if (child) {
-						childrenDetails.push(child);
-					}
-				}
-
-				setChildren(childrenDetails);
-			}
-
-			setChildCreationResult(
-				`Successfully created child: Charlie Bucket (ID: ${newChild.id})`,
-			);
-		} catch (err) {
-			console.error("Error creating test child:", err);
-			setChildCreationResult(err instanceof Error ? err.message : String(err));
-		} finally {
-			setCreatingChild(false);
-		}
-	};
-
-	const handleClick = async () => {
-		const client = clientRef.current;
-
-		try {
-			// Dummy data that matches the expected schema
-			const { data, errors } = await client.queries.Norm({
-				// conversationID: undefined, // Not required for first message
-				messages: JSON.stringify([
-					{
-						role: "user",
-						content: "I need to create a new form for John Smith",
-					},
-				]),
-				formID: "dummy-form-id",
-				currentFormState: JSON.stringify({
+				// Create a new form with DRAFT status
+				const { data: newForm, errors } = await client.models.Form.create({
+					status: "DRAFT",
+					userID: currentUserId,
+					// Initialize with empty values
 					caseNumber: "",
-					amount: 0,
 					reason: "",
+					amount: 0,
 					dateRequired: {
-						day: 1,
-						month: 1,
-						year: 2024,
+						day: 0,
+						month: 0,
+						year: 0,
 					},
 					recipientDetails: {
 						name: {
@@ -203,134 +48,421 @@ export default function NewFormPage() {
 							postcode: "",
 						},
 					},
-				}),
+				});
+
+				if (errors) {
+					console.error("Error creating form:", errors);
+					throw new Error(`Failed to create form: ${JSON.stringify(errors)}`);
+				}
+
+				if (!newForm) {
+					throw new Error("Failed to create form: No form data returned");
+				}
+
+				// Set the form state
+				setForm(newForm);
+				setLoading(false);
+			} catch (err) {
+				console.error("Error creating new form:", err);
+				setError(err instanceof Error ? err.message : String(err));
+				setLoading(false);
+			}
+		}
+
+		createNewForm();
+	}, []);
+
+	// Handle form field changes
+	const handleFormChange = (field: string, value: unknown) => {
+		if (!form) return;
+
+		setForm({
+			...form,
+			[field]: value,
+		});
+	};
+
+	// Handle form submission
+	const handleSubmit = async (e: React.FormEvent) => {
+		e.preventDefault();
+
+		if (!form || !userId) return;
+
+		try {
+			setLoading(true);
+
+			const client = generateClient<Schema>();
+
+			// Update the form
+			const { errors } = await client.models.Form.update({
+				id: form.id,
+				caseNumber: form.caseNumber,
+				reason: form.reason,
+				amount: form.amount,
+				dateRequired: form.dateRequired,
+				recipientDetails: form.recipientDetails,
+				status: "SUBMITTED", // Change status to SUBMITTED
 			});
 
 			if (errors) {
-				console.error("Errors:", errors);
-				setResult(`Error: ${JSON.stringify(errors, null, 2)}`);
-				return;
+				throw new Error(`Failed to update form: ${JSON.stringify(errors)}`);
 			}
 
-			setResult(JSON.stringify(data, null, 2));
-		} catch (error) {
-			console.error("Error calling norm function:", error);
-			setResult(
-				`Error: ${error instanceof Error ? error.message : String(error)}`,
-			);
+			// Redirect to form board or show success message
+			const redirectUrl = "/form-board";
+			window.location.href = redirectUrl;
+		} catch (err) {
+			console.error("Error submitting form:", err);
+			setError(err instanceof Error ? err.message : String(err));
+			setLoading(false);
 		}
 	};
+
+	if (error) {
+		return (
+			<div className="govuk-width-container">
+				<main className="govuk-main-wrapper">
+					<div
+						className="govuk-error-summary"
+						aria-labelledby="error-summary-title"
+						role="alert"
+						tabIndex={-1}
+					>
+						<h2 className="govuk-error-summary__title" id="error-summary-title">
+							There was a problem with your form
+						</h2>
+						<div className="govuk-error-summary__body">
+							<p>{error}</p>
+							<button
+								className="govuk-button"
+								data-module="govuk-button"
+								onClick={() => {
+									const homeUrl = "/home";
+									window.location.href = homeUrl;
+								}}
+								type="button"
+							>
+								Return to Home
+							</button>
+						</div>
+					</div>
+				</main>
+			</div>
+		);
+	}
+
+	if (loading || !form) {
+		return (
+			<div className="govuk-width-container">
+				<main className="govuk-main-wrapper">
+					<div className="govuk-panel govuk-panel--confirmation">
+						<h1 className="govuk-panel__title">Setting up your form</h1>
+						<div className="govuk-panel__body">Please wait...</div>
+					</div>
+				</main>
+			</div>
+		);
+	}
 
 	return (
 		<div className="govuk-width-container">
 			<main className="govuk-main-wrapper">
-				<h1 className="govuk-heading-l">New Form Test</h1>
+				<h1 className="govuk-heading-l">New Form</h1>
 
-				{/* Display current user ID */}
-				<div className="govuk-panel govuk-panel--confirmation">
-					<h2 className="govuk-panel__title">Current User</h2>
-					<div className="govuk-panel__body">
-						{loading
-							? "Loading user information..."
-							: userId
-								? `User ID: ${userId}`
-								: "Not signed in"}
+				<form onSubmit={handleSubmit}>
+					{/* Case Number */}
+					<div className="govuk-form-group">
+						<label className="govuk-label" htmlFor="case-number">
+							Case Number
+						</label>
+						<input
+							className="govuk-input"
+							id="case-number"
+							name="case-number"
+							type="text"
+							value={form.caseNumber || ""}
+							onChange={(e) => handleFormChange("caseNumber", e.target.value)}
+						/>
 					</div>
-				</div>
 
-				{/* Create Test Child Button */}
-				<div className="govuk-form-group">
-					<button
-						type="button"
-						className="govuk-button govuk-button--secondary"
-						data-module="govuk-button"
-						onClick={createTestChild}
-						disabled={creatingChild || !userId}
-					>
-						{creatingChild
-							? "Creating..."
-							: "Create Test Child (Charlie Bucket)"}
-					</button>
+					{/* Reason */}
+					<div className="govuk-form-group">
+						<label className="govuk-label" htmlFor="reason">
+							Reason for Request
+						</label>
+						<textarea
+							className="govuk-textarea"
+							id="reason"
+							name="reason"
+							rows={5}
+							value={form.reason || ""}
+							onChange={(e) => handleFormChange("reason", e.target.value)}
+						/>
+					</div>
 
-					{childCreationResult && (
-						<div
-							className={
-								childCreationResult.includes("Error")
-									? "govuk-error-summary"
-									: "govuk-inset-text"
+					{/* Amount */}
+					<div className="govuk-form-group">
+						<label className="govuk-label" htmlFor="amount">
+							Amount (£)
+						</label>
+						<input
+							className="govuk-input govuk-input--width-10"
+							id="amount"
+							name="amount"
+							type="number"
+							step="0.01"
+							value={form.amount || 0}
+							onChange={(e) =>
+								handleFormChange("amount", Number.parseFloat(e.target.value))
 							}
-						>
-							{childCreationResult}
-						</div>
-					)}
-				</div>
-
-				{/* Display children associated with the user */}
-				<div className="govuk-form-group">
-					<fieldset className="govuk-fieldset">
-						<legend className="govuk-fieldset__legend govuk-fieldset__legend--m">
-							<h2 className="govuk-fieldset__heading">
-								Children Associated with Your Account
-							</h2>
-						</legend>
-
-						{loading ? (
-							<p className="govuk-body">Loading children...</p>
-						) : error ? (
-							<p className="govuk-body govuk-error-message">{error}</p>
-						) : children.length === 0 ? (
-							<p className="govuk-body">
-								No children associated with your account.
-							</p>
-						) : (
-							<table className="govuk-table">
-								<caption className="govuk-table__caption govuk-table__caption--m">
-									Select a child for this form
-								</caption>
-								<thead className="govuk-table__head">
-									<tr className="govuk-table__row">
-										<th scope="col" className="govuk-table__header">
-											Name
-										</th>
-										<th scope="col" className="govuk-table__header">
-											Date of Birth
-										</th>
-										<th scope="col" className="govuk-table__header">
-											Case Number
-										</th>
-									</tr>
-								</thead>
-								<tbody className="govuk-table__body">
-									{children.map((child) => (
-										<tr key={child.id} className="govuk-table__row">
-											<td className="govuk-table__cell">
-												{child.firstName} {child.lastName}
-											</td>
-											<td className="govuk-table__cell">
-												{new Date(child.dateOfBirth).toLocaleDateString()}
-											</td>
-											<td className="govuk-table__cell">{child.caseNumber}</td>
-										</tr>
-									))}
-								</tbody>
-							</table>
-						)}
-					</fieldset>
-				</div>
-
-				<button
-					type="button"
-					className="govuk-button"
-					data-module="govuk-button"
-					onClick={handleClick}
-				>
-					Call Norm Function
-				</button>
-				{result && (
-					<div className="govuk-panel govuk-panel--confirmation">
-						<pre className="govuk-body">{result}</pre>
+						/>
 					</div>
-				)}
+
+					{/* Date Required */}
+					<div className="govuk-form-group">
+						<fieldset
+							className="govuk-fieldset"
+							aria-describedby="date-required-hint"
+						>
+							<legend className="govuk-fieldset__legend">Date Required</legend>
+							<div id="date-required-hint" className="govuk-hint">
+								For example, 27 3 2023
+							</div>
+							<div className="govuk-date-input" id="date-required">
+								<div className="govuk-date-input__item">
+									<div className="govuk-form-group">
+										<label
+											className="govuk-label govuk-date-input__label"
+											htmlFor="date-required-day"
+										>
+											Day
+										</label>
+										<input
+											className="govuk-input govuk-date-input__input govuk-input--width-2"
+											id="date-required-day"
+											name="date-required-day"
+											type="number"
+											min="1"
+											max="31"
+											value={form.dateRequired?.day || ""}
+											onChange={(e) => {
+												const day = Number.parseInt(e.target.value, 10);
+												handleFormChange("dateRequired", {
+													...form.dateRequired,
+													day,
+												});
+											}}
+										/>
+									</div>
+								</div>
+								<div className="govuk-date-input__item">
+									<div className="govuk-form-group">
+										<label
+											className="govuk-label govuk-date-input__label"
+											htmlFor="date-required-month"
+										>
+											Month
+										</label>
+										<input
+											className="govuk-input govuk-date-input__input govuk-input--width-2"
+											id="date-required-month"
+											name="date-required-month"
+											type="number"
+											min="1"
+											max="12"
+											value={form.dateRequired?.month || ""}
+											onChange={(e) => {
+												const month = Number.parseInt(e.target.value, 10);
+												handleFormChange("dateRequired", {
+													...form.dateRequired,
+													month,
+												});
+											}}
+										/>
+									</div>
+								</div>
+								<div className="govuk-date-input__item">
+									<div className="govuk-form-group">
+										<label
+											className="govuk-label govuk-date-input__label"
+											htmlFor="date-required-year"
+										>
+											Year
+										</label>
+										<input
+											className="govuk-input govuk-date-input__input govuk-input--width-4"
+											id="date-required-year"
+											name="date-required-year"
+											type="number"
+											min="2023"
+											max="2030"
+											value={form.dateRequired?.year || ""}
+											onChange={(e) => {
+												const year = Number.parseInt(e.target.value, 10);
+												handleFormChange("dateRequired", {
+													...form.dateRequired,
+													year,
+												});
+											}}
+										/>
+									</div>
+								</div>
+							</div>
+						</fieldset>
+					</div>
+
+					{/* Recipient Details */}
+					<div className="govuk-form-group">
+						<fieldset className="govuk-fieldset">
+							<legend className="govuk-fieldset__legend govuk-fieldset__legend--m">
+								<h2 className="govuk-fieldset__heading">Recipient Details</h2>
+							</legend>
+
+							{/* Name */}
+							<div className="govuk-form-group">
+								<label className="govuk-label" htmlFor="recipient-first-name">
+									First Name
+								</label>
+								<input
+									className="govuk-input"
+									id="recipient-first-name"
+									name="recipient-first-name"
+									type="text"
+									value={form.recipientDetails?.name?.firstName || ""}
+									onChange={(e) =>
+										handleFormChange("recipientDetails", {
+											...form.recipientDetails,
+											name: {
+												...form.recipientDetails?.name,
+												firstName: e.target.value,
+											},
+										})
+									}
+								/>
+							</div>
+
+							<div className="govuk-form-group">
+								<label className="govuk-label" htmlFor="recipient-last-name">
+									Last Name
+								</label>
+								<input
+									className="govuk-input"
+									id="recipient-last-name"
+									name="recipient-last-name"
+									type="text"
+									value={form.recipientDetails?.name?.lastName || ""}
+									onChange={(e) =>
+										handleFormChange("recipientDetails", {
+											...form.recipientDetails,
+											name: {
+												...form.recipientDetails?.name,
+												lastName: e.target.value,
+											},
+										})
+									}
+								/>
+							</div>
+
+							{/* Address */}
+							<div className="govuk-form-group">
+								<label className="govuk-label" htmlFor="address-line-1">
+									Address Line 1
+								</label>
+								<input
+									className="govuk-input"
+									id="address-line-1"
+									name="address-line-1"
+									type="text"
+									value={form.recipientDetails?.address?.lineOne || ""}
+									onChange={(e) =>
+										handleFormChange("recipientDetails", {
+											...form.recipientDetails,
+											address: {
+												...form.recipientDetails?.address,
+												lineOne: e.target.value,
+											},
+										})
+									}
+								/>
+							</div>
+
+							<div className="govuk-form-group">
+								<label className="govuk-label" htmlFor="address-line-2">
+									Address Line 2 (optional)
+								</label>
+								<input
+									className="govuk-input"
+									id="address-line-2"
+									name="address-line-2"
+									type="text"
+									value={form.recipientDetails?.address?.lineTwo || ""}
+									onChange={(e) =>
+										handleFormChange("recipientDetails", {
+											...form.recipientDetails,
+											address: {
+												...form.recipientDetails?.address,
+												lineTwo: e.target.value,
+											},
+										})
+									}
+								/>
+							</div>
+
+							<div className="govuk-form-group">
+								<label className="govuk-label" htmlFor="town-city">
+									Town or City
+								</label>
+								<input
+									className="govuk-input govuk-input--width-20"
+									id="town-city"
+									name="town-city"
+									type="text"
+									value={form.recipientDetails?.address?.townOrCity || ""}
+									onChange={(e) =>
+										handleFormChange("recipientDetails", {
+											...form.recipientDetails,
+											address: {
+												...form.recipientDetails?.address,
+												townOrCity: e.target.value,
+											},
+										})
+									}
+								/>
+							</div>
+
+							<div className="govuk-form-group">
+								<label className="govuk-label" htmlFor="postcode">
+									Postcode
+								</label>
+								<input
+									className="govuk-input govuk-input--width-10"
+									id="postcode"
+									name="postcode"
+									type="text"
+									value={form.recipientDetails?.address?.postcode || ""}
+									onChange={(e) =>
+										handleFormChange("recipientDetails", {
+											...form.recipientDetails,
+											address: {
+												...form.recipientDetails?.address,
+												postcode: e.target.value,
+											},
+										})
+									}
+								/>
+							</div>
+						</fieldset>
+					</div>
+
+					{/* Submit Button */}
+					<button
+						type="submit"
+						className="govuk-button"
+						data-module="govuk-button"
+					>
+						Submit Form
+					</button>
+				</form>
 			</main>
 		</div>
 	);
