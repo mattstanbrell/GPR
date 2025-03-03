@@ -45,13 +45,11 @@ const processMessages = (messagesData: string | unknown): UIMessage[] => {
 				content: msg.content || "",
 			}));
 	} catch (err) {
-		console.error("Error processing messages:", err);
 		return [];
 	}
 };
 
 export default function NewFormPage() {
-	console.log("NewFormPage component rendering");
 	const router = useRouter();
 	const searchParams = useSearchParams();
 	const [loading, setLoading] = useState(false);
@@ -86,40 +84,25 @@ export default function NewFormPage() {
 	const [processingMessage, setProcessingMessage] = useState(false);
 	const [formCreated, setFormCreated] = useState(false);
 
-	// Log URL parameters on client side
-	useEffect(() => {
-		const formId = searchParams.get("id");
-		console.log("Client-side form ID from searchParams:", formId);
-	}, [searchParams]);
-
 	// Get the current user when the component mounts and check for existing form ID in URL
 	useEffect(() => {
-		console.log("useEffect running on component mount");
-
 		async function getUserIdAndInitializeForm() {
-			console.log("getUserIdAndInitializeForm function called");
 			try {
 				// Get the current user
-				console.log("Getting current user");
 				const user = await getCurrentUser();
-				console.log("Current user:", user);
 				setUserId(user.userId);
 
 				// Check if there's a form ID in the URL using searchParams
 				const formId = searchParams.get("id");
-				console.log("Form ID from searchParams:", formId);
 
 				if (formId) {
 					// If form ID exists in URL, load that form
-					console.log("Loading existing form with ID:", formId);
 					await loadExistingForm(formId);
 				} else {
 					// Otherwise create a new form silently
-					console.log("No form ID in URL, creating new form");
 					await createFormSilently(user.userId);
 				}
 			} catch (err) {
-				console.error("Error getting current user:", err);
 				setError(err instanceof Error ? err.message : String(err));
 			}
 		}
@@ -130,33 +113,25 @@ export default function NewFormPage() {
 	// Load an existing form by ID
 	const loadExistingForm = async (formId: string) => {
 		try {
-			console.log("loadExistingForm called with ID:", formId);
 			const client = generateClient<Schema>();
 
 			// Get the form by ID
-			console.log("Fetching form from database");
 			const { data: existingForm, errors } = await client.models.Form.get(
 				{ id: formId },
 				{ authMode: "userPool" },
 			);
 
-			console.log("Form fetch result:", existingForm, errors);
-
 			if (errors || !existingForm) {
-				console.error("Error loading form:", errors);
 				return;
 			}
 
-			console.log("Setting form state with loaded form");
 			// Set the form state with the loaded form - trust the data from the database
 			setForm(existingForm as FormData);
 			setFormCreated(true);
-			console.log("Form loaded successfully");
 
 			// Load the conversation for this form
 			await loadConversation(formId);
 		} catch (err) {
-			console.error("Error loading existing form:", err);
 			setError(err instanceof Error ? err.message : String(err));
 		}
 	};
@@ -164,24 +139,16 @@ export default function NewFormPage() {
 	// Load conversation for a form
 	const loadConversation = async (formId: string) => {
 		try {
-			console.log("loadConversation called for form ID:", formId);
 			const client = generateClient<Schema>();
 
 			// Get the NormConversation for this form
-			console.log("Querying NormConversation with formID:", formId);
 			const { data: conversationData, errors } =
 				await client.models.NormConversation.list({
 					filter: { formID: { eq: formId } },
 					authMode: "userPool",
 				});
 
-			console.log("NormConversation query result:", {
-				conversationData,
-				errors,
-			});
-
 			if (errors) {
-				console.error("Error loading conversation:", errors);
 				return;
 			}
 
@@ -198,7 +165,7 @@ export default function NewFormPage() {
 				}
 			}
 		} catch (err) {
-			console.error("Error loading conversation:", err);
+			// Error handled silently
 		}
 	};
 
@@ -229,7 +196,6 @@ export default function NewFormPage() {
 		if (!effectiveUserId || formCreated) return;
 
 		try {
-			console.log("Creating form silently for user:", effectiveUserId);
 			// Generate client
 			const client = generateClient<Schema>();
 
@@ -244,7 +210,6 @@ export default function NewFormPage() {
 			);
 
 			if (errors) {
-				console.error("Error creating form:", errors);
 				throw new Error(`Failed to create form: ${JSON.stringify(errors)}`);
 			}
 
@@ -252,7 +217,6 @@ export default function NewFormPage() {
 				throw new Error("Failed to create form: No form data returned");
 			}
 
-			console.log("Form created successfully with ID:", newForm.id);
 			// Set the form state with the created form
 			setForm({
 				...form,
@@ -267,12 +231,9 @@ export default function NewFormPage() {
 			setFormCreated(true);
 
 			// Update the URL with the form ID using Next.js router
-			console.log("Updating URL with form ID:", newForm.id);
 			const newUrl = `/form?id=${newForm.id}`;
 			router.replace(newUrl);
-			console.log("URL updated to:", newUrl);
 		} catch (err) {
-			console.error("Error creating new form:", err);
 			setError(err instanceof Error ? err.message : String(err));
 		}
 	};
@@ -295,12 +256,7 @@ export default function NewFormPage() {
 			const { errors } = await client.models.Form.update(updateData, {
 				authMode: "userPool",
 			});
-
-			if (errors) {
-				console.error("Error updating form:", errors);
-			}
 		} catch (err) {
-			console.error("Error updating form:", err);
 			// Don't set error state here to avoid disrupting the user experience
 		}
 	};
@@ -332,7 +288,6 @@ export default function NewFormPage() {
 			// Redirect to form board using Next.js router
 			router.push("/form-board");
 		} catch (err) {
-			console.error("Error submitting form:", err);
 			setError(err instanceof Error ? err.message : String(err));
 			setLoading(false);
 		}
@@ -342,10 +297,6 @@ export default function NewFormPage() {
 	const handleMessageSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		if (!message.trim() || !form || !form.id || processingMessage) return;
-
-		console.log("Submitting message with form ID:", form.id);
-		console.log("Current conversation ID:", conversationId);
-		console.log("Current form state:", form);
 
 		setProcessingMessage(true);
 
@@ -369,13 +320,6 @@ export default function NewFormPage() {
 				messages.concat([userMessage]), // Include the new message
 			);
 
-			console.log("Calling Norm with payload:", {
-				conversationID: conversationId,
-				formID: form.id,
-				messageCount: messages.length + 1,
-				messagePayloadLength: messagePayload.length,
-			});
-
 			// Call the Norm function
 			const { data: normResponse, errors } = await client.queries.Norm({
 				conversationID: conversationId,
@@ -384,21 +328,13 @@ export default function NewFormPage() {
 				currentFormState: JSON.stringify(form),
 			});
 
-			// Log the response for debugging
-			console.log("normResponse", normResponse);
-			console.log("normResponse.conversationID:", normResponse?.conversationID);
-
 			if (errors) {
 				throw new Error(`Error calling Norm: ${JSON.stringify(errors)}`);
 			}
 
 			// Save the conversation ID for future messages
 			if (normResponse?.conversationID) {
-				console.log("Setting conversation ID:", normResponse.conversationID);
-				console.log("Previous conversation ID was:", conversationId);
 				setConversationId(normResponse.conversationID);
-			} else {
-				console.warn("No conversation ID returned from Norm");
 			}
 
 			// Handle the response from Norm
@@ -437,17 +373,13 @@ export default function NewFormPage() {
 				try {
 					const updatedForm = JSON.parse(normResponse.currentFormState);
 					if (updatedForm) {
-						console.log("Updating form with data from Norm:", updatedForm);
 						setForm(updatedForm);
 					}
 				} catch (parseError) {
-					console.error("Error parsing form state from Norm:", parseError);
 					// Simply log the error instead of attempting complex recovery
 				}
 			}
 		} catch (err) {
-			console.error("Error submitting message to Norm:", err);
-
 			// Add error message
 			const errorResponse: UIMessage = {
 				id: Date.now(),
