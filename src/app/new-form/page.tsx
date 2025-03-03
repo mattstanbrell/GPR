@@ -5,119 +5,424 @@ import { generateClient } from "aws-amplify/api";
 import { getCurrentUser } from "aws-amplify/auth";
 import type { Schema } from "../../../amplify/data/resource";
 import ReactMarkdown from "react-markdown";
+import { useRouter, useSearchParams } from "next/navigation";
+
+// Define a type for the form data we're working with
+type FormData = {
+	id?: string;
+	status: "DRAFT" | "SUBMITTED" | "AUTHORISED" | "VALIDATED" | "COMPLETED";
+	caseNumber: string | null;
+	reason: string | null;
+	amount: number;
+	dateRequired: {
+		day: number | null;
+		month: number | null;
+		year: number | null;
+	};
+	recipientDetails: {
+		name: {
+			firstName: string | null;
+			lastName: string | null;
+		};
+		address: {
+			lineOne: string | null;
+			lineTwo: string | null;
+			townOrCity: string | null;
+			postcode: string | null;
+		};
+	};
+};
 
 export default function NewFormPage() {
-	const [loading, setLoading] = useState(true);
+	console.log("NewFormPage component rendering");
+	const router = useRouter();
+	const searchParams = useSearchParams();
+	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
-	const [form, setForm] = useState<Schema["Form"]["type"] | null>(null);
+	const [form, setForm] = useState<FormData>({
+		status: "DRAFT",
+		caseNumber: "",
+		reason: "",
+		amount: 0,
+		dateRequired: {
+			day: null,
+			month: null,
+			year: null,
+		},
+		recipientDetails: {
+			name: {
+				firstName: "",
+				lastName: "",
+			},
+			address: {
+				lineOne: "",
+				lineTwo: "",
+				townOrCity: "",
+				postcode: "",
+			},
+		},
+	});
 	const [userId, setUserId] = useState<string | null>(null);
 	const [message, setMessage] = useState("");
 	const [messages, setMessages] = useState<
-		Array<{ id: number; role: "human" | "ai"; content: string }>
+		Array<{ id: number; role: "user" | "assistant"; content: string }>
 	>([]);
 	const [conversationId, setConversationId] = useState<string | null>(null);
 	const [processingMessage, setProcessingMessage] = useState(false);
+	const [formCreated, setFormCreated] = useState(false);
 
-	// Create a new form when the component mounts
+	// Log URL parameters on client side
 	useEffect(() => {
-		async function createNewForm() {
+		const formId = searchParams.get("id");
+		console.log("Client-side form ID from searchParams:", formId);
+	}, [searchParams]);
+
+	// Get the current user when the component mounts and check for existing form ID in URL
+	useEffect(() => {
+		console.log("useEffect running on component mount");
+
+		async function getUserIdAndInitializeForm() {
+			console.log("getUserIdAndInitializeForm function called");
 			try {
 				// Get the current user
+				console.log("Getting current user");
 				const user = await getCurrentUser();
-				const currentUserId = user.userId;
-				setUserId(currentUserId);
+				console.log("Current user:", user);
+				setUserId(user.userId);
 
-				// Generate client
-				const client = generateClient<Schema>();
+				// Check if there's a form ID in the URL using searchParams
+				const formId = searchParams.get("id");
+				console.log("Form ID from searchParams:", formId);
 
-				// Create a new form with DRAFT status
-				const { data: newForm, errors } = await client.models.Form.create({
-					status: "DRAFT",
-					userID: currentUserId,
-					// Initialize with empty values
-					caseNumber: "",
-					reason: "",
-					amount: 0,
-					dateRequired: {
-						day: 0,
-						month: 0,
-						year: 0,
-					},
-					recipientDetails: {
-						name: {
-							firstName: "",
-							lastName: "",
-						},
-						address: {
-							lineOne: "",
-							lineTwo: "",
-							townOrCity: "",
-							postcode: "",
-						},
-					},
-				});
-
-				if (errors) {
-					console.error("Error creating form:", errors);
-					throw new Error(`Failed to create form: ${JSON.stringify(errors)}`);
+				if (formId) {
+					// If form ID exists in URL, load that form
+					console.log("Loading existing form with ID:", formId);
+					await loadExistingForm(formId);
+				} else {
+					// Otherwise create a new form silently
+					console.log("No form ID in URL, creating new form");
+					await createFormSilently(user.userId);
 				}
-
-				if (!newForm) {
-					throw new Error("Failed to create form: No form data returned");
-				}
-
-				// Set the form state
-				setForm(newForm);
-				setLoading(false);
 			} catch (err) {
-				console.error("Error creating new form:", err);
+				console.error("Error getting current user:", err);
 				setError(err instanceof Error ? err.message : String(err));
-				setLoading(false);
 			}
 		}
 
-		createNewForm();
-	}, []);
+		getUserIdAndInitializeForm();
+	}, [searchParams]);
 
-	// Handle form field changes
+	// Load an existing form by ID
+	const loadExistingForm = async (formId: string) => {
+		try {
+			console.log("loadExistingForm called with ID:", formId);
+			const client = generateClient<Schema>();
+
+			// Get the form by ID
+			console.log("Fetching form from database");
+			const { data: existingForm, errors } = await client.models.Form.get(
+				{ id: formId },
+				{ authMode: "userPool" },
+			);
+
+			console.log("Form fetch result:", existingForm, errors);
+
+			if (errors || !existingForm) {
+				console.error("Error loading form:", errors);
+				return;
+			}
+
+			console.log("Setting form state with loaded form");
+			// Set the form state with the loaded form
+			setForm({
+				...form,
+				id: existingForm.id,
+				status: existingForm.status || "DRAFT",
+				caseNumber: existingForm.caseNumber || "",
+				reason: existingForm.reason || "",
+				amount: existingForm.amount || 0,
+				dateRequired: {
+					day: existingForm.dateRequired?.day || null,
+					month: existingForm.dateRequired?.month || null,
+					year: existingForm.dateRequired?.year || null,
+				},
+				recipientDetails: {
+					name: {
+						firstName: existingForm.recipientDetails?.name?.firstName || "",
+						lastName: existingForm.recipientDetails?.name?.lastName || "",
+					},
+					address: {
+						lineOne: existingForm.recipientDetails?.address?.lineOne || "",
+						lineTwo: existingForm.recipientDetails?.address?.lineTwo || "",
+						townOrCity:
+							existingForm.recipientDetails?.address?.townOrCity || "",
+						postcode: existingForm.recipientDetails?.address?.postcode || "",
+					},
+				},
+			});
+			setFormCreated(true);
+			console.log("Form loaded successfully");
+
+			// Try to load the conversation for this form
+			try {
+				console.log("Trying to load conversation for form ID:", formId);
+				const { data: conversations, errors: convErrors } =
+					await client.models.NormConversation.list({
+						filter: { formID: { eq: formId } },
+						authMode: "userPool",
+					});
+
+				console.log("Conversations found:", conversations);
+				console.log("Conversation errors:", convErrors);
+
+				if (convErrors) {
+					console.error("Errors loading conversations:", convErrors);
+				}
+
+				if (conversations && conversations.length > 0) {
+					const conversation = conversations[0];
+					console.log("Using conversation:", conversation);
+
+					// Set the conversation ID
+					setConversationId(conversation.id);
+
+					// Try to parse and load messages
+					if (conversation.messages) {
+						try {
+							const messageHistory = JSON.parse(conversation.messages);
+							console.log("Parsed message history:", messageHistory);
+
+							if (Array.isArray(messageHistory)) {
+								// Filter out system messages and format for our UI
+								const filteredMessages = messageHistory
+									.filter(
+										(msg) =>
+											msg.role === "user" ||
+											(msg.role === "assistant" && !msg.tool_calls),
+									)
+									.map((msg, index) => ({
+										id: index,
+										role: msg.role,
+										content: msg.content || "",
+									}));
+
+								console.log("Setting messages:", filteredMessages);
+								setMessages(filteredMessages);
+							}
+						} catch (parseErr) {
+							console.error("Error parsing conversation messages:", parseErr);
+						}
+					}
+				}
+			} catch (convErr) {
+				console.error("Error loading conversation:", convErr);
+			}
+		} catch (err) {
+			console.error("Error loading existing form:", err);
+		}
+	};
+
+	// Load conversation for a form
+	const loadConversation = async (formId: string) => {
+		try {
+			console.log("loadConversation called for form ID:", formId);
+			const client = generateClient<Schema>();
+
+			// Get the NormConversation for this form
+			console.log("Querying NormConversation with formID:", formId);
+			const { data: conversationData, errors } =
+				await client.models.NormConversation.list({
+					filter: { formID: { eq: formId } },
+					authMode: "userPool",
+				});
+
+			console.log("NormConversation query result:", {
+				conversationData,
+				errors,
+			});
+
+			if (errors) {
+				console.error("Error loading conversation:", errors);
+				return;
+			}
+
+			if (conversationData && conversationData.length > 0) {
+				const conversation = conversationData[0];
+
+				// Set the conversation ID
+				setConversationId(conversation.id);
+
+				// Parse the messages from the conversation
+				if (conversation.messages) {
+					try {
+						const messageHistory = JSON.parse(conversation.messages);
+
+						if (Array.isArray(messageHistory)) {
+							// Filter out system messages and format for our UI
+							const filteredMessages = messageHistory
+								.filter(
+									(msg) =>
+										msg.role === "user" ||
+										(msg.role === "assistant" && !msg.tool_calls),
+								)
+								.map((msg, index) => ({
+									id: index,
+									role:
+										msg.role === "user"
+											? ("user" as const)
+											: ("assistant" as const),
+									content: msg.content || "",
+								}));
+
+							setMessages(filteredMessages);
+						}
+					} catch (parseErr) {
+						console.error("Error parsing conversation messages:", parseErr);
+					}
+				}
+			}
+		} catch (err) {
+			console.error("Error loading conversation:", err);
+		}
+	};
+
+	// Handle form field changes - simplified to just update the form state and the database
 	const handleFormChange = (field: string, value: unknown) => {
 		if (!form) return;
 
+		// Update the form state
 		setForm({
 			...form,
 			[field]: value,
 		});
+
+		// Update the form in the database if we have an ID
+		if (form.id) {
+			updateFormInDatabase();
+		}
+	};
+
+	// Create the form silently in the background
+	const createFormSilently = async (userIdParam?: string) => {
+		const effectiveUserId = userIdParam || userId;
+		if (!effectiveUserId || formCreated) return;
+
+		try {
+			console.log("Creating form silently for user:", effectiveUserId);
+			// Generate client
+			const client = generateClient<Schema>();
+
+			// Create a new form with DRAFT status
+			const { data: newForm, errors } = await client.models.Form.create(
+				{
+					status: "DRAFT",
+					userID: effectiveUserId,
+					caseNumber: form.caseNumber || "",
+					reason: form.reason || "",
+					amount: form.amount || 0,
+					dateRequired: {
+						day: form.dateRequired?.day || null,
+						month: form.dateRequired?.month || null,
+						year: form.dateRequired?.year || null,
+					},
+					recipientDetails: {
+						name: {
+							firstName: form.recipientDetails?.name?.firstName || "",
+							lastName: form.recipientDetails?.name?.lastName || "",
+						},
+						address: {
+							lineOne: form.recipientDetails?.address?.lineOne || "",
+							lineTwo: form.recipientDetails?.address?.lineTwo || "",
+							townOrCity: form.recipientDetails?.address?.townOrCity || "",
+							postcode: form.recipientDetails?.address?.postcode || "",
+						},
+					},
+				},
+				{ authMode: "userPool" },
+			);
+
+			if (errors) {
+				console.error("Error creating form:", errors);
+				throw new Error(`Failed to create form: ${JSON.stringify(errors)}`);
+			}
+
+			if (!newForm) {
+				throw new Error("Failed to create form: No form data returned");
+			}
+
+			console.log("Form created successfully with ID:", newForm.id);
+			// Set the form state with the created form
+			setForm({
+				...form,
+				id: newForm.id,
+				status: newForm.status as
+					| "DRAFT"
+					| "SUBMITTED"
+					| "AUTHORISED"
+					| "VALIDATED"
+					| "COMPLETED",
+			});
+			setFormCreated(true);
+
+			// Update the URL with the form ID using Next.js router
+			console.log("Updating URL with form ID:", newForm.id);
+			const newUrl = `/new-form?id=${newForm.id}`;
+			router.replace(newUrl);
+			console.log("URL updated to:", newUrl);
+		} catch (err) {
+			console.error("Error creating new form:", err);
+			setError(err instanceof Error ? err.message : String(err));
+		}
+	};
+
+	// Update the form in the database
+	const updateFormInDatabase = async () => {
+		if (!form.id) return;
+
+		try {
+			// Generate client
+			const client = generateClient<Schema>();
+
+			// Update the form with current values
+			await client.models.Form.update(
+				{
+					id: form.id,
+					...form,
+				},
+				{ authMode: "userPool" },
+			);
+		} catch (err) {
+			console.error("Error updating form:", err);
+			// Don't set error state here to avoid disrupting the user experience
+		}
 	};
 
 	// Handle form submission
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 
-		if (!form || !userId) return;
+		if (!form || !form.id) return;
 
 		try {
 			setLoading(true);
 
 			const client = generateClient<Schema>();
 
-			// Update the form
-			const { errors } = await client.models.Form.update({
-				id: form.id,
-				caseNumber: form.caseNumber,
-				reason: form.reason,
-				amount: form.amount,
-				dateRequired: form.dateRequired,
-				recipientDetails: form.recipientDetails,
-				status: "SUBMITTED", // Change status to SUBMITTED
-			});
+			// Update the form with SUBMITTED status
+			const { errors } = await client.models.Form.update(
+				{
+					id: form.id,
+					status: "SUBMITTED",
+				},
+				{ authMode: "userPool" },
+			);
 
 			if (errors) {
 				throw new Error(`Failed to update form: ${JSON.stringify(errors)}`);
 			}
 
-			// Redirect to form board or show success message
-			const redirectUrl = "/form-board";
-			window.location.href = redirectUrl;
+			// Redirect to form board using Next.js router
+			router.push("/form-board");
 		} catch (err) {
 			console.error("Error submitting form:", err);
 			setError(err instanceof Error ? err.message : String(err));
@@ -128,14 +433,18 @@ export default function NewFormPage() {
 	// Handle message submission to Norm
 	const handleMessageSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
-		if (!message.trim() || !form || processingMessage) return;
+		if (!message.trim() || !form || !form.id || processingMessage) return;
+
+		console.log("Submitting message with form ID:", form.id);
+		console.log("Current conversation ID:", conversationId);
+		console.log("Current form state:", form);
 
 		setProcessingMessage(true);
 
 		// Add user message to the UI
 		const userMessage = {
 			id: Date.now(),
-			role: "human" as const,
+			role: "user" as const,
 			content: message,
 		};
 
@@ -149,29 +458,27 @@ export default function NewFormPage() {
 			// Prepare the message for the Norm function
 			// We need to send the entire message history
 			const messagePayload = JSON.stringify(
-				messages
-					.map((msg) => ({
-						role: msg.role === "human" ? "user" : "assistant",
-						content: msg.content,
-					}))
-					.concat([
-						{
-							role: "user",
-							content: message,
-						},
-					]),
+				messages.concat([userMessage]), // Include the new message
 			);
+
+			console.log("Calling Norm with payload:", {
+				conversationID: conversationId,
+				formID: form.id,
+				messageCount: messages.length + 1,
+				messagePayloadLength: messagePayload.length,
+			});
 
 			// Call the Norm function
 			const { data: normResponse, errors } = await client.queries.Norm({
 				conversationID: conversationId,
 				messages: messagePayload,
-				formID: form.id,
+				formID: form.id as string,
 				currentFormState: JSON.stringify(form),
 			});
 
 			// Log the response for debugging
 			console.log("normResponse", normResponse);
+			console.log("normResponse.conversationID:", normResponse?.conversationID);
 
 			if (errors) {
 				throw new Error(`Error calling Norm: ${JSON.stringify(errors)}`);
@@ -179,7 +486,11 @@ export default function NewFormPage() {
 
 			// Save the conversation ID for future messages
 			if (normResponse?.conversationID) {
+				console.log("Setting conversation ID:", normResponse.conversationID);
+				console.log("Previous conversation ID was:", conversationId);
 				setConversationId(normResponse.conversationID);
+			} else {
+				console.warn("No conversation ID returned from Norm");
 			}
 
 			// Handle the response from Norm
@@ -203,7 +514,7 @@ export default function NewFormPage() {
 						// Convert OpenAI format to our format with IDs
 						const formattedMessages = filteredMessages.map((msg, index) => ({
 							id: Date.now() + index,
-							role: msg.role === "user" ? ("human" as const) : ("ai" as const),
+							role: msg.role,
 							content: msg.content || "",
 						}));
 
@@ -215,7 +526,7 @@ export default function NewFormPage() {
 						) {
 							formattedMessages.push({
 								id: Date.now() + filteredMessages.length,
-								role: "ai" as const,
+								role: "assistant" as const,
 								content: normResponse.followUp,
 							});
 						}
@@ -225,7 +536,7 @@ export default function NewFormPage() {
 						// If messageHistory is not an array or is empty, just add the follow-up message
 						const aiResponse = {
 							id: Date.now(),
-							role: "ai" as const,
+							role: "assistant" as const,
 							content:
 								normResponse?.followUp ||
 								"I'm sorry, I couldn't process your request.",
@@ -238,7 +549,7 @@ export default function NewFormPage() {
 					// If we can't parse the message history, just add the AI response
 					const aiResponse = {
 						id: Date.now(),
-						role: "ai" as const,
+						role: "assistant" as const,
 						content:
 							normResponse?.followUp ||
 							"I'm sorry, I couldn't process your request.",
@@ -249,7 +560,7 @@ export default function NewFormPage() {
 				// If no message history is returned, just add the AI response with the follow-up message
 				const aiResponse = {
 					id: Date.now(),
-					role: "ai" as const,
+					role: "assistant" as const,
 					content:
 						normResponse?.followUp ||
 						"I'm sorry, I couldn't process your request.",
@@ -277,7 +588,7 @@ export default function NewFormPage() {
 			// Add error message
 			const errorResponse = {
 				id: Date.now(),
-				role: "ai" as const,
+				role: "assistant" as const,
 				content:
 					"Sorry, I encountered an error processing your request. Please try again.",
 			};
@@ -475,28 +786,12 @@ export default function NewFormPage() {
 							<button
 								className="govuk-button"
 								data-module="govuk-button"
-								onClick={() => {
-									const homeUrl = "/home";
-									window.location.href = homeUrl;
-								}}
+								onClick={() => router.push("/home")}
 								type="button"
 							>
 								Return to Home
 							</button>
 						</div>
-					</div>
-				</main>
-			</div>
-		);
-	}
-
-	if (loading || !form) {
-		return (
-			<div className="govuk-width-container">
-				<main className="govuk-main-wrapper">
-					<div className="govuk-panel govuk-panel--confirmation">
-						<h1 className="govuk-panel__title">Setting up your form</h1>
-						<div className="govuk-panel__body">Please wait...</div>
 					</div>
 				</main>
 			</div>
@@ -732,11 +1027,16 @@ export default function NewFormPage() {
 																name="date-required-day"
 																type="text"
 																inputMode="numeric"
-																value={form.dateRequired?.day?.toString() || ""}
+																value={
+																	form.dateRequired?.day
+																		? form.dateRequired.day.toString()
+																		: ""
+																}
 																onChange={(e) => {
-																	const day = e.target.value
-																		? Number.parseInt(e.target.value, 10)
-																		: 0;
+																	const value = e.target.value.trim();
+																	const day = value
+																		? Number.parseInt(value, 10)
+																		: null;
 																	handleFormChange("dateRequired", {
 																		...form.dateRequired,
 																		day,
@@ -760,12 +1060,15 @@ export default function NewFormPage() {
 																type="text"
 																inputMode="numeric"
 																value={
-																	form.dateRequired?.month?.toString() || ""
+																	form.dateRequired?.month
+																		? form.dateRequired.month.toString()
+																		: ""
 																}
 																onChange={(e) => {
-																	const month = e.target.value
-																		? Number.parseInt(e.target.value, 10)
-																		: 0;
+																	const value = e.target.value.trim();
+																	const month = value
+																		? Number.parseInt(value, 10)
+																		: null;
 																	handleFormChange("dateRequired", {
 																		...form.dateRequired,
 																		month,
@@ -789,12 +1092,15 @@ export default function NewFormPage() {
 																type="text"
 																inputMode="numeric"
 																value={
-																	form.dateRequired?.year?.toString() || ""
+																	form.dateRequired?.year
+																		? form.dateRequired.year.toString()
+																		: ""
 																}
 																onChange={(e) => {
-																	const year = e.target.value
-																		? Number.parseInt(e.target.value, 10)
-																		: 0;
+																	const value = e.target.value.trim();
+																	const year = value
+																		? Number.parseInt(value, 10)
+																		: null;
 																	handleFormChange("dateRequired", {
 																		...form.dateRequired,
 																		year,
@@ -1004,24 +1310,24 @@ export default function NewFormPage() {
 									<div
 										key={msg.id}
 										className={`govuk-inset-text ${
-											msg.role === "ai" ? "govuk-inset-text--purple" : ""
+											msg.role === "assistant" ? "govuk-inset-text--purple" : ""
 										}`}
 										style={{
-											marginLeft: msg.role === "human" ? "auto" : "0",
-											marginRight: msg.role === "ai" ? "auto" : "0",
+											marginLeft: msg.role === "user" ? "auto" : "0",
+											marginRight: msg.role === "assistant" ? "auto" : "0",
 											maxWidth: "80%",
 											marginTop: 0,
 											marginBottom: 0,
 											backgroundColor:
-												msg.role === "human"
+												msg.role === "user"
 													? "#f3f2f1"
 													: "var(--color-background-light)",
 											borderColor:
-												msg.role === "human"
+												msg.role === "user"
 													? "#505a5f"
 													: "var(--hounslow-primary)",
-											borderLeftWidth: msg.role === "ai" ? "5px" : "0",
-											borderRightWidth: msg.role === "human" ? "5px" : "0",
+											borderLeftWidth: msg.role === "assistant" ? "5px" : "0",
+											borderRightWidth: msg.role === "user" ? "5px" : "0",
 											borderStyle: "solid",
 											borderTop: "none",
 											borderBottom: "none",
@@ -1035,7 +1341,7 @@ export default function NewFormPage() {
 														style={{
 															margin: 0,
 															color:
-																msg.role === "ai"
+																msg.role === "assistant"
 																	? "var(--color-button-primary)"
 																	: "inherit",
 														}}

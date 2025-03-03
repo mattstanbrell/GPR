@@ -52,7 +52,7 @@ const schema = a
 					"COMPLETED",
 				]),
 				receipt: a.hasMany("Receipt", "formID"),
-				conversations: a.hasMany("NormConversation", "formID"),
+				conversation: a.hasOne("NormConversation", "formID"),
 				userID: a.id(),
 				user: a.belongsTo("User", "userID"),
 				childID: a.id(),
@@ -146,7 +146,7 @@ const schema = a
 				formID: a.id().required(),
 				form: a.belongsTo("Form", "formID"),
 			})
-			.authorization((allow) => [allow.owner()]),
+			.authorization((allow) => [allow.authenticated()]),
 	})
 	// Add schema-level authorization to grant the norm function access to all models
 	.authorization((allow) => [allow.resource(norm)]);
