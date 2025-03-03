@@ -7,30 +7,46 @@ import type { Schema } from "../../../amplify/data/resource";
 import ReactMarkdown from "react-markdown";
 import { useRouter, useSearchParams } from "next/navigation";
 
-// Define a type for the form data we're working with
-type FormData = {
+// Use the Schema type but only include the fields we need for the form UI
+type FormData = Pick<
+	Schema["Form"]["type"],
+	| "status"
+	| "caseNumber"
+	| "reason"
+	| "amount"
+	| "dateRequired"
+	| "recipientDetails"
+> & {
 	id?: string;
-	status: "DRAFT" | "SUBMITTED" | "AUTHORISED" | "VALIDATED" | "COMPLETED";
-	caseNumber: string | null;
-	reason: string | null;
-	amount: number;
-	dateRequired: {
-		day: number | null;
-		month: number | null;
-		year: number | null;
-	};
-	recipientDetails: {
-		name: {
-			firstName: string | null;
-			lastName: string | null;
-		};
-		address: {
-			lineOne: string | null;
-			lineTwo: string | null;
-			townOrCity: string | null;
-			postcode: string | null;
-		};
-	};
+};
+
+// Message type for our UI
+type UIMessage = { id: number; role: "user" | "assistant"; content: string };
+
+// Single utility function to process messages - kept minimal to reduce code size
+const processMessages = (messagesData: string | unknown): UIMessage[] => {
+	try {
+		const parsed =
+			typeof messagesData === "string"
+				? JSON.parse(messagesData)
+				: messagesData;
+		if (!Array.isArray(parsed)) return [];
+
+		const timestamp = Date.now();
+		return parsed
+			.filter(
+				(msg) =>
+					msg.role === "user" || (msg.role === "assistant" && !msg.tool_calls),
+			)
+			.map((msg, i) => ({
+				id: timestamp + i, // Consistent ID generation using timestamp + index
+				role: msg.role === "user" ? ("user" as const) : ("assistant" as const),
+				content: msg.content || "",
+			}));
+	} catch (err) {
+		console.error("Error processing messages:", err);
+		return [];
+	}
 };
 
 export default function NewFormPage() {
@@ -64,9 +80,7 @@ export default function NewFormPage() {
 	});
 	const [userId, setUserId] = useState<string | null>(null);
 	const [message, setMessage] = useState("");
-	const [messages, setMessages] = useState<
-		Array<{ id: number; role: "user" | "assistant"; content: string }>
-	>([]);
+	const [messages, setMessages] = useState<UIMessage[]>([]);
 	const [conversationId, setConversationId] = useState<string | null>(null);
 	const [processingMessage, setProcessingMessage] = useState(false);
 	const [formCreated, setFormCreated] = useState(false);
@@ -254,31 +268,8 @@ export default function NewFormPage() {
 
 				// Parse the messages from the conversation
 				if (conversation.messages) {
-					try {
-						const messageHistory = JSON.parse(conversation.messages);
-
-						if (Array.isArray(messageHistory)) {
-							// Filter out system messages and format for our UI
-							const filteredMessages = messageHistory
-								.filter(
-									(msg) =>
-										msg.role === "user" ||
-										(msg.role === "assistant" && !msg.tool_calls),
-								)
-								.map((msg, index) => ({
-									id: index,
-									role:
-										msg.role === "user"
-											? ("user" as const)
-											: ("assistant" as const),
-									content: msg.content || "",
-								}));
-
-							setMessages(filteredMessages);
-						}
-					} catch (parseErr) {
-						console.error("Error parsing conversation messages:", parseErr);
-					}
+					const processedMessages = processMessages(conversation.messages);
+					setMessages(processedMessages);
 				}
 			}
 		} catch (err) {
@@ -442,9 +433,9 @@ export default function NewFormPage() {
 		setProcessingMessage(true);
 
 		// Add user message to the UI
-		const userMessage = {
+		const userMessage: UIMessage = {
 			id: Date.now(),
-			role: "user" as const,
+			role: "user",
 			content: message,
 		};
 
@@ -495,77 +486,63 @@ export default function NewFormPage() {
 
 			// Handle the response from Norm
 			if (normResponse?.messages) {
-				try {
-					// If messages is a string, parse it; otherwise, use it directly
-					const messageHistory =
-						typeof normResponse.messages === "string"
-							? JSON.parse(normResponse.messages)
-							: normResponse.messages;
+				const formattedMessages = processMessages(normResponse.messages);
 
-					if (Array.isArray(messageHistory) && messageHistory.length > 0) {
-						// Filter out system messages, tool calls, and other technical details
-						// Only keep user messages and AI responses without tool_calls
-						const filteredMessages = messageHistory.filter(
-							(msg) =>
-								msg.role === "user" ||
-								(msg.role === "assistant" && !msg.tool_calls),
-						);
-
-						// Convert OpenAI format to our format with IDs
-						const formattedMessages = filteredMessages.map((msg, index) => ({
-							id: Date.now() + index,
-							role: msg.role,
-							content: msg.content || "",
-						}));
-
-						// Add the latest followUp message if it's not already included
-						const lastMessage = filteredMessages[filteredMessages.length - 1];
-						if (
-							normResponse?.followUp &&
-							(!lastMessage || lastMessage.role !== "assistant")
-						) {
-							formattedMessages.push({
-								id: Date.now() + filteredMessages.length,
-								role: "assistant" as const,
-								content: normResponse.followUp,
-							});
-						}
-
-						setMessages(formattedMessages);
-					} else {
-						// If messageHistory is not an array or is empty, just add the follow-up message
-						const aiResponse = {
-							id: Date.now(),
-							role: "assistant" as const,
-							content:
-								normResponse?.followUp ||
-								"I'm sorry, I couldn't process your request.",
-						};
-						setMessages((prev) => [...prev, aiResponse]);
+				// Add the followUp message if needed
+				if (normResponse?.followUp && formattedMessages.length > 0) {
+					const lastMsg = formattedMessages[formattedMessages.length - 1];
+					if (lastMsg.role !== "assistant") {
+						formattedMessages.push({
+							id: Date.now() + formattedMessages.length,
+							role: "assistant",
+							content: normResponse.followUp || "",
+						});
 					}
-				} catch (parseError) {
-					console.error("Error parsing message history:", parseError);
-
-					// If we can't parse the message history, just add the AI response
-					const aiResponse = {
-						id: Date.now(),
-						role: "assistant" as const,
-						content:
-							normResponse?.followUp ||
-							"I'm sorry, I couldn't process your request.",
-					};
-					setMessages((prev) => [...prev, aiResponse]);
 				}
+
+				if (formattedMessages.length > 0) {
+					setMessages(formattedMessages);
+				} else if (normResponse?.followUp) {
+					// Fallback to just showing the followUp
+					setMessages((prev) => [
+						...prev,
+						{
+							id: Date.now(),
+							role: "assistant",
+							content: normResponse.followUp || "",
+						},
+					]);
+				} else {
+					// Last resort fallback
+					setMessages((prev) => [
+						...prev,
+						{
+							id: Date.now(),
+							role: "assistant",
+							content: "I'm sorry, I couldn't process your request.",
+						},
+					]);
+				}
+			} else if (normResponse?.followUp) {
+				// Just add the followUp if no messages
+				setMessages((prev) => [
+					...prev,
+					{
+						id: Date.now(),
+						role: "assistant",
+						content: normResponse.followUp || "",
+					},
+				]);
 			} else {
-				// If no message history is returned, just add the AI response with the follow-up message
-				const aiResponse = {
-					id: Date.now(),
-					role: "assistant" as const,
-					content:
-						normResponse?.followUp ||
-						"I'm sorry, I couldn't process your request.",
-				};
-				setMessages((prev) => [...prev, aiResponse]);
+				// No messages or followUp
+				setMessages((prev) => [
+					...prev,
+					{
+						id: Date.now(),
+						role: "assistant",
+						content: "I'm sorry, I couldn't process your request.",
+					},
+				]);
 			}
 
 			// If the response includes form updates, apply them
@@ -586,9 +563,9 @@ export default function NewFormPage() {
 			console.error("Error submitting message to Norm:", err);
 
 			// Add error message
-			const errorResponse = {
+			const errorResponse: UIMessage = {
 				id: Date.now(),
-				role: "assistant" as const,
+				role: "assistant",
 				content:
 					"Sorry, I encountered an error processing your request. Please try again.",
 			};
