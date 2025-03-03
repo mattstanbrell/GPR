@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { generateClient } from "aws-amplify/api";
 import { getCurrentUser } from "aws-amplify/auth";
 import type { Schema } from "../../../amplify/data/resource";
@@ -44,7 +44,7 @@ const processMessages = (messagesData: string | unknown): UIMessage[] => {
 				role: msg.role === "user" ? ("user" as const) : ("assistant" as const),
 				content: msg.content || "",
 			}));
-	} catch (err) {
+	} catch {
 		return [];
 	}
 };
@@ -84,6 +84,111 @@ export default function NewFormPage() {
 	const [processingMessage, setProcessingMessage] = useState(false);
 	const [formCreated, setFormCreated] = useState(false);
 
+	// Load conversation for a form
+	const loadConversation = useCallback(async (formId: string) => {
+		try {
+			const client = generateClient<Schema>();
+
+			// Get the NormConversation for this form
+			const { data: conversationData } =
+				await client.models.NormConversation.list({
+					filter: { formID: { eq: formId } },
+					authMode: "userPool",
+				});
+
+			if (conversationData && conversationData.length > 0) {
+				const conversation = conversationData[0];
+
+				// Set the conversation ID
+				setConversationId(conversation.id);
+
+				// Parse the messages from the conversation
+				if (conversation.messages) {
+					const processedMessages = processMessages(conversation.messages);
+					setMessages(processedMessages);
+				}
+			}
+		} catch {
+			// Error handled silently
+		}
+	}, []);
+
+	// Load an existing form by ID
+	const loadExistingForm = useCallback(
+		async (formId: string) => {
+			try {
+				const client = generateClient<Schema>();
+
+				// Get the form by ID
+				const { data: existingForm } = await client.models.Form.get(
+					{ id: formId },
+					{ authMode: "userPool" },
+				);
+
+				if (!existingForm) {
+					return;
+				}
+
+				// Set the form state with the loaded form - trust the data from the database
+				setForm(existingForm as FormData);
+				setFormCreated(true);
+
+				// Load the conversation for this form
+				await loadConversation(formId);
+			} catch (error) {
+				setError(error instanceof Error ? error.message : String(error));
+			}
+		},
+		[loadConversation],
+	);
+
+	// Create the form silently in the background
+	const createFormSilently = useCallback(
+		async (userIdParam?: string) => {
+			const effectiveUserId = userIdParam || userId;
+			if (!effectiveUserId || formCreated) return;
+
+			try {
+				// Generate client
+				const client = generateClient<Schema>();
+
+				// Create a new form with DRAFT status
+				const { data: newForm } = await client.models.Form.create(
+					{
+						...form, // Use spread operator to include all form fields
+						status: "DRAFT", // Ensure status is DRAFT
+						userID: effectiveUserId, // Add the userID which isn't in our FormData type
+					},
+					{ authMode: "userPool" },
+				);
+
+				if (!newForm) {
+					throw new Error("Failed to create form: No form data returned");
+				}
+
+				// Set the form state with the created form
+				setForm({
+					...form,
+					id: newForm.id,
+					status: newForm.status as
+						| "DRAFT"
+						| "SUBMITTED"
+						| "AUTHORISED"
+						| "VALIDATED"
+						| "COMPLETED",
+				});
+				setFormCreated(true);
+
+				// Update the URL with the form ID using Next.js router
+				const newUrl = `/form?id=${newForm.id}`;
+				router.replace(newUrl);
+			} catch (error) {
+				setError(error instanceof Error ? error.message : String(error));
+			}
+		},
+		[form, formCreated, router, userId],
+	);
+
 	// Get the current user when the component mounts and check for existing form ID in URL
 	useEffect(() => {
 		async function getUserIdAndInitializeForm() {
@@ -102,72 +207,13 @@ export default function NewFormPage() {
 					// Otherwise create a new form silently
 					await createFormSilently(user.userId);
 				}
-			} catch (err) {
-				setError(err instanceof Error ? err.message : String(err));
+			} catch (error) {
+				setError(error instanceof Error ? error.message : String(error));
 			}
 		}
 
 		getUserIdAndInitializeForm();
-	}, [searchParams]);
-
-	// Load an existing form by ID
-	const loadExistingForm = async (formId: string) => {
-		try {
-			const client = generateClient<Schema>();
-
-			// Get the form by ID
-			const { data: existingForm, errors } = await client.models.Form.get(
-				{ id: formId },
-				{ authMode: "userPool" },
-			);
-
-			if (errors || !existingForm) {
-				return;
-			}
-
-			// Set the form state with the loaded form - trust the data from the database
-			setForm(existingForm as FormData);
-			setFormCreated(true);
-
-			// Load the conversation for this form
-			await loadConversation(formId);
-		} catch (err) {
-			setError(err instanceof Error ? err.message : String(err));
-		}
-	};
-
-	// Load conversation for a form
-	const loadConversation = async (formId: string) => {
-		try {
-			const client = generateClient<Schema>();
-
-			// Get the NormConversation for this form
-			const { data: conversationData, errors } =
-				await client.models.NormConversation.list({
-					filter: { formID: { eq: formId } },
-					authMode: "userPool",
-				});
-
-			if (errors) {
-				return;
-			}
-
-			if (conversationData && conversationData.length > 0) {
-				const conversation = conversationData[0];
-
-				// Set the conversation ID
-				setConversationId(conversation.id);
-
-				// Parse the messages from the conversation
-				if (conversation.messages) {
-					const processedMessages = processMessages(conversation.messages);
-					setMessages(processedMessages);
-				}
-			}
-		} catch (err) {
-			// Error handled silently
-		}
-	};
+	}, [searchParams, loadExistingForm, createFormSilently]);
 
 	// Handle form field changes - update state immediately, database only on blur
 	const handleFormChange = (
@@ -190,54 +236,6 @@ export default function NewFormPage() {
 		});
 	};
 
-	// Create the form silently in the background
-	const createFormSilently = async (userIdParam?: string) => {
-		const effectiveUserId = userIdParam || userId;
-		if (!effectiveUserId || formCreated) return;
-
-		try {
-			// Generate client
-			const client = generateClient<Schema>();
-
-			// Create a new form with DRAFT status
-			const { data: newForm, errors } = await client.models.Form.create(
-				{
-					...form, // Use spread operator to include all form fields
-					status: "DRAFT", // Ensure status is DRAFT
-					userID: effectiveUserId, // Add the userID which isn't in our FormData type
-				},
-				{ authMode: "userPool" },
-			);
-
-			if (errors) {
-				throw new Error(`Failed to create form: ${JSON.stringify(errors)}`);
-			}
-
-			if (!newForm) {
-				throw new Error("Failed to create form: No form data returned");
-			}
-
-			// Set the form state with the created form
-			setForm({
-				...form,
-				id: newForm.id,
-				status: newForm.status as
-					| "DRAFT"
-					| "SUBMITTED"
-					| "AUTHORISED"
-					| "VALIDATED"
-					| "COMPLETED",
-			});
-			setFormCreated(true);
-
-			// Update the URL with the form ID using Next.js router
-			const newUrl = `/form?id=${newForm.id}`;
-			router.replace(newUrl);
-		} catch (err) {
-			setError(err instanceof Error ? err.message : String(err));
-		}
-	};
-
 	// Update the form in the database
 	const updateFormInDatabase = async (formToUpdate = form) => {
 		if (!formToUpdate.id) return;
@@ -253,10 +251,10 @@ export default function NewFormPage() {
 			};
 
 			// Update the form with current values
-			const { errors } = await client.models.Form.update(updateData, {
+			await client.models.Form.update(updateData, {
 				authMode: "userPool",
 			});
-		} catch (err) {
+		} catch {
 			// Don't set error state here to avoid disrupting the user experience
 		}
 	};
@@ -287,8 +285,8 @@ export default function NewFormPage() {
 
 			// Redirect to form board using Next.js router
 			router.push("/form-board");
-		} catch (err) {
-			setError(err instanceof Error ? err.message : String(err));
+		} catch (error) {
+			setError(error instanceof Error ? error.message : String(error));
 			setLoading(false);
 		}
 	};
@@ -321,15 +319,15 @@ export default function NewFormPage() {
 			);
 
 			// Call the Norm function
-			const { data: normResponse, errors } = await client.queries.Norm({
+			const { data: normResponse } = await client.queries.Norm({
 				conversationID: conversationId,
 				messages: messagePayload,
 				formID: form.id as string,
 				currentFormState: JSON.stringify(form),
 			});
 
-			if (errors) {
-				throw new Error(`Error calling Norm: ${JSON.stringify(errors)}`);
+			if (!normResponse) {
+				throw new Error("Error calling Norm: No response received");
 			}
 
 			// Save the conversation ID for future messages
@@ -375,11 +373,11 @@ export default function NewFormPage() {
 					if (updatedForm) {
 						setForm(updatedForm);
 					}
-				} catch (parseError) {
+				} catch {
 					// Simply log the error instead of attempting complex recovery
 				}
 			}
-		} catch (err) {
+		} catch {
 			// Add error message
 			const errorResponse: UIMessage = {
 				id: Date.now(),

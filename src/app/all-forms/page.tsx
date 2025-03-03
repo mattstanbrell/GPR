@@ -67,7 +67,7 @@ export default async function AllFormsPage() {
 		// Fetch all forms for this user
 		const { data: userForms, errors } = await runWithAmplifyServerContext({
 			nextServerContext: { cookies },
-			operation: async (contextSpec) => {
+			operation: async () => {
 				const client = cookiesClient;
 				return await client.models.Form.list({
 					filter: { userID: { eq: user.userId } },
@@ -95,7 +95,7 @@ export default async function AllFormsPage() {
 						<h1 className="govuk-heading-xl">All Forms</h1>
 
 						{forms.length === 0 ? (
-							<p className="govuk-body">You don't have any forms yet.</p>
+							<p className="govuk-body">You don&apos;t have any forms yet.</p>
 						) : (
 							<table className="govuk-table">
 								<thead className="govuk-table__head">
