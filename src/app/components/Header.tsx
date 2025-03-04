@@ -8,7 +8,7 @@ const Header = ({toggleMobileMenu, isMenuOpen, isSignedIn, handleClick} : {
 	toggleMobileMenu: () => void, 
 	isMenuOpen: boolean,
 	isSignedIn: boolean,
-	handleClick: () => {}
+	handleClick: () => void
 }) => {
 	const [isMobile, setIsMobile] = useState(false);
 
