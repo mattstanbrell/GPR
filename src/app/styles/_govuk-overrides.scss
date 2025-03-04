@@ -1,4 +1,5 @@
 @use "colours" as *;
+@use 'sass:color';  
 
 
 // Import GOV.UK Frontend with custom configuration
@@ -35,18 +36,82 @@ h1 {
     font-size: 2rem;
 }
 
+.preset-secondary {
+    color: $color-text-light;
+    > .app-background {
+        background-color: $color-secondary;
+    }
+    > .app-alt-text {
+        color: $color-text-light-alt;
+    }
 
-.preset-light-background {
-    background-color: $color-background-light;
-    .alt-text {
-        color: $color-text-subheading;
+    > .app-keep {
+        @extend .preset-secondary;
+    }
+
+    > .app-hoverable {
+        @extend .hoverable-secondary-background;
     }
 }
 
-.preset-secondary-background {
-    background-color: $color-secondary;
-    color: $color-text-light;
-    .alt-text {
-        color: $color-text-light-alt;
+.preset-light {
+    color: black;
+    > .app-background {
+        background-color: $color-background-light;
     }
-}       
+    > .app-alt-text {
+        color: $color-text-subheading ;
+    }
+
+    > .app-keep {
+        @extend .preset-light;
+    }
+
+    > .app-hoverable {
+        @extend .hoverable-light-background
+    }
+}
+
+
+
+@mixin hoverable($color-unselected, $color-hover, $color-text, $color-focus, $color-active) {
+    background-color: $color-unselected;
+    color: $color-text;
+    transition: background-color 0.3s;
+    &:hover {
+        background-color: $color-hover;
+    }
+    &:focus {
+        background-color: $color-focus;
+        outline-width: 2;
+        outline-color: $color-accent;
+    }
+    &:active {
+        background-color: $color-active;
+    }
+}
+
+.hoverable-secondary-background {
+    @include hoverable(
+        $color-secondary, 
+        $color-background-medium, 
+        $color-text-light, 
+        $color-background-medium,
+        $color-background-dark,
+    );
+}
+
+.hoverable-light-background {
+    @include hoverable(
+        $color-background-light, 
+        color.adjust($color-background-light, $lightness: 10%), 
+        black, 
+        color.adjust($color-background-light, $lightness: 10%), 
+        $color-background-dark,
+    );
+    
+}
+
+
+
+
