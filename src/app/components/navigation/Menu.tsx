@@ -1,18 +1,67 @@
 "use client";
 
-import { HomeButton, UpdatesButton, SettingsButton } from '@/app/components/navigation/Buttons'
+import { getMenuItems } from '@/app/components/navigation/_helpers'
+import { Button } from '@/app/components/navigation/Buttons'
 
-const Menu = () => {
+const DesktopMenu = ({handleClick} : {handleClick: () => void}) => {
 
-	// load menu based on user group
+	const userGroup = '';
+	const isTitled = false;
+	const menuItems = getMenuItems(userGroup, isTitled);
+
+	return (
+		<div className="flex w-full justify-end pt-2">
+			{menuItems.map((item, index) => (
+				<div key={ index }>
+					{ item }
+				</div>
+			))}
+			<a onClick={handleClick} className="govuk-header__link hover:cursor-pointer ml-5 mt-1">
+				Sign out
+			</a>
+		</div> 
+	)
+}
+
+const MobileMenu = ({ handleToggle, isMenuOpen } : {handleToggle: () => void, isMenuOpen: boolean}) => {
+	const width = 50;
+	const height = 50;
+	const noTooltipName = '';
+
+	return (
+		<div className="flex w-full justify-end hover:cursor-pointer" onClick={ handleToggle }>
+			{
+				isMenuOpen ? (
+					<Button src='/close.svg' alt='' width={ width } height={ height } name={ noTooltipName } />
+				) : (
+					<Button src='/menu.svg' alt='' width={ width } height = { height } name={ noTooltipName } />
+				)
+			}
+		</div>   
+	)
+}
+
+const Menu = ({isSignedIn, isMobile, toggleMobileMenu, isMenuOpen, handleClick} : {
+	isSignedIn: boolean, 
+	isMobile: boolean, 
+	toggleMobileMenu: () => void, 
+	isMenuOpen: boolean, 
+	handleClick: () => void 
+}) => {
 
 	return (
 		<>
-			<HomeButton />
-			<UpdatesButton />
-			<SettingsButton />
+			{
+				isSignedIn && isMobile ? (     
+					<MobileMenu handleToggle={ toggleMobileMenu } isMenuOpen={ isMenuOpen } />     
+				) : isSignedIn ? (
+					<DesktopMenu handleClick={ handleClick } /> 
+				) : (
+					<></>
+				)
+			}
 		</>
-	);
+	)
 }
 
 export default Menu;
