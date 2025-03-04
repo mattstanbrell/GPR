@@ -29,9 +29,9 @@ const MobileMenu = ({ handleToggle, isMenuOpen } : {handleToggle: () => void, is
 		<div className="flex w-full justify-end hover:cursor-pointer" onClick={ handleToggle }>
 			{
 				isMenuOpen ? (
-					<Button src='/close.svg' alt='' width={ width } height={ height } name={ noTooltipName } />
+					<Button src='/close.svg' alt='' name={ noTooltipName } isTitled={ true } />
 				) : (
-					<Button src='/menu.svg' alt='' width={ width } height = { height } name={ noTooltipName } />
+					<Button src='/menu.svg' alt='' name={ noTooltipName } isTitled={ true } />
 				)
 			}
 		</div>   
