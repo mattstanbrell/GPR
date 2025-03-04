@@ -12,6 +12,7 @@ const threads = [
         name: "James",
         threadId: "2",
         unreadCount: 0,
+        message: "I think we need to add more detail to the requirements"
     },
     {
         name: "Dave",
@@ -21,25 +22,26 @@ const threads = [
     }
 ]
 
-const ThreadsSidebar = () => {
+interface ThreadsSidebarProps {
+    className?: string
+    selectedId?: string
+    isMobile?: boolean
+}
+
+const ThreadsSidebar = ({className, selectedId, isMobile} : ThreadsSidebarProps) => {
     return (
-        <div>
-            <h1>All Threads</h1>
-            <Image 
-                src="/menu.svg" 
-                alt="menu" 
-                width={30} 
-                height={30}
-                style = {{filter: "var(--hounslow-primary-filter)"}}
-            />
+        <div className={`flex flex-col ${className}`}>
+            <div className="relative font-bold flex-1 min-h-20 text-3xl w-full app-keep app-background justify-self-center content-center">
+                <p className="justify-self-center app-background">All Threads</p>
+                {isMobile ? <Image 
+                    src="/more-options.svg" 
+                    alt="More Options" 
+                    width={30} 
+                    height={30}
+                    className="absolute right-2 bottom-6 filter-(--color-background-lightest-filter)"
+                /> : null}
+            </div>
             <table className="flex flex-col border-0">
-                <thead>
-                    <tr className="flex flex-row text-xl bg-(--color-secondary) px-5 p-2 text-(--color-text-light) ">
-                        <th className="flex-1/3  text-left">Name</th>
-                        <th className="flex-2/3 text-left">Last Message</th>
-                        <th className="shrink-0 text-right">Unread</th>
-                    </tr>
-                </thead>
                 <tbody className="flex flex-col">
                     {threads.map((thread) => (
                                 <ThreadRow 
@@ -48,8 +50,8 @@ const ThreadsSidebar = () => {
                                     message={thread.message} 
                                     unreadCount={thread.unreadCount} 
                                     key={thread.threadId}
-                                    className={"preset-light-background border-t-1 p-2 px-5 hover:!bg-(--color-background-medium) focus:outline-(--color-accent) active:!bg-(--color-background-dark)"}/>
-
+                                    selected={selectedId == thread.threadId}
+                                />
                     ))}
                 </tbody>
             </table>
