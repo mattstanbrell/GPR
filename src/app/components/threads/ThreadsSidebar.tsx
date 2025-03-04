@@ -1,34 +1,15 @@
 import ThreadRow from "./ThreadRow"
 import Image from "next/image"
 
-const threads = [
-    {
-        name: "Bob",
-        threadId: "1",
-        message: "I'm unsure why that didn't work",
-        unreadCount: 2
-    },
-    {
-        name: "James",
-        threadId: "2",
-        unreadCount: 0,
-        message: "I think we need to add more detail to the requirements"
-    },
-    {
-        name: "Dave",
-        threadId: "3",
-        message: "I think we'll need more than that, what else is available?",
-        unreadCount: 10
-    }
-]
 
 interface ThreadsSidebarProps {
+    threads: ThreadType[]
     className?: string
     selectedId?: string
     isMobile?: boolean
 }
 
-const ThreadsSidebar = ({className, selectedId, isMobile} : ThreadsSidebarProps) => {
+const ThreadsSidebar = ({className, threads, selectedId, isMobile} : ThreadsSidebarProps) => {
     return (
         <div className={`flex flex-col ${className}`}>
             <div className="relative font-bold flex-1 min-h-20 text-3xl w-full app-keep app-background justify-self-center content-center">
