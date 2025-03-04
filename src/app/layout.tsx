@@ -3,9 +3,7 @@ import { Lexend } from "next/font/google";
 import "./globals.scss";
 import ConfigureAmplifyClientSide from "./components/ConfigureAmplify";
 import { audilyPrimary } from "./theme";
-import Link from "next/link";
 import { GovUKFrontend } from "./components/GovUKInitialiser";
-import NavSignInButton from "./components/OldNavSignInButton";
 import Header from '@/app/components/navigation/Header'
 
 // Alternative font which was used in the figma design
