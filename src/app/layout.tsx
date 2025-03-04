@@ -6,7 +6,7 @@ import "./globals.scss";
 import ConfigureAmplifyClientSide from "./components/ConfigureAmplify";
 import { audilyPrimary } from "./theme";
 import { GovUKFrontend } from "./components/GovUKInitialiser";
-import Header from '@/app/components/navigation/Header';
+import Header from '@/app/components/Header';
 import FullscreenMenu from '@/app/components/navigation/FullscreenMenu';
 import { useState, useEffect } from "react";
 import { Hub } from "aws-amplify/utils";
