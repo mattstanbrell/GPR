@@ -28,7 +28,7 @@ const Thread = ({ threadId, className, isMobile }: ThreadProps) => {
         <div className={`flex flex-col ${className}`}>
             
             <div className="bg-(--color-background-light) pt-7 ps-7">
-                {isMobile ? <p className="app-alt-text">text</p> : null}
+                {isMobile ? <p className="app-alt-text">Messages</p> : null}
                 {threadId?
                     <h1>{thread.name}</h1>:
                     <h1>No thread selected</h1>
