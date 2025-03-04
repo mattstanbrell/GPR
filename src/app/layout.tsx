@@ -5,7 +5,8 @@ import ConfigureAmplifyClientSide from "./components/ConfigureAmplify";
 import { audilyPrimary } from "./theme";
 import Link from "next/link";
 import { GovUKFrontend } from "./components/GovUKInitialiser";
-import NavSignInButton from "./components/NavSignInButton";
+import NavSignInButton from "./components/OldNavSignInButton";
+import Header from '@/app/components/navigation/Header'
 
 // Alternative font which was used in the figma design
 const lexend = Lexend({
@@ -37,29 +38,7 @@ export default function RootLayout({
 			<body className="govuk-template__body">
 				<ConfigureAmplifyClientSide />
 				<GovUKFrontend />
-				<header className="govuk-header" data-module="govuk-header">
-					<div className="govuk-header__container govuk-width-container">
-						<div
-							className="govuk-header__content"
-							style={{
-								display: "flex",
-								justifyContent: "space-between",
-								alignItems: "center",
-								width: "100%",
-							}}
-						>
-							<Link
-								href="/"
-								className="govuk-header__link govuk-header__service-name"
-							>
-								Audily
-							</Link>
-							<div>
-								<NavSignInButton />
-							</div>
-						</div>
-					</div>
-				</header>
+				<Header />
 				<div className="govuk-width-container">
 					<main className="govuk-main-wrapper">{children}</main>
 				</div>
