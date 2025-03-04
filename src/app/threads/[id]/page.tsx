@@ -1,7 +1,9 @@
+import ThreadsSidebar from "@/app/components/threads/ThreadsSidebar"
+
 const Thread = async () => {
   return (
     <div>
-      <h1>Thread</h1>
+      <ThreadsSidebar/>
     </div>
   )
 }
