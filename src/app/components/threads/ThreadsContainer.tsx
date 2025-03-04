@@ -20,6 +20,7 @@ const threads = [
         unreadCount: 10
     }
 ]
+
 const ThreadsContainer = async () => {
     return (
         <div>
