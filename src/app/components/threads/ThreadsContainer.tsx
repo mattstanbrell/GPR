@@ -41,7 +41,7 @@ const ThreadsContainer = async () => {
                                     message={thread.message} 
                                     unreadCount={thread.unreadCount} 
                                     key={thread.threadId}
-                                    className={"preset-light-background border-t-1 p-2 px-5 hover:!bg-(--color-background-medium) focus:outline-(--color-accent) active:!bg-(--color-background-dark)"}/>
+                                    className={"border-t-1 p-2 px-5 hover:!bg-(--color-background-medium) focus:outline-(--color-accent) active:!bg-(--color-background-dark)"}/>
 
                     ))}
                 </tbody>
