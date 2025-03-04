@@ -7,7 +7,7 @@ const DesktopMenu = ({handleClick} : {handleClick: () => void}) => {
 
 	const userGroup = '';
 	const isTitled = false;
-	const menuItems = getMenuItems(userGroup, isTitled);
+	const menuItems = getMenuItems(userGroup, isTitled, handleClick);
 
 	return (
 		<div className="flex w-full justify-end pt-2">
@@ -16,9 +16,6 @@ const DesktopMenu = ({handleClick} : {handleClick: () => void}) => {
 					{ item }
 				</div>
 			))}
-			<a onClick={handleClick} className="govuk-header__link hover:cursor-pointer ml-5 mt-1">
-				Sign out
-			</a>
 		</div> 
 	)
 }

@@ -1,44 +1,16 @@
 
 'use client'
 
-import { signInWithRedirect, signOut } from "aws-amplify/auth";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Hub } from "aws-amplify/utils";
-import { getCurrentUser } from "aws-amplify/auth";
-import { HOME } from "@/app/constants/urls";
 import Menu from '@/app/components/navigation/Menu';
 
-const Header = ({toggleMobileMenu, isMenuOpen} : {toggleMobileMenu: () => void, isMenuOpen: boolean}) => {
-    const router = useRouter();
-	const [isSignedIn, setIsSignedIn] = useState(false);
+const Header = ({toggleMobileMenu, isMenuOpen, isSignedIn, handleClick} : {
+	toggleMobileMenu: () => void, 
+	isMenuOpen: boolean,
+	isSignedIn: boolean,
+	handleClick: () => {}
+}) => {
 	const [isMobile, setIsMobile] = useState(false);
-
-	useEffect(() => {
-		Hub.listen("auth", ({ payload }) => {
-			if (payload.event === "signInWithRedirect") {
-				router.push(HOME);
-			}
-			if (payload.event === "signedOut") {
-				setIsSignedIn(false);
-				router.push("/");
-			}
-		});
-
-		getCurrentUser()
-			.then(() => setIsSignedIn(true))
-			.catch(() => setIsSignedIn(false));
-	}, [router]);
-
-	const handleClick = async () => {
-		if (isSignedIn) {
-			await signOut();
-		} else {
-			await signInWithRedirect({
-				provider: { custom: "MicrosoftEntraID" },
-			});
-		}
-	};
 
 	useEffect(() => {
         const mediumWindowSize = 768;

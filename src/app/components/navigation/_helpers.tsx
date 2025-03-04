@@ -1,9 +1,9 @@
 
 import React from 'react';
-import { HomeButton, UpdatesButton, SettingsButton, 
+import { HomeButton, UpdatesButton, SettingsButton, MenuSignOutButton,
     TitledHomeButton, TitledUpdatesButton, TitledSettingsButton } from '@/app/components/navigation/Buttons'
 
-const getUntitledMenuItems = (permissionGroup: string) => {
+const getUntitledMenuItems = (permissionGroup: string, isTitled: boolean, handleClick: () => void) => {
     switch (permissionGroup) {
         case 'SOCIAL_WORKER':
         case 'MANAGER':
@@ -12,12 +12,13 @@ const getUntitledMenuItems = (permissionGroup: string) => {
             return [
                 <HomeButton />, 
                 <UpdatesButton />, 
-                <SettingsButton />
+                <SettingsButton />,
+                <MenuSignOutButton isTitled={false} handleSignOut={handleClick} /> 
             ] 
     }
 }
 
-const getTitledMenuItems = (permissionGroup: string) => {
+const getTitledMenuItems = (permissionGroup: string, isTitled: boolean, handleClick: () => void) => {
     switch (permissionGroup) {
         case 'SOCIAL_WORKER':
         case 'MANAGER':
@@ -26,15 +27,16 @@ const getTitledMenuItems = (permissionGroup: string) => {
             return [
                 <TitledHomeButton />, 
                 <TitledUpdatesButton />, 
-                <TitledSettingsButton />
+                <TitledSettingsButton />, 
+                <MenuSignOutButton isTitled={true} handleSignOut={handleClick} /> 
             ] 
     }
 }
 
-export const getMenuItems = (permissionGroup: string, isTitled: boolean): React.ReactElement[] => {
+export const getMenuItems = (permissionGroup: string, isTitled: boolean, handleClick: () => void): React.ReactElement[] => {
     if (isTitled) {
-        return getTitledMenuItems(permissionGroup)
+        return getTitledMenuItems(permissionGroup, isTitled, handleClick)
     } else {
-        return getUntitledMenuItems(permissionGroup)
+        return getUntitledMenuItems(permissionGroup, isTitled, handleClick)
     }
 }
