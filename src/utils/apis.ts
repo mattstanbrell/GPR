@@ -203,6 +203,17 @@ export async function getFormsCreatedByUser(userId: string) {
   return data;
 }
 
+// fetch all forms associated with a specific child
+export async function getFormsForChild(childId: string) {
+    const { data, errors } = await client.models.Form.list({
+      filter: { childID: { eq: childId } },
+    });
+    if (errors) {
+      throw new Error(errors[0].message);
+    }
+    return data;
+}
+
 // ------------------ FormAssignee APIs --------------
 // assign a user to a form
 export async function assignUserToForm(formId: string, userId: string) {
@@ -253,6 +264,24 @@ export async function getFormsAssignedToUser(userId: string) {
     return form;
   }));
   return forms;
+}
+
+// fetch all users assigned to a specific form
+export async function getAssigneesForForm(formId: string) {
+    const { data: assignments, errors } = await client.models.FormAssignee.list({
+      filter: { formID: { eq: formId } },
+    });
+    if (errors) {
+      throw new Error(errors[0].message);
+    }
+    const users = await Promise.all(assignments.map(async (assignment) => {
+      const { data: user, errors: userErrors } = await client.models.User.get({ id: assignment.userID });
+      if (userErrors) {
+        throw new Error(userErrors[0].message);
+      }
+      return user;
+    }));
+    return users;
 }
 
 // ------------------ UserChild link APISs --------------
@@ -529,6 +558,17 @@ export async function deleteAuditLog(auditLogId: string) {
 export async function getAuditLogsForUser(userId: string) {
     const { data, errors } = await client.models.AuditLog.list({
       filter: { userID: { eq: userId } }
+    });
+    if (errors) {
+      throw new Error(errors[0].message);
+    }
+    return data;
+}
+
+// fetch all audit logs for a specific form
+export async function getAuditLogsForForm(formId: string) {
+    const { data, errors } = await client.models.AuditLog.list({
+      filter: { formID: { eq: formId } },
     });
     if (errors) {
       throw new Error(errors[0].message);
