@@ -10,6 +10,13 @@ type UserUpdates = {
   email?: string;
   permissionGroup?: "ADMIN" | "MANAGER" | "SOCIAL_WORKER" | null;
   lastLogin?: string;
+  userSettings?: {
+    fontSize: number;
+    font: string;
+    fontColour: string;
+    bgColour: string;
+    spacing: number;
+  }
 };
 
 type FormUpdates = {
@@ -516,4 +523,15 @@ export async function deleteAuditLog(auditLogId: string) {
     throw new Error(errors[0].message);
   }
   return data;
+}
+
+// List all audit logs for a specific user
+export async function getAuditLogsForUser(userId: string) {
+    const { data, errors } = await client.models.AuditLog.list({
+      filter: { userID: { eq: userId } }
+    });
+    if (errors) {
+      throw new Error(errors[0].message);
+    }
+    return data;
 }

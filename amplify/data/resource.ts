@@ -10,7 +10,14 @@ const schema = a.schema({
     createdForms: a.hasMany('Form', 'creatorID'),
     assignments: a.hasMany('FormAssignee', 'userID'),
     children: a.hasMany('UserChild', 'userID'),
-    audits: a.hasMany('AuditLog', 'userID')
+    audits: a.hasMany('AuditLog', 'userID'),
+    userSettings: a.customType({
+      fontSize: a.integer(),
+      font: a.string(),
+      fontColour: a.string(),
+      bgColour: a.string(),
+      spacing: a.integer()
+    })
   }).authorization(allow => [
     allow.authenticated()
   ]),
