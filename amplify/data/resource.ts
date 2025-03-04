@@ -115,9 +115,8 @@ const schema = a
 			})
 			.authorization((allow) => [
 				allow.publicApiKey(), // why?
-				// allow.authenticated(), // Allow all authenticated users to access
-				allow.owner(), // Allow owners to access their own records
-				allow.group("ADMIN"), // Allow admins to access all records
+				allow.owner(),
+				allow.group("ADMIN"),
 			]),
 
 		Norm: a
