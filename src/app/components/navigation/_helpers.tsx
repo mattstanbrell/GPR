@@ -9,10 +9,10 @@ export const getMenuItems = (permissionGroup: string, isTitled: boolean, handleC
         case 'ADMIN':
         default:
             return [
-                <HomeButton isTitled={ isTitled } />, 
-                <UpdatesButton isTitled={ isTitled } />, 
-                <SettingsButton isTitled={ isTitled } />,
-                <MenuSignOutButton isTitled={ isTitled } handleSignOut={handleClick} /> 
+                <div key={ 0 }><HomeButton isTitled={ isTitled } /></div>, 
+                <div key={ 1 }><UpdatesButton isTitled={ isTitled } /></div>, 
+                <div key={ 2 }><SettingsButton isTitled={ isTitled } /></div>,
+                <div key={ 3 }><MenuSignOutButton isTitled={ isTitled } handleSignOut={handleClick} /></div> 
             ] 
     }
 }

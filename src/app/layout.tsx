@@ -1,6 +1,5 @@
 'use client'
 
-import type { metadata } from "@/app/metadata";
 import { Lexend } from "next/font/google";
 import "./globals.scss";
 import ConfigureAmplifyClientSide from "./components/ConfigureAmplify";

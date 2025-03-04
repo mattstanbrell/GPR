@@ -1,7 +1,7 @@
 
 import { getMenuItems } from '@/app/components/navigation/_helpers'
 
-const FullscreenMenu = ({handleToggle, handleClick} : {handleToggle: () => void, handleClick: () => {}}) => {
+const FullscreenMenu = ({handleToggle, handleClick} : {handleToggle: () => void, handleClick: () => void}) => {
 
     const userGroup = '';
     const isTitled = true;

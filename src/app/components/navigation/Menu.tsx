@@ -21,8 +21,7 @@ const DesktopMenu = ({handleClick} : {handleClick: () => void}) => {
 }
 
 const MobileMenu = ({ handleToggle, isMenuOpen } : {handleToggle: () => void, isMenuOpen: boolean}) => {
-	const width = 50;
-	const height = 50;
+	
 	const noTooltipName = '';
 
 	return (
