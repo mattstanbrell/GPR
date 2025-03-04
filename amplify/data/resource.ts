@@ -5,11 +5,12 @@ const schema = a.schema({
     email: a.string().required(), 
     firstName: a.string().required(), 
     lastName: a.string().required(),
-    permissionGroup: a.enum(["ADMIN","MANAGER","SOCIAL_WORKER"]), 
-    lastLogin: a.datetime(), 
-    forms: a.hasMany('Form', 'userID'),
-    children: a.hasMany('UserChild','userID'),
-    audits: a.hasMany('AuditLog','userID')
+    permissionGroup: a.enum(["ADMIN", "MANAGER", "SOCIAL_WORKER"]),
+    lastLogin: a.datetime(),
+    createdForms: a.hasMany('Form', 'creatorID'),
+    assignments: a.hasMany('FormAssignee', 'userID'),
+    children: a.hasMany('UserChild', 'userID'),
+    audits: a.hasMany('AuditLog', 'userID')
   }).authorization(allow => [
     allow.authenticated()
   ]),
@@ -37,13 +38,22 @@ const schema = a.schema({
     }),
     status: a.enum(['DRAFT', 'SUBMITTED', 'AUTHORISED', 'VALIDATED', 'COMPLETED']),
     receipt: a.hasMany('Receipt', 'formID'),
-    userID: a.id(),
-    user: a.belongsTo('User', 'userID'),
+    creatorID: a.id().required(),
+    creator: a.belongsTo('User', 'creatorID'),
     childID: a.id(),
     child: a.belongsTo('Child', 'childID'),
-    audits: a.hasMany('AuditLog','formID'),
+    audits: a.hasMany('AuditLog', 'formID'),
     feedback: a.string(),
-    assignerID: a.id()
+    assignees: a.hasMany('FormAssignee', 'formID')
+  }).authorization(allow => [
+    allow.authenticated()
+  ]),
+
+  FormAssignee: a.model({
+    formID: a.id().required(),
+    userID: a.id().required(),
+    form: a.belongsTo('Form', 'formID'),
+    user: a.belongsTo('User', 'userID')
   }).authorization(allow => [
     allow.authenticated()
   ]),
@@ -62,7 +72,7 @@ const schema = a.schema({
     sex: a.string().required(),
     gender: a.string().required(),
     user: a.hasMany('UserChild', 'childID'),
-    form: a.hasMany('Form','childID')
+    form: a.hasMany('Form', 'childID')
   }).authorization(allow => [
     allow.authenticated()
   ]),
@@ -74,7 +84,7 @@ const schema = a.schema({
     merchantName: a.string(),
     paymentMethod: a.string(),
     subtotal: a.float(),
-    itemDesc: a.string(),
+    itemDesc: a.string()
   }).authorization(allow => [
     allow.authenticated()
   ]),
@@ -83,9 +93,9 @@ const schema = a.schema({
     action: a.string().required(),
     date: a.date().required(),
     userID: a.id(),
-    user: a.belongsTo('User','userID'),
+    user: a.belongsTo('User', 'userID'),
     formID: a.id(),
-    form: a.belongsTo('Form','formID')
+    form: a.belongsTo('Form', 'formID')
   }).authorization(allow => [
     allow.authenticated()
   ]),
@@ -93,19 +103,19 @@ const schema = a.schema({
   UserChild: a.model({
     childID: a.id().required(),
     userID: a.id().required(),
-    child: a.belongsTo('Child','childID'),
-    user: a.belongsTo('User','userID')
+    child: a.belongsTo('Child', 'childID'),
+    user: a.belongsTo('User', 'userID')
   }).authorization(allow => allow.authenticated())
 });
 
-export type Schema = ClientSchema<typeof schema>
+export type Schema = ClientSchema<typeof schema>;
 
 export const data = defineData({
   schema,
   authorizationModes: {
     defaultAuthorizationMode: 'userPool',
     apiKeyAuthorizationMode: {
-      expiresInDays: 30,
-    },
-  },
+      expiresInDays: 30
+    }
+  }
 });

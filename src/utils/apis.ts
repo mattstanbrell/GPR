@@ -4,7 +4,6 @@ import { Schema } from '../../amplify/data/resource';
 const client = generateClient<Schema>();
 
 // Update Types 
-
 type UserUpdates = {
   firstName?: string;
   lastName?: string;
@@ -23,10 +22,9 @@ type FormUpdates = {
     address?: { lineOne?: string; lineTwo?: string; townOrCity?: string; postcode?: string };
   };
   status?: "DRAFT" | "SUBMITTED" | "AUTHORISED" | "VALIDATED" | "COMPLETED" | null;
-  userID?: string;
+  creatorID?: string;
   childID?: string;
   feedback?: string;
-  assignerID?: string;
 };
 
 type ChildUpdates = {
@@ -53,26 +51,17 @@ type AuditLogUpdates = {
 };
 
 // ----------User APIs----------- 
-
-// Create a new user
 export async function createUser(email: string, firstName: string, lastName: string) {
-  const { data, errors } = await client.models.User.create({
-    email,
-    firstName,
-    lastName
-  });
+  const { data, errors } = await client.models.User.create({ email, firstName, lastName });
   if (errors) {
     throw new Error(errors[0].message);
   }
   return data;
 }
 
-// Get user by email
 export async function getUserByEmail(email: string) {
   const { data, errors } = await client.models.User.list({
-    filter: {
-      email: { eq: email }
-    }
+    filter: { email: { eq: email } }
   });
   if (errors) {
     throw new Error(errors[0].message);
@@ -80,12 +69,9 @@ export async function getUserByEmail(email: string) {
   return data;
 }
 
-// Get user ID by email
 export async function getUserIdByEmail(email: string): Promise<string> {
   const { data, errors } = await client.models.User.list({
-    filter: {
-      email: { eq: email }
-    }
+    filter: { email: { eq: email } }
   });
   if (errors) {
     throw new Error(errors[0].message);
@@ -96,7 +82,6 @@ export async function getUserIdByEmail(email: string): Promise<string> {
   return data[0].id;
 }
 
-// Get a user by ID
 export async function getUserById(userId: string) {
   const { data, errors } = await client.models.User.get({ id: userId });
   if (errors) {
@@ -105,7 +90,6 @@ export async function getUserById(userId: string) {
   return data;
 }
 
-// List all users
 export async function listUsers() {
   const { data, errors } = await client.models.User.list();
   if (errors) {
@@ -114,19 +98,14 @@ export async function listUsers() {
   return data;
 }
 
-// Update a user
 export async function updateUser(userId: string, updates: UserUpdates) {
-  const { data, errors } = await client.models.User.update({
-    id: userId,
-    ...updates,
-  });
+  const { data, errors } = await client.models.User.update({ id: userId, ...updates });
   if (errors) {
     throw new Error(errors[0].message);
   }
   return data;
 }
 
-// Delete a user
 export async function deleteUser(userId: string) {
   const { data, errors } = await client.models.User.delete({ id: userId });
   if (errors) {
@@ -136,8 +115,6 @@ export async function deleteUser(userId: string) {
 }
 
 // ------------Form APIs -------------
-
-// Create a new form
 export async function createForm(
   caseNumber: string,
   reason: string,
@@ -148,10 +125,9 @@ export async function createForm(
     address: { lineOne: string; lineTwo: string; townOrCity: string; postcode: string };
   },
   status: "DRAFT" | "SUBMITTED" | "AUTHORISED" | "VALIDATED" | "COMPLETED",
-  userID: string,
+  creatorID: string,
   childID?: string,
-  feedback?: string,
-  assignerID?: string
+  feedback?: string
 ) {
   const { data, errors } = await client.models.Form.create({
     caseNumber,
@@ -160,10 +136,9 @@ export async function createForm(
     dateRequired,
     recipientDetails,
     status,
-    userID,
+    creatorID,
     childID,
     feedback,
-    assignerID,
   });
   if (errors) {
     throw new Error(errors[0].message);
@@ -210,33 +185,68 @@ export async function deleteForm(formId: string) {
   return data;
 }
 
-
-// Returns all forms linked to a specific user by userID. Returns array of form objects.
-export async function getFormsForUser(userId: string) {
-    const { data, errors } = await client.models.Form.list({
-      filter: {
-        userID: { eq: userId }, 
-        
-      },
-    });
-    if (errors) {
-      throw new Error(errors[0].message);
-    }
-    return data;
+// Returns all forms created by a specific user by filtering on creatorID
+export async function getFormsCreatedByUser(userId: string) {
+  const { data, errors } = await client.models.Form.list({
+    filter: { creatorID: { eq: userId } },
+  });
+  if (errors) {
+    throw new Error(errors[0].message);
   }
+  return data;
+}
 
-// Returns all forms assigned to a specific assigner by assignerID. Returns array of form objects.
-export async function getFormsForAssigner(assignerId: string) {
-    const { data, errors } = await client.models.Form.list({
-      filter: {
-        assignerID: { eq: assignerId }, // Filter forms by assignerID
-      },
-    });
-    if (errors) {
-      throw new Error(errors[0].message);
-    }
-    return data;
+// ------------------ FormAssignee APIs --------------
+// assign a user to a form
+export async function assignUserToForm(formId: string, userId: string) {
+  const { data, errors } = await client.models.FormAssignee.create({
+    formID: formId,
+    userID: userId,
+  });
+  if (errors) {
+    throw new Error(errors[0].message);
   }
+  return data;
+}
+
+// unassign a user from a form
+export async function unassignUserFromForm(formId: string, userId: string) {
+  const { data: links, errors: findErrors } = await client.models.FormAssignee.list({
+    filter: {
+      formID: { eq: formId },
+      userID: { eq: userId },
+    },
+  });
+  if (findErrors) {
+    throw new Error(findErrors[0].message);
+  }
+  if (links.length === 0) {
+    throw new Error("No assignment found between the user and form.");
+  }
+  const { data, errors } = await client.models.FormAssignee.delete({ id: links[0].id });
+  if (errors) {
+    throw new Error(errors[0].message);
+  }
+  return data;
+}
+
+// Returns all forms assigned to a specific user
+export async function getFormsAssignedToUser(userId: string) {
+  const { data: assignments, errors } = await client.models.FormAssignee.list({
+    filter: { userID: { eq: userId } },
+  });
+  if (errors) {
+    throw new Error(errors[0].message);
+  }
+  const forms = await Promise.all(assignments.map(async (assignment) => {
+    const { data: form, errors: formErrors } = await client.models.Form.get({ id: assignment.formID });
+    if (formErrors) {
+      throw new Error(formErrors[0].message);
+    }
+    return form;
+  }));
+  return forms;
+}
 
 // ------------------ UserChild link APISs --------------
 
