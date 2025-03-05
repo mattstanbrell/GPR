@@ -1,7 +1,10 @@
 
+
 const Upload = () => {
+
     return (
         <>
+            <h3> Slug</h3>
         </>
     )
 }
