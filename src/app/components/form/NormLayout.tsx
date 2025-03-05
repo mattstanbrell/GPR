@@ -79,7 +79,11 @@ export function NormLayout({
 			if (normResponse?.messages) {
 				const formattedMessages = processMessages(normResponse.messages);
 				if (formattedMessages.length > 0) {
-					setMessages(formattedMessages);
+					// Keep the user's message and append Norm's response
+					const lastMessage = formattedMessages[formattedMessages.length - 1];
+					if (lastMessage.role === "assistant") {
+						setMessages((prev: UIMessage[]) => [...prev, lastMessage]);
+					}
 				} else {
 					setMessages((prev: UIMessage[]) => [
 						...prev,
