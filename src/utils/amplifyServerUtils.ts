@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 
 import { createServerRunner } from "@aws-amplify/adapter-nextjs";
 import { generateServerClientUsingCookies } from "@aws-amplify/adapter-nextjs/api";
-import { getCurrentUser, fetchAuthSession } from "aws-amplify/auth/server";
+import { getCurrentUser, fetchAuthSession, fetchUserAttributes } from "aws-amplify/auth/server";
 
 import type { Schema } from "../../amplify/data/resource";
 import outputs from "../../amplify_outputs.json";
@@ -42,6 +42,24 @@ export async function AuthGetCurrentUserServer() {
 		const currentUser = await runWithAmplifyServerContext({
 			nextServerContext: { cookies },
 			operation: (contextSpec) => getCurrentUser(contextSpec),
+		});
+		return currentUser;
+	} catch (error) {
+		console.error("[Auth] Get current user error:", error);
+		return null;
+	}
+}
+
+export async function AuthGetUserAttributesServer() {
+	try {
+		const authenticated = await isAuthenticated();
+		if (!authenticated) {
+			return null;
+		}
+
+		const currentUser = await runWithAmplifyServerContext({
+			nextServerContext: { cookies },
+			operation: (contextSpec) => fetchUserAttributes(contextSpec),
 		});
 		return currentUser;
 	} catch (error) {
