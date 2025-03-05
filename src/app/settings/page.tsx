@@ -2,7 +2,7 @@ import SettingsClient from "./settingsClient";
 
 async function getUserSettings() {
   // REPLACE with call to DB to fetch audit logs data
-  return { fontSize: 1, fontColour: "#000000", bgColour: "#FFFFFF", spacing: 0 };
+  return { fontSize: 1, font: "standard", fontColour: "#000000", bgColour: "#FFFFFF", spacing: 0 };
 }
 
 export default async function SettingsPage() {

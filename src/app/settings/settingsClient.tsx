@@ -1,36 +1,52 @@
 "use client"
 import * as React from 'react';
+import Preview from './preview';
 
-// interface UserSettingsProps {
-//   fontSize: number;
-//   fontColour: string;
-// }
+//add crumbs!!!
 
-type UserSettingsProps = {fontSize: number, fontColour: string, bgColour: string, spacing: number}
+type UserSettingsProps = {fontSize: number, font: string, fontColour: string, bgColour: string, spacing: number}
 // type UserSettingsProps = Promise<{userSettings: {fontSize: number, fontColour: string}}>
 
 export default function SettingsClient( props: {userSettings : UserSettingsProps }) {
 
   const [fontSize, setFontSize] = React.useState(props.userSettings.fontSize);
+  const [font, setFont] = React.useState(props.userSettings.font)
+  const [spacing, setSpacing] = React.useState(props.userSettings.spacing);
   const [fontColour, setFontColour] = React.useState(props.userSettings.fontColour);
   const [bgColour, setBgColour] = React.useState(props.userSettings.bgColour);
-  const [spacing, setSpacing] = React.useState(props.userSettings.spacing);
-  //console.log(fontSize, fontColour, bgColour, spacing)
+  //console.log(fontSize, font, fontColour, bgColour, spacing)
   
   const handleFontSizeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedFontSize = parseInt(event.target.value);
-    setFontSize(selectedFontSize); // Call setFontSize with the selected value
-    console.log(`Font size set to: ${selectedFontSize}`); // Optional: Log the value to the console
+    setFontSize(selectedFontSize);
+    console.log(`Font size set to: ${selectedFontSize}`);
+  };
+
+  const handleFontChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedFont = event.target.value;
+    setFont(selectedFont);
+    console.log(`Font set to: ${selectedFont}`);
+  };
+
+  const handleSpacingChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedSpacing = parseInt(event.target.value);
+    setSpacing(selectedSpacing);
+    console.log(`Spacing set to: ${selectedSpacing}`);
+  };
+
+  const handleColourChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedColours = JSON.parse(event.target.value)
+    const selectedFontColour = selectedColours.fontColour;
+    const selectedBgColour = selectedColours.bgColour;
+    setFontColour(selectedFontColour)
+    setBgColour(selectedBgColour);
+    console.log(`Bg colour set to: ${selectedBgColour} and Font colour set to: ${selectedFontColour}`);
   };
 
   const handleSettingsChange = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log(fontSize, fontColour, bgColour, spacing);
+    console.log(fontSize, font, fontColour, bgColour, spacing);
   };
-  // const handleSettingsChange = (event: Event, newSettings: 'fontSize' | 'fontColor' | 'bgColor' | 'spacing') => {
-  //   setFontSize(newValue as number);
-  // };
-  
   return (
     <div>
       <h2 className="govuk-heading-l" style={{ backgroundColor: '#e5f2eb' }} >Settings</h2>
@@ -63,7 +79,7 @@ export default function SettingsClient( props: {userSettings : UserSettingsProps
             <div style={{ width: "100%", height: "1px", backgroundColor: "#b1b4b6", marginTop: "15px", marginBottom: "15px" }}></div>
             <div style={{display: "flex", justifyContent: "space-between", alignItems: "center"}} className="form__control">
               <label className="govuk-label">Font</label>
-              <select style={{width: "min(700px, 60%)"}} className="govuk-select" defaultValue="standard">
+              <select style={{width: "min(700px, 60%)"}} className="govuk-select" defaultValue="standard" onChange={handleFontChange}>
                 <option value="standard">Standard (Lexend)</option>
                 <option value="times">Times</option>
                 <option value="courier">Courier</option>
@@ -73,7 +89,7 @@ export default function SettingsClient( props: {userSettings : UserSettingsProps
             <div style={{ width: "100%", height: "1px", backgroundColor: "#b1b4b6", marginTop: "15px", marginBottom: "15px" }}></div>
             <div style={{display: "flex", justifyContent: "space-between", alignItems: "center"}} className="form__control">
               <label className="govuk-label">Letter spacing</label>
-              <select style={{width: "min(700px, 60%)"}} className="govuk-select" defaultValue="standard">
+              <select style={{width: "min(700px, 60%)"}} className="govuk-select" defaultValue={0} onChange={handleSpacingChange}>
                 <option value={0}>Standard (0)</option>
                 <option value={1}>+1</option>
                 <option value={2}>+2</option>
@@ -85,19 +101,19 @@ export default function SettingsClient( props: {userSettings : UserSettingsProps
               <h3 className="govuk-heading-m">Choose your colour preferences</h3>
               <div className="govuk-radios" data-module="govuk-radios">
                 <label className="form__label--radio" style={{backgroundColor: '#f1f0f0'}}>
-                  <input className="form__radio" name="color-pref" type="radio" value="standard" defaultChecked style={{width: '1.1875rem', height: '1.1875rem'}}/>
+                  <input onChange={handleColourChange} value='{"fontColour": "#000000", "bgColour": "#FFFFFF"}' className="form__radio" name="color-pref" type="radio" defaultChecked style={{width: '1.1875rem', height: '1.1875rem'}}/>
                   Standard
                 </label>
                 <label className="form__label--radio" style={{backgroundColor: '#000',color: '#ff0'}}>
-                  <input className="form__radio" name="color-pref" type="radio" value="high-contrast" style={{width: '1.1875rem', height: '1.1875rem'}}/>
+                  <input onChange={handleColourChange} value='{"fontColour": "#FF0", "bgColour": "#000"}' className="form__radio" name="color-pref" type="radio" style={{width: '1.1875rem', height: '1.1875rem'}}/>
                   High contrast
                 </label>
                 <label className="form__label--radio" style={{backgroundColor: '#fff9d2'}}>
-                  <input className="form__radio" name="color-pref" type="radio" value="cream" style={{width: '1.1875rem', height: '1.1875rem'}}/>
+                  <input onChange={handleColourChange} value='{"fontColour": "#000000", "bgColour": "#fff9d2"}' className="form__radio" name="color-pref" type="radio" style={{width: '1.1875rem', height: '1.1875rem'}}/>
                   Cream
                 </label>
                 <label className="form__label--radio" style={{backgroundColor: '#9fcfff'}}>
-                  <input className="form__radio" name="color-pref" type="radio" value="blue" style={{width: '1.1875rem', height: '1.1875rem'}}/>
+                  <input onChange={handleColourChange} value='{"fontColour": "#000000", "bgColour": "#9fcfff"}' className="form__radio" name="color-pref" type="radio" style={{width: '1.1875rem', height: '1.1875rem'}}/>
                   Blue
                 </label>
               </div>
@@ -115,21 +131,7 @@ export default function SettingsClient( props: {userSettings : UserSettingsProps
               </button>
             </div>
             <div style={{ width: "100%", height: "1px", backgroundColor: "#b1b4b6", marginTop: "15px", marginBottom: "15px" }}></div>
-            <div>
-              <h3 className="govuk-heading-m">Preview</h3>
-              <div>
-              <p className="govuk-body-s" style={{float: 'left'}}>
-                <img src={'/preview_image.gif'} alt="Preview image" style={{float: 'right'}} />
-                Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Etiam vestibulum velit eu nunc. Nullam adipiscing condimentum augue.
-                <br />
-                Praesent tellus velit, ultricies sed, ornare eu, consectetuer sit amet, felis. Sed mollis vestibulum mauris. Nunc a tortor vitae nibh faucibus interdum.
-                <br />
-                Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Fusce vitae eros. Cras interdum.
-                <br />
-                Vivamus quam nunc, consequat quis, volutpat non, venenatis sed, nisi. In pede. Cras ut nulla. Etiam scelerisque, est at aliquet suscipit, augue ipsum euismod justo, vitae pellentesque nulla erat nec tellus. Sed a dui sit amet pede tempor semper. In hac habitasse platea dictumst.
-              </p>
-              </div>
-            </div>
+            <Preview userSettings={{ fontSize, font, spacing, fontColour, bgColour }}/>
           </div>
         </form>
       </div>
