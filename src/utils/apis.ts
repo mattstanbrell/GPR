@@ -3,6 +3,22 @@ import { Schema } from '../../amplify/data/resource';
 
 const client = generateClient<Schema>();
 
+/*
+To correctly get type hints and to not upset the typescript
+typer checker, you must include:
+
+type User = Schema['User']['type'];
+
+for any Model types you might be using in your components
+
+If you wanted to store a list of users which could be updated in 
+your component, you would need this line:
+
+const [users, setUsers] = useState<User[]>([]);
+
+
+*/
+
 // Update Types 
 type UserUpdates = {
   firstName?: string;
