@@ -1,5 +1,6 @@
-import { generateClient } from '@aws-amplify/api';
-import { Schema } from '../../amplify/data/resource';
+import {generateClient} from '@aws-amplify/api';
+import {Schema} from '../../amplify/data/resource';
+import {DateTimeAttribute} from "aws-cdk-lib/aws-cognito";
 
 const client = generateClient<Schema>();
 
@@ -372,18 +373,18 @@ export async function getUsersForChild(childId: string) {
 
 // Create a new child
 export async function createChild(
-  firstName: string,
-  lastName: string,
-  dateOfBirth: string,
-  sex: string,
-  gender: string
+    firstName: string,
+    lastName: string,
+    dateOfBirth: string,
+    sex: string,
+    gender: string
 ) {
   const { data, errors } = await client.models.Child.create({
     firstName,
     lastName,
     dateOfBirth,
     sex,
-    gender,
+    gender
   });
   if (errors) {
     throw new Error(errors[0].message);
@@ -574,4 +575,114 @@ export async function getAuditLogsForForm(formId: string) {
       throw new Error(errors[0].message);
     }
     return data;
+}
+
+// -------------- Thread APIs --------------
+
+// Create a new thread
+export async function createThread(
+    formID: string,
+) {
+  const { data, errors } = await client.models.Thread.create({
+    formID,
+  });
+  if (errors) {
+    throw new Error(errors[0].message);
+  }
+  return data;
+}
+
+// Returns all users part of a specific thread.
+export async function getUsersInThread(threadID: string) {
+  const { data: users, errors } = await client.models.UserThread.list({
+    filter: { threadID: { eq: threadID} },
+  });
+  if (errors) {
+    throw new Error(errors[0].message);
+  }
+  return await Promise.all(users.map(async (userThread) => {
+    const {data: user, errors: userErrors} = await client.models.User.get({id: userThread.userID});
+    if (userErrors) {
+      throw new Error(userErrors[0].message);
+    }
+    return user;
+  }));
+}
+
+// Returns all threads a user is a member of.
+export async function getThreadsWithUser(userID: string) {
+  const { data: threads, errors } = await client.models.UserThread.list({
+    filter: { userID: { eq: userID} },
+  });
+  if (errors) {
+    throw new Error(errors[0].message);
+  }
+  return await Promise.all(threads.map(async (userThread) => {
+    const {data: thread, errors: threadErrors} = await client.models.Thread.get({id: userThread.threadID});
+    if (threadErrors) {
+      throw new Error(threadErrors[0].message);
+    }
+    return thread;
+  }));
+}
+
+//Create a hook(subscribe) that increments threads unread message count(new field) on update.
+
+// -------------- Message APIs --------------
+
+// Create a new message
+export async function createMessage(
+    userID: string,
+    threadID: string,
+    content: string,
+    timeSent: DateTimeAttribute
+) {
+  const { data, errors } = await client.models.Message.create({
+    userID,
+    threadID,
+    content,
+    timeSent
+  });
+  if (errors) {
+    throw new Error(errors[0].message);
+  }
+  return data;
+}
+
+// Mark message as read.
+async function setMessageToRead(
+    userID: string,
+    threadID: string,
+    content: string,
+    timeSent: DateTimeAttribute
+) {
+  const { data, errors } = await client.models.Message.create({
+    userID,
+    threadID,
+    content,
+    timeSent
+  });
+  if (errors) {
+    throw new Error(errors[0].message);
+  }
+  return data;
+}
+// Mark all unread messages in a certain thread as read.
+
+export async function setThreadMessages(
+    userID: string,
+    threadID: string,
+    content: string,
+    timeSent: DateTimeAttribute
+) {
+  const { data, errors } = await client.models.Message.create({
+    userID,
+    threadID,
+    content,
+    timeSent
+  });
+  if (errors) {
+    throw new Error(errors[0].message);
+  }
+  return data;
 }

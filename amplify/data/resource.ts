@@ -11,6 +11,8 @@ const schema = a.schema({
     assignments: a.hasMany('FormAssignee', 'userID'),
     children: a.hasMany('UserChild', 'userID'),
     audits: a.hasMany('AuditLog', 'userID'),
+    messages: a.hasMany('Message','userID'),
+    threads: a.hasMany('UserThread','userID'),
     userSettings: a.customType({
       fontSize: a.integer(),
       font: a.string(),
@@ -51,6 +53,7 @@ const schema = a.schema({
     child: a.belongsTo('Child', 'childID'),
     audits: a.hasMany('AuditLog', 'formID'),
     feedback: a.string(),
+    thread: a.hasOne('Thread', 'formID'),
     assignees: a.hasMany('FormAssignee', 'formID')
   }).authorization(allow => [
     allow.authenticated()
@@ -75,7 +78,7 @@ const schema = a.schema({
   Child: a.model({
     firstName: a.string().required(),
     lastName: a.string().required(),
-    dateOfBirth: a.date().required(),
+    dateOfBirth: a.string().required(), //this was type date()
     sex: a.string().required(),
     gender: a.string().required(),
     user: a.hasMany('UserChild', 'childID'),
@@ -103,6 +106,38 @@ const schema = a.schema({
     user: a.belongsTo('User', 'userID'),
     formID: a.id(),
     form: a.belongsTo('Form', 'formID')
+  }).authorization(allow => [
+    allow.authenticated()
+  ]),
+
+  Message: a.model({
+    userID: a.id().required(),
+    threadID: a.id().required(),
+    user: a.belongsTo('User','userID'),
+    thread: a.belongsTo('Thread','threadID'),
+    content: a.string().required(),
+    readStatus: a.boolean().default(false),
+    timeSent: a.datetime().required()
+  }).authorization(allow => [
+    allow.authenticated()
+  ]),
+
+  UserThread: a.model({
+    userID: a.id().required(),
+    threadID: a.id().required(),
+    user: a.belongsTo('User','userID'),
+    thread: a.belongsTo('Thread','threadID')
+  }).authorization(allow => [
+    allow.authenticated()
+  ]),
+
+  Thread: a.model({
+    formID: a.id().required(),
+    form: a.belongsTo('Form','formID'),
+    lastMessageTime: a.datetime(),
+    users: a.hasMany('UserThread','threadID'),
+    messages: a.hasMany('Message','threadID'),
+    unreadCount: a.integer()
   }).authorization(allow => [
     allow.authenticated()
   ]),
