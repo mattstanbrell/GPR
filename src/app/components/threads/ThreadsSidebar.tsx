@@ -15,7 +15,7 @@ interface ThreadsSidebarProps {
 const ThreadsSidebar = ({className, sidebarToggle, threads, selectedId, isMobile} : ThreadsSidebarProps) => {
     return (
         <div className={`flex flex-col ${className}`}>
-            <div className="relative font-bold flex-1 min-h-20 text-3xl w-full app-keep app-background justify-self-center content-center">
+            <div className="relative font-bold flex-1 min-h-28 text-3xl w-full app-keep app-background justify-self-center content-center">
                 <p className="justify-self-center app-background">All Threads</p>
                 {isMobile ? 
                     <Toggle
