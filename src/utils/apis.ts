@@ -5,6 +5,22 @@ import {infer} from "zod";
 
 const client = generateClient<Schema>();
 
+/*
+To correctly get type hints and to not upset the typescript
+typer checker, you must include:
+
+type User = Schema['User']['type'];
+
+for any Model types you might be using in your components
+
+If you wanted to store a list of users which could be updated in 
+your component, you would need this line:
+
+const [users, setUsers] = useState<User[]>([]);
+
+
+*/
+
 // Update Types 
 type UserUpdates = {
   firstName?: string;
@@ -378,9 +394,8 @@ export async function createChild(
     lastName: string,
     dateOfBirth: string,
     sex: string,
-    gender: string,
+    gender: string
 ) {
-  console.log("Mid")
   const { data, errors } = await client.models.Child.create({
     firstName,
     lastName,
@@ -388,13 +403,8 @@ export async function createChild(
     sex,
     gender,
   });
-  console.log("POST Mid");
   if (errors) {
     throw new Error(errors[0].message);
-  }
-  console.log(data);
-  if (!data){
-    console.log("No data");
   }
   return data;
 }
@@ -620,6 +630,26 @@ export async function getUsersInThread(threadID: string) {
   }));
 }
 
+// Returns all unread messages part of a specific thread.
+export async function getUnreadMessages(threadID: string) {
+  const { data: messages, errors } = await client.models.Message.list({
+    filter: { threadID: { eq: threadID}, readStatus: {eq: false} },
+  });
+  if (errors) {
+    throw new Error(errors[0].message);
+  }
+  return messages;
+}
+
+// Returns unread message number of a specific thread.
+export async function getUnreadMessageCount(threadID: string) {
+  const { data: messages, errors } = await getUnreadMessages(threadID);
+  if (errors) {
+    throw new Error(errors[0].message);
+  }
+  return messages.length;
+}
+
 // Returns all threads a user is a member of.
 export async function getThreadsWithUser(userID: string) {
   const { data: threads, errors } = await client.models.UserThread.list({
@@ -662,38 +692,29 @@ export async function createMessage(
 
 // Mark message as read.
 async function setMessageToRead(
-    userID: string,
-    threadID: string,
-    content: string,
-    timeSent: DateTimeAttribute
+    messageID: string,
 ) {
-  const { data, errors } = await client.models.Message.create({
-    userID,
-    threadID,
-    content,
-    timeSent
+  const { data, errors } = await client.models.Message.update({
+    id: messageID,
+    readStatus: true
   });
   if (errors) {
     throw new Error(errors[0].message);
   }
   return data;
 }
-// Mark all unread messages in a certain thread as read.
 
-export async function setThreadMessages(
-    userID: string,
-    threadID: string,
-    content: string,
-    timeSent: DateTimeAttribute
-) {
-  const { data, errors } = await client.models.Message.create({
-    userID,
-    threadID,
-    content,
-    timeSent
-  });
+// Mark all unread messages in a certain thread as read.
+export async function setThreadMessagesToRead(threadID: string) {
+  const { data: messages, errors } = await getUnreadMessages(threadID);
   if (errors) {
     throw new Error(errors[0].message);
   }
-  return data;
+  return await Promise.all(messages.map(async (message) => {
+    const {data: thread, messageErrors} = await setMessageToRead(message.id);
+    if (messageErrors) {
+      throw new Error(messageErrors[0].message);
+    }
+    return thread;
+  }));
 }
