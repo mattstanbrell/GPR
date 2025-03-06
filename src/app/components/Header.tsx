@@ -2,7 +2,7 @@
 'use client'
 
 import Menu from '@/app/components/navigation/Menu';
-import isMobileWindowSize from '@/utils/responsivenessHelpers'
+import useIsMobileWindowSize from '@/utils/responsivenessHelpers'
 
 const Header = ({toggleMobileMenu, isMenuOpen, isSignedIn, handleClick} : {
 	toggleMobileMenu: () => void, 
@@ -11,7 +11,7 @@ const Header = ({toggleMobileMenu, isMenuOpen, isSignedIn, handleClick} : {
 	handleClick: () => void
 }) => {
 
-    const isMobile = isMobileWindowSize();
+    const isMobile = useIsMobileWindowSize();
 
     return (
         <header className="govuk-header" data-module="govuk-header">
