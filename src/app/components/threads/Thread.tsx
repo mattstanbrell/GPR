@@ -1,10 +1,14 @@
+import { redirect } from "next/navigation"
+import { Avatar, getInitials } from "../util/Avatar"
+import { PrimaryButton } from "../util/Button"
 import Toggle from "./Toggle"
+import { FORM } from "@/app/constants/urls"
 
 
 const thread = {
     name: "Bob",
     threadId: "1",
-    users: ["Alice", "Bob"],
+    users: ["Alice", "Bob Dean", "Greg Dylan Cooper"],
     formId: "1",
     messages: [
         {
@@ -20,6 +24,12 @@ const thread = {
     ]
 }
 
+const currentUser = {
+    name: "Alice",
+    userId: "1",
+    threads: ["1", "2", "3"]
+}
+
 interface ThreadProps {
     sidebarToggle: () => void
     threadId?: string
@@ -30,18 +40,29 @@ interface ThreadProps {
 const Thread = ({ threadId, className, isMobile, sidebarToggle }: ThreadProps) => {
     return (
         <div className={`flex flex-col ${className}`}>
-            
-            <div className="relative bg-(--color-background-light)  pt-7 ps-7">
-                {threadId && isMobile ? <p className="app-alt-text">Messages</p> : null}
-                {threadId?
+
+            <div className="relative bg-(--color-background-light)  pt-3 ">
+                {threadId && isMobile ? <p className="app-alt-text ps-7 text-(--hounslow-primary)">Messages</p> : null}
+                {threadId ?
                     <>
-                        <h1>{thread.name}</h1>
-                        <h1>{thread.users.join(", ")}</h1>
+                        <p className="text-3xl font-bold text-(--hounslow-primary) ps-7">{thread.name}</p>
+                        <div className="flex pt-2 px-6">
+                            <div className="flex flex-1 -space-x-2  pb-4 ">
+                                {
+                                    thread.users.map((user, i) => {
+                                        const zindex = `z-${thread.users.length - i}`;
+                                        const colour = currentUser.name === user ? "bg-(--color-background-medium)" : "bg-(--color-background-dark)";
+                                        return <Avatar text={getInitials(user)} style={{ zIndex: thread.users.length - i }} colour={colour} className={`w-10 h-10 text-[0.6em] outline-3 order-first outline-(--color-background-light) ${zindex}`} key={user} />
+                                    })
+                                }
+                            </div>
+                            <PrimaryButton className="px-1 h-10 text-xl" onClick={() => redirect(`${FORM}`)}>View Form</PrimaryButton>
+                        </div>
                     </>
                     :
                     <h1>No thread selected</h1>
                 }
-                {isMobile ? 
+                {isMobile ?
                     <Toggle
                         sidebarToggle={sidebarToggle}
                         className="absolute right-2 top-6 filter-(--hounslow-primary-filter)"
