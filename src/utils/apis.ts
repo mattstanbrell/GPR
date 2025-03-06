@@ -1,7 +1,5 @@
 import {generateClient} from '@aws-amplify/api';
 import {Schema} from '../../amplify/data/resource';
-import {DateTimeAttribute} from "aws-cdk-lib/aws-cognito";
-import {infer} from "zod";
 
 const client = generateClient<Schema>();
 
@@ -669,7 +667,7 @@ export async function createMessage(
     userID: string,
     threadID: string,
     content: string,
-    timeSent: DateTimeAttribute
+    timeSent: string
 ) {
   const { data, errors } = await client.models.Message.create({
     userID,
@@ -691,11 +689,9 @@ export async function setMessageToRead(
     id: messageID,
     readStatus: true
   });
-  if (errors) {
-    throw new Error(errors[0].message);
-  }
+
   //console.log(data);
-  return data;
+  return {data, errors};
 }
 
 // Mark all unread messages in a certain thread as read.
@@ -707,7 +703,7 @@ export async function setThreadMessagesToRead(threadID: string) {
     throw new Error(errors[0].message);
   }
   return await Promise.all(unreadMessages.map(async (message) => {
-    const {data: thread, messageErrors} = await setMessageToRead(message.id);
+    const {data: thread, errors: messageErrors} = await setMessageToRead(message.id);
     if (messageErrors) {
       throw new Error(messageErrors[0].message);
     }
