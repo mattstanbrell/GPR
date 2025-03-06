@@ -78,13 +78,15 @@ const schema = a.schema({
   Child: a.model({
     firstName: a.string().required(),
     lastName: a.string().required(),
-    dateOfBirth: a.string().required(), //this was type date()
+    dateOfBirth: a.string().required(), // this was type date()
     sex: a.string().required(),
     gender: a.string().required(),
     user: a.hasMany('UserChild', 'childID'),
     form: a.hasMany('Form', 'childID')
-  }).authorization(allow => [
-    allow.authenticated()
+  }).secondaryIndexes((index) => [
+    index("lastName").sortKeys(["firstName"]),
+  ]).authorization(allow => [
+        allow.authenticated()
   ]),
 
   Receipt: a.model({

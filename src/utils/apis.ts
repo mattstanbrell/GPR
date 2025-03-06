@@ -1,6 +1,7 @@
 import {generateClient} from '@aws-amplify/api';
 import {Schema} from '../../amplify/data/resource';
 import {DateTimeAttribute} from "aws-cdk-lib/aws-cognito";
+import {infer} from "zod";
 
 const client = generateClient<Schema>();
 
@@ -377,17 +378,23 @@ export async function createChild(
     lastName: string,
     dateOfBirth: string,
     sex: string,
-    gender: string
+    gender: string,
 ) {
+  console.log("Mid")
   const { data, errors } = await client.models.Child.create({
     firstName,
     lastName,
     dateOfBirth,
     sex,
-    gender
+    gender,
   });
+  console.log("POST Mid");
   if (errors) {
     throw new Error(errors[0].message);
+  }
+  console.log(data);
+  if (!data){
+    console.log("No data");
   }
   return data;
 }
@@ -403,7 +410,11 @@ export async function getChildById(childId: string) {
 
 // List all children
 export async function listChildren() {
-  const { data, errors } = await client.models.Child.list();
+  const { data, errors } = await client.models.Child.list(
+      {
+
+      }
+  );
   if (errors) {
     throw new Error(errors[0].message);
   }
