@@ -4,7 +4,7 @@ const ThreadPage = async ({params} : {params: Promise<{ id: string }>}) => {
   const { id } = await params;
 
   return (
-    <ThreadsContainer threadId={id} />
+    <ThreadsContainer threadId={id} startWithSidebar={false} />
   )
 }
 
