@@ -630,20 +630,11 @@ export async function getUsersInThread(threadID: string) {
   }));
 }
 
-// Returns all unread messages part of a specific thread.
-export async function getUnreadMessages(threadID: string) {
+// Returns number of all unread messages part of a specific thread.
+export async function getUnreadMessagesCount(threadID: string) {
   const { data: messages, errors } = await client.models.Message.list({
-    filter: { threadID: { eq: threadID}, readStatus: {eq: false} },
+    filter: { threadID: { eq: threadID}, readStatus: {eq: false} }, //set back to boolean.
   });
-  if (errors) {
-    throw new Error(errors[0].message);
-  }
-  return messages;
-}
-
-// Returns unread message number of a specific thread.
-export async function getUnreadMessageCount(threadID: string) {
-  const { data: messages, errors } = await getUnreadMessages(threadID);
   if (errors) {
     throw new Error(errors[0].message);
   }
@@ -693,26 +684,29 @@ export async function createMessage(
 }
 
 // Mark message as read.
-async function setMessageToRead(
+export async function setMessageToRead(
     messageID: string,
 ) {
   const { data, errors } = await client.models.Message.update({
     id: messageID,
-    readStatus: "true" //set this back to boolean
+    readStatus: true
   });
   if (errors) {
     throw new Error(errors[0].message);
   }
+  //console.log(data);
   return data;
 }
 
 // Mark all unread messages in a certain thread as read.
 export async function setThreadMessagesToRead(threadID: string) {
-  const { data: messages, errors } = await getUnreadMessages(threadID);
+  const { data: unreadMessages, errors } = await client.models.Message.list({
+    filter: { threadID: { eq: threadID}, readStatus: {eq: false} }, //set back to boolean.
+  });
   if (errors) {
     throw new Error(errors[0].message);
   }
-  return await Promise.all(messages.map(async (message) => {
+  return await Promise.all(unreadMessages.map(async (message) => {
     const {data: thread, messageErrors} = await setMessageToRead(message.id);
     if (messageErrors) {
       throw new Error(messageErrors[0].message);
