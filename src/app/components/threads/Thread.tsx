@@ -1,8 +1,5 @@
-interface ThreadProps {
-    threadId?: string
-    className?: string
-    isMobile?: boolean
-}
+import Toggle from "./Toggle"
+
 
 const thread = {
     name: "Bob",
@@ -23,15 +20,32 @@ const thread = {
     ]
 }
 
-const Thread = ({ threadId, className, isMobile }: ThreadProps) => {
+interface ThreadProps {
+    sidebarToggle: () => void
+    threadId?: string
+    className?: string
+    isMobile?: boolean
+}
+
+const Thread = ({ threadId, className, isMobile, sidebarToggle }: ThreadProps) => {
     return (
         <div className={`flex flex-col ${className}`}>
             
-            <div className="bg-(--color-background-light) pt-7 ps-7">
-                {isMobile ? <p className="app-alt-text">Messages</p> : null}
+            <div className="relative bg-(--color-background-light)  pt-7 ps-7">
+                {threadId && isMobile ? <p className="app-alt-text">Messages</p> : null}
                 {threadId?
-                    <h1>{thread.name}</h1>:
+                    <>
+                        <h1>{thread.name}</h1>
+                        <h1>{thread.users.join(", ")}</h1>
+                    </>
+                    :
                     <h1>No thread selected</h1>
+                }
+                {isMobile ? 
+                    <Toggle
+                        sidebarToggle={sidebarToggle}
+                        className="absolute right-2 top-6 filter-(--hounslow-primary-filter)"
+                    /> : null
                 }
             </div>
             <div>
