@@ -1,5 +1,5 @@
 import { defineAuth, secret } from "@aws-amplify/backend";
-
+import { postConfirmation } from "./post-confirmation/resource";
 /**
  * Define and configure your auth resource
  * @see https://docs.amplify.aws/gen2/build-a-backend/auth
@@ -45,4 +45,7 @@ export const auth = defineAuth({
 			maxLen: 2048, // 2048 is the max this can be
 		},
 	},
+	triggers: {
+		postConfirmation
+	}, 
 });
