@@ -1,9 +1,11 @@
-const Thread = async () => {
+import ThreadsContainer from "@/app/components/threads/ThreadsContainer";
+
+const ThreadPage = async ({params} : {params: Promise<{ id: string }>}) => {
+  const { id } = await params;
+
   return (
-    <div>
-      <h1>Thread</h1>
-    </div>
+    <ThreadsContainer threadId={id} startWithSidebar={false} />
   )
 }
 
-export default Thread
+export default ThreadPage

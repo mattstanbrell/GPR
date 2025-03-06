@@ -1,9 +1,9 @@
-import ThreadsContainer from '../components/threads/ThreadsContainer'
+import ThreadsContainer from "@/app/components/threads/ThreadsContainer";
 
-const AllThreads = async () => {
+const ThreadPage = async () => {
   return (
-      <ThreadsContainer/>
+    <ThreadsContainer />
   )
 }
 
-export default AllThreads
+export default ThreadPage

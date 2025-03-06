@@ -39,6 +39,10 @@ $color-background-darkest: #2A002A;
 $color-background-dark: #540253;
 $color-background-medium: #A080A0;
 $color-background-light: #F1E6F2; // Use for variation in background colours
+$color-background-lightest: #FFFFFF; // Use for main background
+
+/* OTHER FILTERS */
+$color-background-lightest-filter: "brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(0%) hue-rotate(351deg) brightness(102%) contrast(105%);";
 
 
 // Define the public variables that can be used by other modules
@@ -65,4 +69,6 @@ $color-background-light: #F1E6F2; // Use for variation in background colours
   --color-background-dark: #{$color-background-dark};
   --color-background-medium: #{$color-background-medium};
   --color-background-light: #{$color-background-light};
+  --color-background-lightest: #{$color-background-lightest};
+  --color-background-lightest-filter: #{$color-background-lightest-filter};
 }

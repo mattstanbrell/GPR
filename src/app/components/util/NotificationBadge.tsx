@@ -1,6 +1,6 @@
 interface NotificationBadgeProps {
     count: number
-    className?: String
+    className?: string
 }
 
 const NotificationBadge = ({count, className}: NotificationBadgeProps) => {

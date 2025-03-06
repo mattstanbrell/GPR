@@ -1,0 +1,98 @@
+@use "colours" as *;
+@use 'sass:color';  
+
+.preset-secondary {
+    color: $color-text-light;
+    > .app-background {
+        background-color: $color-secondary;
+    }
+    > .app-alt-text {
+        color: $color-text-light-alt;
+    }
+
+    > .app-keep {
+        @extend .preset-secondary;
+    }
+
+    > .app-hoverable {
+        @extend .hoverable-secondary-background;
+    }
+}
+
+.preset-light {
+    color: black;
+    > .app-background {
+        background-color: $color-background-light;
+    }
+    > .app-alt-text {
+        color: $color-text-subheading ;
+    }
+
+    > .app-keep {
+        @extend .preset-light;
+    }
+
+    > .app-hoverable {
+        @extend .hoverable-light-background
+    }
+}
+
+
+
+@mixin hoverable($color-unselected, $color-hover, $color-text, $color-focus, $color-active) {
+    background-color: $color-unselected;
+    color: $color-text;
+    transition: background-color 0.3s;
+    &:hover {
+        background-color: $color-hover;
+    }
+    &:focus {
+        background-color: $color-focus;
+        outline-width: 2;
+        outline-color: $color-accent;
+    }
+    &:active {
+        background-color: $color-active;
+    }
+}
+
+.hoverable-secondary-background {
+    @include hoverable(
+        $color-secondary, 
+        $color-background-medium, 
+        $color-text-light, 
+        $color-background-medium,
+        $color-background-dark,
+    );
+}
+
+.hoverable-light-background {
+    @include hoverable(
+        $color-background-light, 
+        color.adjust($color-background-light, $lightness: 10%), 
+        black, 
+        color.adjust($color-background-light, $lightness: 10%), 
+        $color-background-dark,
+    );
+    
+}
+
+.app-primary-button {
+    @include hoverable(
+        $color-button-primary, 
+        color.adjust($color-button-primary, $lightness: 10%), 
+        $color-text-light, 
+        color.adjust($color-button-primary, $lightness: 10%), 
+        $color-background-dark,
+    );
+}
+
+.app-secondary-button {
+    @include hoverable(
+        $color-button-secondary, 
+        color.adjust($color-button-secondary, $lightness: 10%), 
+        $color-text-light, 
+        color.adjust($color-button-secondary, $lightness: 10%), 
+        $color-background-dark,
+    );
+}

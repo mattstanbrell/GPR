@@ -9,23 +9,40 @@ interface ButtonProps {
     message?: string
     unreadCount?: number
     className?: string
+    selected?: boolean
 }
 
-const ThreadRow = ({ name, threadId, message, unreadCount, className }: ButtonProps) => {
+const ThreadRow = ({ name, threadId, message, unreadCount, className, selected }: ButtonProps) => {
     return (
         <tr
             key={threadId}
             onClick={() => redirect(`${THREAD}${threadId}`)}
-            className={`w-full font-bold cursor-pointer focus:outline-2 focus:outline-offset-2 items-center gap-10 flex ${className}`}
+            
+            className={`
+                w-full font-bold cursor-pointer
+                ${selected?"preset-light" : "preset-secondary"}
+                ${className}`}
         >
-            <td className="flex-1/3">
-                <span className="text-2xl text-left">{name}</span>
-            </td>
-            <td className="flex-2/3 truncate alt-text">
-                <span className="">{message}</span>
-            </td>
-            <td className="shrink-0">
-                {unreadCount ? <NotificationBadge count={unreadCount}  /> : null}
+            <td 
+                tabIndex={0}
+                className="flex 
+                        items-center 
+                        app-hoverable p-2 px-7  
+                        gap-2 app-keep 
+                        app-background
+                        app-hoverable
+            ">
+                <div className="flex-1">
+                    <span className="text-2xl text-left">{name}</span>
+                </div>
+                <div className={`flex-1 w-1/2 flex gap-1 app-alt-text`}>
+                    <div className={`truncate `}>
+                        <span className="text-left">{message}</span>
+                    </div>
+                    <div className="shrink-0 ">
+                        {unreadCount ? <NotificationBadge count={unreadCount} /> : null}
+                    </div>
+                </div>
             </td>
         </tr>
     )
