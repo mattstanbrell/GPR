@@ -1,5 +1,6 @@
 import ThreadRow from "./ThreadRow"
 import Toggle from "./Toggle"
+import { ThreadType } from "./types"
 
 
 interface ThreadsSidebarProps {
