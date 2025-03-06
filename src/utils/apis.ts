@@ -630,20 +630,11 @@ export async function getUsersInThread(threadID: string) {
   }));
 }
 
-// Returns all unread messages part of a specific thread.
-export async function getUnreadMessages(threadID: string) {
+// Returns number of all unread messages part of a specific thread.
+export async function getUnreadMessagesCount(threadID: string) {
   const { data: messages, errors } = await client.models.Message.list({
-    filter: { threadID: { eq: threadID}, readStatus: {eq: false} },
+    filter: { threadID: { eq: threadID}, readStatus: {eq: false} }, //set back to boolean.
   });
-  if (errors) {
-    throw new Error(errors[0].message);
-  }
-  return messages;
-}
-
-// Returns unread message number of a specific thread.
-export async function getUnreadMessageCount(threadID: string) {
-  const { data: messages, errors } = await getUnreadMessages(threadID);
   if (errors) {
     throw new Error(errors[0].message);
   }
@@ -669,126 +660,7 @@ export async function getThreadsWithUser(userID: string) {
 
 //Create a hook(subscribe) that increments threads unread message count(new field) on update.
 
-// -------------- Message APIs --------------
 
-// Create a new message
-export async function createMessage(
-    userID: string,
-    threadID: string,
-    content: string,
-    timeSent: DateTimeAttribute
-) {
-  const { data, errors } = await client.models.Message.create({
-    userID,
-    threadID,
-    content,
-    timeSent
-  });
-  if (errors) {
-    throw new Error(errors[0].message);
-  }
-  return data;
-}
-
-// Mark message as read.
-async function setMessageToRead(
-    messageID: string,
-) {
-  const { data, errors } = await client.models.Message.update({
-    id: messageID,
-    readStatus: true
-  });
-  if (errors) {
-    throw new Error(errors[0].message);
-  }
-  return data;
-}
-
-// Mark all unread messages in a certain thread as read.
-export async function setThreadMessagesToRead(threadID: string) {
-  const { data: messages, errors } = await getUnreadMessages(threadID);
-  if (errors) {
-    throw new Error(errors[0].message);
-  }
-  return await Promise.all(messages.map(async (message) => {
-    const {data: thread, messageErrors} = await setMessageToRead(message.id);
-    if (messageErrors) {
-      throw new Error(messageErrors[0].message);
-    }
-    return thread;
-  }));
-}
-
-// -------------- Thread APIs --------------
-
-// Create a new thread
-export async function createThread(
-    formID: string,
-) {
-  const { data, errors } = await client.models.Thread.create({
-    formID,
-  });
-  if (errors) {
-    throw new Error(errors[0].message);
-  }
-  return data;
-}
-
-// Returns all users part of a specific thread.
-export async function getUsersInThread(threadID: string) {
-  const { data: users, errors } = await client.models.UserThread.list({
-    filter: { threadID: { eq: threadID} },
-  });
-  if (errors) {
-    throw new Error(errors[0].message);
-  }
-  return await Promise.all(users.map(async (userThread) => {
-    const {data: user, errors: userErrors} = await client.models.User.get({id: userThread.userID});
-    if (userErrors) {
-      throw new Error(userErrors[0].message);
-    }
-    return user;
-  }));
-}
-
-// Returns all unread messages part of a specific thread.
-export async function getUnreadMessages(threadID: string) {
-  const { data: messages, errors } = await client.models.Message.list({
-    filter: { threadID: { eq: threadID}, readStatus: {eq: false} },
-  });
-  if (errors) {
-    throw new Error(errors[0].message);
-  }
-  return messages;
-}
-
-// Returns unread message number of a specific thread.
-export async function getUnreadMessageCount(threadID: string) {
-  const { data: messages, errors } = await getUnreadMessages(threadID);
-  if (errors) {
-    throw new Error(errors[0].message);
-  }
-  return messages.length;
-}
-
-// Returns all threads a user is a member of.
-export async function getThreadsWithUser(userID: string) {
-  const { data: threads, errors } = await client.models.UserThread.list({
-    filter: { userID: { eq: userID} },
-  });
-  if (errors) {
-    throw new Error(errors[0].message);
-  }
-  return await Promise.all(threads.map(async (userThread) => {
-    const {data: thread, errors: threadErrors} = await client.models.Thread.get({id: userThread.threadID});
-    if (threadErrors) {
-      throw new Error(threadErrors[0].message);
-    }
-    return thread;
-  }));
-}
-
-//Create a hook(subscribe) that increments threads unread message count(new field) on update.
 
 // -------------- Message APIs --------------
 
@@ -812,7 +684,7 @@ export async function createMessage(
 }
 
 // Mark message as read.
-async function setMessageToRead(
+export async function setMessageToRead(
     messageID: string,
 ) {
   const { data, errors } = await client.models.Message.update({
@@ -822,16 +694,19 @@ async function setMessageToRead(
   if (errors) {
     throw new Error(errors[0].message);
   }
+  //console.log(data);
   return data;
 }
 
 // Mark all unread messages in a certain thread as read.
 export async function setThreadMessagesToRead(threadID: string) {
-  const { data: messages, errors } = await getUnreadMessages(threadID);
+  const { data: unreadMessages, errors } = await client.models.Message.list({
+    filter: { threadID: { eq: threadID}, readStatus: {eq: false} }, //set back to boolean.
+  });
   if (errors) {
     throw new Error(errors[0].message);
   }
-  return await Promise.all(messages.map(async (message) => {
+  return await Promise.all(unreadMessages.map(async (message) => {
     const {data: thread, messageErrors} = await setMessageToRead(message.id);
     if (messageErrors) {
       throw new Error(messageErrors[0].message);
