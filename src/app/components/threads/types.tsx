@@ -1,4 +1,4 @@
-interface ThreadType {
+export interface ThreadType {
     name: string
     threadId: string
     message: string
