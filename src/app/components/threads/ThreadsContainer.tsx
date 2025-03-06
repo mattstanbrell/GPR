@@ -27,11 +27,12 @@ const threads = [
 
 interface ThreadsContainerProps {
     threadId?: string
+    startWithSidebar ?: boolean
 }
 
-const ThreadsContainer = ({threadId} : ThreadsContainerProps) => {
+const ThreadsContainer = ({threadId, startWithSidebar = true} : ThreadsContainerProps) => {
     const [isMobile, setIsMobile] = useState(false);
-    const [toggleScreen, setToggleScreen] = useState(false); // if isMobile is true: true will show the thread, false will show the threads 
+    const [viewSidebar, setViewSidebar] = useState(startWithSidebar); //When the screen is mobile, the sidebar is hidden by default
 
     useEffect(() => {
         const mediumWindowSize = 768;
@@ -46,8 +47,23 @@ const ThreadsContainer = ({threadId} : ThreadsContainerProps) => {
 
     return (
         <div className="flex flex-row">
-            <ThreadsSidebar threads={threads} selectedId={threadId} isMobile={isMobile} className={`${!isMobile? " w-1/3" : "w-full" } shrink-1 preset-secondary`} />
-            {isMobile? null : <Thread threadId={threadId} isMobile={isMobile} className="flex-1 grow border-2" />}
+            {isMobile && !viewSidebar ?
+                null :
+                <ThreadsSidebar 
+                    threads={threads}
+                    sidebarToggle={() => setViewSidebar(!viewSidebar)}
+                    selectedId={threadId} 
+                    isMobile={isMobile} 
+                    className={`${!isMobile? " w-1/3" : "w-full" } shrink-1 preset-secondary`} />
+            }
+            {isMobile && viewSidebar ? 
+                null : 
+                <Thread 
+                    threadId={threadId}
+                    sidebarToggle={() => setViewSidebar(!viewSidebar)} 
+                    isMobile={isMobile} 
+                    className="flex-1 grow" />
+            }
         </div>
     )
 }
