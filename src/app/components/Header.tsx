@@ -1,8 +1,8 @@
 
 'use client'
 
-import { useEffect, useState } from "react";
 import Menu from '@/app/components/navigation/Menu';
+import isMobileWindowSize from '@/utils/responsivenessHelpers'
 
 const Header = ({toggleMobileMenu, isMenuOpen, isSignedIn, handleClick} : {
 	toggleMobileMenu: () => void, 
@@ -10,18 +10,8 @@ const Header = ({toggleMobileMenu, isMenuOpen, isSignedIn, handleClick} : {
 	isSignedIn: boolean,
 	handleClick: () => void
 }) => {
-	const [isMobile, setIsMobile] = useState(false);
 
-	useEffect(() => {
-        const mediumWindowSize = 768;
-        const handleResize = () => {
-            setIsMobile(window.innerWidth < mediumWindowSize);
-        };
-
-        handleResize();
-        window.addEventListener("resize", handleResize);
-        return () => window.removeEventListener("resize", handleResize);
-    }, []);
+    const isMobile = isMobileWindowSize();
 
     return (
         <header className="govuk-header" data-module="govuk-header">
