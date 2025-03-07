@@ -738,6 +738,18 @@ export async function createMessage(
   return data;
 }
 
+export async function getMessagebyID(
+    messageID: string,
+) {
+  const { data, errors } = await client.models.Message.get({
+    messageID,
+  });
+  if (errors) {
+    throw new Error(errors[0].message);
+  }
+  return data;
+}
+
 // Create a new message
 export async function createUserMessage(
     userID: string,

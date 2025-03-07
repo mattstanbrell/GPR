@@ -39,7 +39,7 @@ interface ThreadProps {
 
 const Thread = ({ threadId, className, isMobile, sidebarToggle }: ThreadProps) => {
     return (
-        <div className={`flex flex-col ${className}`}>
+        <div className={`flex flex-col bg-(--color-background-darkest) ${className}`}>
 
             <div className="relative bg-(--color-background-light)  pt-3 ">
                 {threadId && isMobile ? <p className="app-alt-text ps-7 text-(--hounslow-primary)">Messages</p> : null}
@@ -52,7 +52,16 @@ const Thread = ({ threadId, className, isMobile, sidebarToggle }: ThreadProps) =
                                     thread.users.map((user, i) => {
                                         const zindex = `z-${thread.users.length - i}`;
                                         const colour = currentUser.name === user ? "bg-(--color-background-medium)" : "bg-(--color-background-dark)";
-                                        return <Avatar text={getInitials(user)} style={{ zIndex: thread.users.length - i }} colour={colour} className={`w-10 h-10 text-[0.6em] outline-3 order-first outline-(--color-background-light) ${zindex}`} key={user} />
+                                        return (
+                                            <Avatar 
+                                                text={getInitials(user)} 
+                                                style={{ zIndex: thread.users.length - i }} 
+                                                colour={colour} 
+                                                className={`w-10 h-10 text-[0.6em] outline-3 order-first outline-(--color-background-light) ${zindex}`} 
+                                                key={user} 
+                                                tooltipText={user}
+                                            />
+                                        )
                                     })
                                 }
                             </div>
