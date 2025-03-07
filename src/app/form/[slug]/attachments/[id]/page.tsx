@@ -54,7 +54,7 @@ const Upload = () => {
 
         console.log(data)
         const slug = 0;     // slug to be sent from attachments
-        router.push(`/form/${slug}/attachments/${attachmentId}`)
+        router.push(`/form/${slug}/attachments`)
     }
 
     return (
