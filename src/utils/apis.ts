@@ -674,7 +674,10 @@ export async function getUnreadMessages(threadID: string, userID: string) {
 
   if (readMessages[0].length > 0){
     readMessageNumber = readMessages.length;
+  } else{
+    throw new Error("No messages found.");
   }
+
 
   const unreadMessageNumber = totalMessageNumber - readMessageNumber;
   return unreadMessageNumber;
