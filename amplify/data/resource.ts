@@ -10,7 +10,8 @@ const schema = a
 				lastName: a.string().required(),
 				permissionGroup: a.enum(["ADMIN", "MANAGER", "SOCIAL_WORKER"]),
 				lastLogin: a.datetime(),
-				forms: a.hasMany("Form", "userID"),
+				createdForms: a.hasMany("Form", "creatorID"),
+				assignments: a.hasMany("FormAssignee", "userID"),
 				children: a.hasMany("UserChild", "userID"),
 				audits: a.hasMany("AuditLog", "userID"),
 				address: a.customType({
@@ -19,8 +20,15 @@ const schema = a
 					townOrCity: a.string(),
 					postcode: a.string(),
 				}),
+				userSettings: a.customType({
+					fontSize: a.integer(),
+					font: a.string(),
+					fontColour: a.string(),
+					bgColour: a.string(),
+					spacing: a.integer(),
+				}),
 			})
-			.authorization((allow) => [allow.group("ADMIN"), allow.owner()]),
+			.authorization((allow) => [allow.authenticated()]),
 
 		Form: a
 			.model({
@@ -53,19 +61,24 @@ const schema = a
 				]),
 				receipt: a.hasMany("Receipt", "formID"),
 				conversation: a.hasOne("NormConversation", "formID"),
-				userID: a.id(),
-				user: a.belongsTo("User", "userID"),
+				creatorID: a.id().required(),
+				creator: a.belongsTo("User", "creatorID"),
 				childID: a.id(),
 				child: a.belongsTo("Child", "childID"),
 				audits: a.hasMany("AuditLog", "formID"),
+				feedback: a.string(),
+				assignees: a.hasMany("FormAssignee", "formID"),
 			})
-			.authorization((allow) => [
-				allow
-					.publicApiKey() // why?
-					.to(["read"]),
-				allow.group("ADMIN"),
-				allow.owner(),
-			]),
+			.authorization((allow) => [allow.authenticated()]),
+
+		FormAssignee: a
+			.model({
+				formID: a.id().required(),
+				userID: a.id().required(),
+				form: a.belongsTo("Form", "formID"),
+				user: a.belongsTo("User", "userID"),
+			})
+			.authorization((allow) => [allow.authenticated()]),
 
 		Child: a
 			.model({
@@ -75,10 +88,10 @@ const schema = a
 				dateOfBirth: a.date().required(),
 				sex: a.string().required(),
 				gender: a.string().required(),
-				users: a.hasMany("UserChild", "childID"),
+				user: a.hasMany("UserChild", "childID"),
 				form: a.hasMany("Form", "childID"),
 			})
-			.authorization((allow) => [allow.group("ADMIN"), allow.owner()]),
+			.authorization((allow) => [allow.authenticated()]),
 
 		Receipt: a
 			.model({
@@ -90,7 +103,7 @@ const schema = a
 				subtotal: a.float(),
 				itemDesc: a.string(),
 			})
-			.authorization((allow) => [allow.group("ADMIN"), allow.owner()]),
+			.authorization((allow) => [allow.authenticated()]),
 
 		AuditLog: a
 			.model({
@@ -101,10 +114,7 @@ const schema = a
 				formID: a.id(),
 				form: a.belongsTo("Form", "formID"),
 			})
-			.authorization((allow) => [
-				allow.owner().to(["read"]),
-				allow.group("ADMIN"),
-			]),
+			.authorization((allow) => [allow.authenticated()]),
 
 		UserChild: a
 			.model({
@@ -113,25 +123,21 @@ const schema = a
 				child: a.belongsTo("Child", "childID"),
 				user: a.belongsTo("User", "userID"),
 			})
-			.authorization((allow) => [
-				allow.publicApiKey(), // why?
-				allow.owner(),
-				allow.group("ADMIN"),
-			]),
+			.authorization((allow) => [allow.authenticated()]),
 
 		Norm: a
 			.query()
 			.arguments({
-				conversationID: a.id(), // Not required if first message
-				messages: a.string().required(), // Full conversation history
+				conversationID: a.id(),
+				messages: a.string().required(),
 				formID: a.id().required(),
 				currentFormState: a.string().required(),
 			})
 			.returns(
 				a.customType({
 					conversationID: a.id().required(),
-					messages: a.string().required(), // Full conversation history
-					followUp: a.string(), // Follow up question/statement from Norm
+					messages: a.string().required(),
+					followUp: a.string(),
 					formID: a.id().required(),
 					currentFormState: a.string().required(),
 				}),

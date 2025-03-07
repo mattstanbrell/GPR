@@ -48,3 +48,5 @@ amplifyconfiguration*
 NOTES.md
 # Ignore the entire test directory
 /src/app/test/
+
+private/

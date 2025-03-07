@@ -114,7 +114,7 @@ export function FormContent() {
 					{
 						...form,
 						status: "DRAFT",
-						userID: effectiveUserId,
+						creatorID: effectiveUserId,
 					},
 					{ authMode: "userPool" },
 				);

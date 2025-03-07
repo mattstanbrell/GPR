@@ -70,6 +70,7 @@ const tools = [
 ];
 
 async function lookupCaseNumber(name: string, userID: string) {
+	console.log(`🔍 Looking up child: ${name} for user: ${userID}`);
 	// Extract first and last name
 	const [firstName, lastName] = name.split(" ");
 
@@ -78,6 +79,7 @@ async function lookupCaseNumber(name: string, userID: string) {
 	}
 
 	// First, get all UserChild records for this user
+	console.log(`👥 Fetching UserChild records for user: ${userID}`);
 	const { data: userChildren, errors: userChildErrors } =
 		await client.models.UserChild.list({
 			// @ts-ignore - The type definitions don't match the actual API
@@ -85,10 +87,13 @@ async function lookupCaseNumber(name: string, userID: string) {
 		});
 
 	if (userChildErrors) {
+		console.error(`❌ UserChild query errors:`, userChildErrors);
 		throw new Error(
 			`Error querying user-child relationships: ${userChildErrors.map((e) => e.message).join(", ")}`,
 		);
 	}
+
+	console.log(`📊 Found ${userChildren?.length || 0} UserChild records`);
 
 	if (!userChildren || userChildren.length === 0) {
 		throw new Error("No children associated with this user");
@@ -96,8 +101,10 @@ async function lookupCaseNumber(name: string, userID: string) {
 
 	// Get all the child IDs associated with this user
 	const childIDs = userChildren.map((uc) => uc.childID);
+	console.log(`🆔 Child IDs found:`, childIDs);
 
 	// Query each child individually using Promise.all for parallel execution
+	console.log(`👶 Fetching individual child records...`);
 	const childPromises = childIDs.map((id) => client.models.Child.get({ id }));
 	const childResults = await Promise.all(childPromises);
 
@@ -106,21 +113,23 @@ async function lookupCaseNumber(name: string, userID: string) {
 		.filter((result) => !result.errors && result.data)
 		.map((result) => result.data);
 
+	console.log(`👨‍👩‍👧‍👦 Found ${children.length} valid child records`);
+
 	if (children.length === 0) {
 		throw new Error("No children found for this user");
 	}
 
 	// Find the child with the matching name
 	const foundChild = children.find(
-		(child) =>
-			child && child.firstName === firstName && child.lastName === lastName,
+		(child) => child?.firstName === firstName && child?.lastName === lastName,
 	);
 
 	if (!foundChild) {
+		console.log(`❌ No child found matching name: ${firstName} ${lastName}`);
 		throw new Error(`No child named ${name} found for this user`);
 	}
 
-	// Return the found child
+	console.log(`✅ Found child:`, foundChild);
 	return foundChild;
 }
 
@@ -285,7 +294,7 @@ export const handler: Schema["Norm"]["functionHandler"] = async (event) => {
 	// Create system message
 	const systemMessage = {
 		role: "system" as const,
-		content: `You are a friendly assistant helping social workers submit prepaid card requests. You help fill out a form based on their natural language requests.
+		content: `You are Norm, a friendly assistant helping social workers submit prepaid card requests. You help fill out a form based on their natural language requests.
 
 Current time in London: ${formatLondonTime()}
 
@@ -423,6 +432,7 @@ Remember:
 
 	// If no conversation ID is provided, create a new conversation
 	if (!conversationId) {
+		console.log(`💬 Creating new conversation for form: ${formID}`);
 		// Prepare the conversation data
 		const conversationData = {
 			messages: JSON.stringify(messagesWithSystem),
@@ -434,9 +444,11 @@ Remember:
 			await client.models.NormConversation.create(conversationData);
 
 		if (!newConversation) {
+			console.error(`❌ Failed to create conversation`);
 			throw new Error("Failed to create conversation record");
 		}
 
+		console.log(`✅ Created new conversation:`, newConversation.id);
 		conversationId = newConversation.id;
 	}
 
@@ -457,16 +469,22 @@ Remember:
 	);
 
 	// Start both update operations in parallel
+	console.log(`📝 Updating conversation: ${conversationId}`);
 	const conversationUpdatePromise = client.models.NormConversation.update({
 		id: conversationId,
 		messages: JSON.stringify(result.messages),
 	});
 
 	// Only update the form if we have form data
+	console.log(
+		`📋 Updating form: ${formID} with data:`,
+		result.formData ? "yes" : "no",
+	);
 	const formUpdatePromise = result.formData
 		? client.models.Form.update({
 				id: formID,
 				...result.formData,
+				creatorID: userIdFromIdentity,
 			})
 		: Promise.resolve({ data: currentFormStateJSON });
 
@@ -475,6 +493,10 @@ Remember:
 		conversationUpdatePromise,
 		formUpdatePromise,
 	]);
+
+	console.log(
+		`✅ Updates completed - Conversation: ${!!conversationResult.data}, Form: ${!!formResult.data}`,
+	);
 
 	// Get the updated form data
 	const updatedForm = formResult.data || currentFormStateJSON;
