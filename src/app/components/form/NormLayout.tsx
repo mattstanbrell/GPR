@@ -235,9 +235,8 @@ export function NormLayout({
 						>
 							<ReactMarkdown
 								components={{
-									p: ({ children, key }) => (
+									p: ({ children }) => (
 										<p
-											key={key}
 											className="govuk-body"
 											style={{
 												margin: 0,
@@ -247,17 +246,17 @@ export function NormLayout({
 														: "inherit",
 											}}
 										>
-											{renderMessageContent(children?.toString() ?? "")}
+											{renderMessageContent(String(children) ?? "")}
 										</p>
 									),
-									ul: ({ children, key }) => (
-										<ul key={key} className="govuk-list govuk-list--bullet">
-											{children ?? ""}
+									ul: ({ children }) => (
+										<ul className="govuk-list govuk-list--bullet">
+											{children}
 										</ul>
 									),
-									li: ({ children, key }) => (
-										<li key={key} className="govuk-body" style={{ margin: 0 }}>
-											{children ?? ""}
+									li: ({ children }) => (
+										<li className="govuk-body" style={{ margin: 0 }}>
+											{children}
 										</li>
 									),
 								}}
