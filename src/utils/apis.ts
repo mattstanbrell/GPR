@@ -593,6 +593,18 @@ export async function createThread(
   return data;
 }
 
+export async function getThreadbyID(
+    threadID: string,
+) {
+  const { data, errors } = await client.models.Thread.get({
+    threadID,
+  });
+  if (errors) {
+    throw new Error(errors[0].message);
+  }
+  return data;
+}
+
 export async function createUserThread(
     threadID: string,
     userID: string,
