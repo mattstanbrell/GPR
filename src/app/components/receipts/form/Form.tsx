@@ -7,13 +7,15 @@ import Table from "@/app/components/receipts/form/Table";
 const Submit = () => {
     const { pending } = useFormStatus();
     return (
-        <button type="submit" className="hover:cursor-pointer">
-            { !(pending) ? "Submit" : "Submitting" }
-        </button>
+        <div className="flex justify-center">
+            <button type="submit" className="h-[5vh] w-30 mt-10 rounded-[8px] text-white bg-[var(--hounslow-primary)] hover:cursor-pointer" disabled={ pending } >
+                { !(pending) ? "Save" : "Saving..." }
+            </button>
+        </div>
     )
 }
 
-const Form = ({receiptData} : {receiptData: ReceiptData}) => {
+const Form = ({receiptData, handleAddItem} : {receiptData: ReceiptData, handleAddItem: () => void}) => {
     const router = useRouter();
 
     const handleFormSubmission = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -34,7 +36,7 @@ const Form = ({receiptData} : {receiptData: ReceiptData}) => {
     }
 
     return (
-        <form onSubmit={(event) => handleFormSubmission(event)}>
+        <form onSubmit={(event) => handleFormSubmission(event)} className="pt-4 max-h-[70vh] overflow-scroll">
             <Table receiptData={ receiptData } />
             <Submit /> 
         </form>
