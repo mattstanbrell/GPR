@@ -1,6 +1,7 @@
 
 import React from "react"
 import { DeleteButton } from "@/app/components/receipts/form/Buttons"
+import { FormInputString, FormInputNumber } from "@/app/components/receipts/form/FormInputs";
 
 const tableRowStyling = "h-[5vh] border-b-1 border-dashed";
 
@@ -14,34 +15,6 @@ const TableCell = (
 const TableTitleCell = ({ colspan = 1, data } : { colspan?: number, data: string }) => {
     return <td colSpan={ colspan } className="p-2 font-bold">{ data }</td>
 }
-
-const FormInputString = ({name, defaultValue} : {name: string, defaultValue: string}) => {
-    return (
-        <div className="hover:bg-[var(--color-background-light)]">
-            <input name={ name } type="text" defaultValue={ defaultValue } style={{ width: "100%", padding: "8px" }} />
-        </div>
-    )
-}
-
-const FormInputNumber = (
-    {name, defaultValue, step = 1} : 
-    {name: string, defaultValue: number, step?: number}
-) => {
-    return (
-        <div className="hover:bg-[var(--color-background-light)]">
-            <input 
-                name={ name } 
-                type="number" 
-                defaultValue={ defaultValue } 
-                min="0" 
-                step={ step } 
-                style={{ width: "100%", padding: "8px" }}
-            />
-        </div>
-    )
-}
-
-
 
 const Table = ({receiptData, handleAddItem, handleDeleteItem} : {receiptData: ReceiptData, handleAddItem: () => void, handleDeleteItem: (index: number) => void}) => {
     return (
