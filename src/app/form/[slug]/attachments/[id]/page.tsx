@@ -15,6 +15,10 @@ const getReceiptData = () => {
     };
 }
 
+const Title = ({ text } : { text: string }) => {
+    return <h2>{ text }</h2>
+}
+
 const Upload = () => {
     const router = useRouter();
     const [receiptData, setReceiptData] = useState(getReceiptData());
@@ -43,8 +47,8 @@ const Upload = () => {
 
     return (
         <>
-            <h2>{ name }</h2>
-            <form onSubmit={(event) => handleFormSubmission(event)} >
+            <Title text={ name } />
+            <form onSubmit={(event) => handleFormSubmission(event)}>
                 <table>
                     <tbody>
                         <tr>
