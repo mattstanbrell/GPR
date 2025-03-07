@@ -2,6 +2,12 @@
 import * as React from 'react';
 import Preview from './preview';
 
+const DEFAULT_FONT_SIZE = 1;
+const DEFAULT_FONT = 'lexend';
+const DEFAULT_FONT_COLOUR = '#000000';
+const DEFAULT_BG_COLOUR = '#FFFFFF';
+const DEFAULT_SPACING = 0;
+
 //add crumbs!!!
 
 type UserSettingsProps = {fontSize: number, font: string, fontColour: string, bgColour: string, spacing: number}
@@ -14,23 +20,28 @@ export default function SettingsClient( props: {userSettings : UserSettingsProps
   const [spacing, setSpacing] = React.useState(props.userSettings.spacing);
   const [fontColour, setFontColour] = React.useState(props.userSettings.fontColour);
   const [bgColour, setBgColour] = React.useState(props.userSettings.bgColour);
-  //console.log(fontSize, font, fontColour, bgColour, spacing)
-  
+
+  const [tempFontSize, setTempFontSize] = React.useState(props.userSettings.fontSize);
+  const [tempFont, setTempFont] = React.useState(props.userSettings.font)
+  const [tempSpacing, setTempSpacing] = React.useState(props.userSettings.spacing);
+  const [tempFontColour, setTempFontColour] = React.useState(props.userSettings.fontColour);
+  const [tempBgColour, setTempBgColour] = React.useState(props.userSettings.bgColour);
+
   const handleFontSizeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedFontSize = parseFloat(event.target.value);
-    setFontSize(selectedFontSize);
+    setTempFontSize(selectedFontSize);
     console.log(`Font size set to: ${selectedFontSize}`);
   };
 
   const handleFontChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedFont = event.target.value;
-    setFont(selectedFont);
+    setTempFont(selectedFont);
     console.log(`Font set to: ${selectedFont}`);
   };
 
   const handleSpacingChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedSpacing = parseInt(event.target.value);
-    setSpacing(selectedSpacing);
+    setTempSpacing(selectedSpacing);
     console.log(`Spacing set to: ${selectedSpacing}`);
   };
 
@@ -38,15 +49,53 @@ export default function SettingsClient( props: {userSettings : UserSettingsProps
     const selectedColours = JSON.parse(event.target.value)
     const selectedFontColour = selectedColours.fontColour;
     const selectedBgColour = selectedColours.bgColour;
-    setFontColour(selectedFontColour)
-    setBgColour(selectedBgColour);
+    setTempFontColour(selectedFontColour)
+    setTempBgColour(selectedBgColour);
     console.log(`Bg colour set to: ${selectedBgColour} and Font colour set to: ${selectedFontColour}`);
   };
 
+  const updateSettings = (fontSize: number, font: string, spacing: number, fontColour: string, bgColour: string) => {
+    setFontSize(fontSize);
+    setFont(font);
+    setSpacing(spacing);
+    setFontColour(fontColour);
+    setBgColour(bgColour);
+  }
+
   const handleSettingsChange = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log(fontSize, font, fontColour, bgColour, spacing);
+
+    const buttonClicked = (e.nativeEvent as SubmitEvent).submitter as HTMLButtonElement;
+    const action = buttonClicked.value;
+
+    if (action === "reset") {
+      resetSettings();
+    } else if (action === "save") {
+      saveSettings();
+    } else if (action === "preview") {
+      previewSettings();
+    } else {
+      console.log("Unknown action");
+    };
   };
+
+  const resetSettings = () => {
+    updateSettings(DEFAULT_FONT_SIZE, DEFAULT_FONT, DEFAULT_SPACING, DEFAULT_FONT_COLOUR, DEFAULT_BG_COLOUR);
+  }
+
+  const saveSettings = () => {
+    // call API to update settings
+    updateSettings(tempFontSize, tempFont, tempSpacing, tempFontColour, tempBgColour);
+  }
+
+  const previewSettings = () => {
+    setFontSize(tempFontSize);
+    setFont(tempFont);
+    setSpacing(tempSpacing);
+    setFontColour(tempFontColour);
+    setBgColour(tempBgColour);
+  }
+  
   return (
     <div>
       <h2 className="govuk-heading-l" style={{ backgroundColor: '#e5f2eb' }} >Settings</h2>
@@ -120,13 +169,13 @@ export default function SettingsClient( props: {userSettings : UserSettingsProps
             </fieldset>
             <div style={{ width: "100%", height: ".25rem", backgroundColor: "#f0e8f0", marginTop: "25px", marginBottom: "15px" }}></div>
             <div className="setting-buttons">
-              <button type="submit" className="settings-button--reset" data-module="govuk-button">
+              <button type="submit" value="reset" className="settings-button--reset" data-module="govuk-button">
                 Reset to default
               </button>
-              <button type="submit" className="settings-button--save" data-module="govuk-button">
+              <button type="submit" value="save" className="settings-button--save" data-module="govuk-button">
                 Save and continue
               </button>
-              <button type="submit" className="settings-button--preview" data-module="govuk-button">
+              <button type="submit" value="preview" className="settings-button--preview" data-module="govuk-button">
                 Preview
               </button>
             </div>
