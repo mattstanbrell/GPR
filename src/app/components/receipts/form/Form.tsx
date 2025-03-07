@@ -14,9 +14,18 @@ interface ReceiptData {
     items: ReceiptItem[]
 }
 
+const Submit = () => {
+    const { pending } = useFormStatus();
+    return (
+        <button type="submit" className="hover:cursor-pointer">
+            { !(pending) ? "Submit" : "Submitting" }
+        </button>
+    )
+}
+
 const Form = ({receiptData} : {receiptData: ReceiptData}) => {
     const router = useRouter();
-    const { pending } = useFormStatus();
+    
 
     const handleFormSubmission = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -59,9 +68,7 @@ const Form = ({receiptData} : {receiptData: ReceiptData}) => {
                     ))}
                 </tbody>
             </table>
-            <button type="submit" className="hover:cursor-pointer">
-                { !(pending) ? "Submit" : "Submitting" }
-            </button>
+            <Submit /> 
         </form>
     )
 }
