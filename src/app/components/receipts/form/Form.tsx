@@ -1,19 +1,9 @@
 
 import React from "react";
-import { useFormStatus } from "react-dom";
+
 import { useRouter } from "next/navigation";
 import Table from "@/app/components/receipts/form/Table";
-
-const Submit = () => {
-    const { pending } = useFormStatus();
-    return (
-        <div className="flex justify-center">
-            <button type="submit" className="h-[5vh] w-30 mt-10 rounded-[8px] text-white bg-[var(--hounslow-primary)] hover:cursor-pointer" disabled={ pending } >
-                { !(pending) ? "Save" : "Saving..." }
-            </button>
-        </div>
-    )
-}
+import { Submit } from "@/app/components/receipts/form/Buttons"
 
 const Form = (
     {receiptData, handleAddItem, handleDeleteItem} : 

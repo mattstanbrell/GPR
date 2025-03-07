@@ -1,6 +1,6 @@
 
 import React from "react"
-import Image from "next/image"
+import { DeleteButton } from "@/app/components/receipts/form/Buttons"
 
 const tableRowStyling = "h-[5vh] border-b-1 border-dashed";
 
@@ -41,13 +41,7 @@ const FormInputNumber = (
     )
 }
 
-const DeleteButton = ({handleDeleteItem, index} : {handleDeleteItem: (index: number) => void, index: number}) => {
-    return (
-        <div title="Delete" className="flex justify-center hover:cursor-pointer" onClick={() => handleDeleteItem(index)}>
-            <Image src="/delete.svg" alt="" width={ 20 } height={ 20 } />
-        </div>
-    )
-}
+
 
 const Table = ({receiptData, handleAddItem, handleDeleteItem} : {receiptData: ReceiptData, handleAddItem: () => void, handleDeleteItem: (index: number) => void}) => {
     return (
