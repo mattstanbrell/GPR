@@ -23,13 +23,32 @@ const Title = ({ text } : { text: string }) => {
 }
 
 const Upload = () => {
-    const [receiptData] = useState(getReceiptData());
+    const [receiptData, setReceiptData] = useState(getReceiptData());
     const name = "hotel_for_jim.jpg";   // retrieve image name from S3 bucket
+
+    const handleAddItem = () => {
+        let newRow = { "name": "", "quantity": 0, "cost": 0.00 }
+        setReceiptData((prevData) => ({
+            ...prevData,
+            items: [...prevData.items, newRow]
+        }));
+    }
+
+    const handleDeleteItem = (index: number) => {
+        setReceiptData((prevData) => ({
+            ...prevData,
+            items: prevData.items.filter((_, i) => i !== index) // Remove item at the given index
+        }));
+    }
 
     return (
         <div className="overflow-scroll">
             <Title text={ name } />
-            <Form receiptData={ receiptData } />
+            <Form 
+                receiptData={ receiptData } 
+                handleAddItem={ handleAddItem } 
+                handleDeleteItem={ handleDeleteItem } 
+            />
         </div>
     )
 }

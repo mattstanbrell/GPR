@@ -15,7 +15,10 @@ const Submit = () => {
     )
 }
 
-const Form = ({receiptData, handleAddItem} : {receiptData: ReceiptData, handleAddItem: () => void}) => {
+const Form = (
+    {receiptData, handleAddItem, handleDeleteItem} : 
+    {receiptData: ReceiptData, handleAddItem: () => void, handleDeleteItem: (index: number) => void}
+) => {
     const router = useRouter();
 
     const handleFormSubmission = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -37,7 +40,11 @@ const Form = ({receiptData, handleAddItem} : {receiptData: ReceiptData, handleAd
 
     return (
         <form onSubmit={(event) => handleFormSubmission(event)} className="pt-4 max-h-[70vh] overflow-scroll">
-            <Table receiptData={ receiptData } />
+            <Table 
+                receiptData={ receiptData } 
+                handleAddItem={ handleAddItem } 
+                handleDeleteItem={ handleDeleteItem } 
+            />
             <Submit /> 
         </form>
     )
