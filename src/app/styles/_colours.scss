@@ -3,6 +3,7 @@
 $hounslow-primary: #642f6c; // Main brand colour
 /* Filter of Main Colour for icons */
 $hounslow-primary-filter: "brightness(0) saturate(100%) invert(22%) sepia(9%) saturate(5876%) hue-rotate(253deg) brightness(93%) contrast(89%)";
+$hounslow-menu-icon-filter: "brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(7500%) hue-rotate(189deg) brightness(102%) contrast(102%)";
 
 /* Used for headers excl. main header */
 $color-secondary: #986f9e;
@@ -44,6 +45,7 @@ $color-background-light: #F1E6F2; // Use for variation in background colours
 :root {
   --hounslow-primary: #{$hounslow-primary};
   --hounslow-primary-filter: #{$hounslow-primary-filter};
+  --hounslow-menu-icon-filter: #{$hounslow-menu-icon-filter};
   --color-secondary: #{$color-secondary};
   --color-accent: #{$color-accent};
   --color-button-primary: #{$color-button-primary};
