@@ -17,7 +17,7 @@ export default function SettingsClient( props: {userSettings : UserSettingsProps
   //console.log(fontSize, font, fontColour, bgColour, spacing)
   
   const handleFontSizeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedFontSize = parseInt(event.target.value);
+    const selectedFontSize = parseFloat(event.target.value);
     setFontSize(selectedFontSize);
     console.log(`Font size set to: ${selectedFontSize}`);
   };
@@ -70,17 +70,17 @@ export default function SettingsClient( props: {userSettings : UserSettingsProps
             <div style={{display: "flex", justifyContent: "space-between", alignItems: "center"}} className="form__control">
               <label className="govuk-label">Font size</label>
               <select style={{width: "min(700px, 60%)"}} className="govuk-select" defaultValue={1} onChange={handleFontSizeChange}>
-                <option value={1}>Standard (1x)</option>
-                <option value={2}>Large (2x)</option>
-                <option value={3}>Extra Large (3x)</option>
-                <option value={4}>Ultra Large (4x)</option>
+                <option value={1}>1x (Standard)</option>
+                <option value={1.5}>1.5x</option>
+                <option value={2}>2x</option>
+                <option value={2.5}>2.5x</option>
               </select>
             </div>
             <div style={{ width: "100%", height: "1px", backgroundColor: "#b1b4b6", marginTop: "15px", marginBottom: "15px" }}></div>
             <div style={{display: "flex", justifyContent: "space-between", alignItems: "center"}} className="form__control">
               <label className="govuk-label">Font</label>
-              <select style={{width: "min(700px, 60%)"}} className="govuk-select" defaultValue="standard" onChange={handleFontChange}>
-                <option value="standard">Standard (Lexend)</option>
+              <select style={{width: "min(700px, 60%)"}} className="govuk-select" defaultValue="lexend" onChange={handleFontChange}>
+                <option value="lexend">Lexend (Standard)</option>
                 <option value="times">Times</option>
                 <option value="courier">Courier</option>
                 <option value="arial">Arial</option>
@@ -90,7 +90,7 @@ export default function SettingsClient( props: {userSettings : UserSettingsProps
             <div style={{display: "flex", justifyContent: "space-between", alignItems: "center"}} className="form__control">
               <label className="govuk-label">Letter spacing</label>
               <select style={{width: "min(700px, 60%)"}} className="govuk-select" defaultValue={0} onChange={handleSpacingChange}>
-                <option value={0}>Standard (0)</option>
+                <option value={0}>0 (Standard)</option>
                 <option value={1}>+1</option>
                 <option value={2}>+2</option>
                 <option value={3}>+3</option>
