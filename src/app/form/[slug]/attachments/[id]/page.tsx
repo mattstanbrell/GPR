@@ -15,7 +15,11 @@ const getReceiptData = () => {
 }
 
 const Title = ({ text } : { text: string }) => {
-    return <h2>{ text }</h2>
+    return (
+        <div className="h-[5vh] border-b-1 border-b-[#a9a9a9]">
+            <h2 className="text-[var(--hounslow-primary)] text-xl md:text-2xl font-bold">{ text }</h2>
+        </div>
+    )
 }
 
 const Upload = () => {
@@ -23,10 +27,10 @@ const Upload = () => {
     const name = "hotel_for_jim.jpg";   // retrieve image name from S3 bucket
 
     return (
-        <>
+        <div className="overflow-scroll">
             <Title text={ name } />
             <Form receiptData={ receiptData } />
-        </>
+        </div>
     )
 }
 
