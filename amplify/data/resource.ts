@@ -13,6 +13,7 @@ const schema = a.schema({
     audits: a.hasMany('AuditLog', 'userID'),
     messages: a.hasMany('Message','userID'),
     threads: a.hasMany('UserThread','userID'),
+    messagesRead: a.hasMany('UserMessage','userID'),
     userSettings: a.customType({
       fontSize: a.integer(),
       font: a.string(),
@@ -117,8 +118,9 @@ const schema = a.schema({
     user: a.belongsTo('User','userID'),
     thread: a.belongsTo('Thread','threadID'),
     content: a.string().required(),
-    readStatus: a.boolean().default(false),
-    timeSent: a.datetime().required()
+    usersRead: a.hasMany('UserMessage', 'messageID'),
+    readStatus: a.string().default('false'), //enum(['false','medium','true'])
+    timeSent: a.datetime() //datetime()
   }).authorization(allow => [
     allow.authenticated()
   ]),
@@ -128,6 +130,16 @@ const schema = a.schema({
     threadID: a.id().required(),
     user: a.belongsTo('User','userID'),
     thread: a.belongsTo('Thread','threadID')
+  }).authorization(allow => [
+    allow.authenticated()
+  ]),
+
+  //Provides an indication of which users have read which message.
+  UserMessage: a.model({
+    userID: a.id().required(),
+    messageID: a.id().required(),
+    user: a.belongsTo('User','userID'),
+    message: a.belongsTo('Message','messageID')
   }).authorization(allow => [
     allow.authenticated()
   ]),
