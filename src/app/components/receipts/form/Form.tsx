@@ -2,17 +2,7 @@
 import React from "react";
 import { useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";
-
-interface ReceiptItem {
-    name: string,
-    quantity: number, 
-    cost: number, 
-}
-
-interface ReceiptData {
-    total: number,
-    items: ReceiptItem[]
-}
+import Table from "@/app/components/receipts/form/Table";
 
 const Submit = () => {
     const { pending } = useFormStatus();
@@ -25,7 +15,6 @@ const Submit = () => {
 
 const Form = ({receiptData} : {receiptData: ReceiptData}) => {
     const router = useRouter();
-    
 
     const handleFormSubmission = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -46,28 +35,7 @@ const Form = ({receiptData} : {receiptData: ReceiptData}) => {
 
     return (
         <form onSubmit={(event) => handleFormSubmission(event)}>
-            <table>
-                <tbody>
-                    <tr>
-                        <td colSpan={2} className="text-right">
-                            Total £
-                        </td>
-                        <td><input name="total" type="number" defaultValue={ receiptData ? receiptData.total : 0.00 } />   </td>
-                    </tr>
-                    <tr>
-                        <td>Item Name</td>
-                        <td>No.</td>
-                        <td>Cost £</td>
-                    </tr>
-                    {receiptData && receiptData.items && receiptData.items.map(({ name, quantity, cost}, index) => (
-                        <tr key={ index }>
-                                <td><input name={`items[${index}].name`} type="text" defaultValue={ name ? name : "" } /></td>
-                                <td><input name={`items[${index}].quantity`} type="number" defaultValue={ quantity ? quantity : 0 } min="0" /></td>
-                                <td><input name={`items[${index}].cost`} type="number" defaultValue={ cost ? cost : 0.00 } min="0.00" step="0.01" /></td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+            <Table receiptData={ receiptData } />
             <Submit /> 
         </form>
     )
