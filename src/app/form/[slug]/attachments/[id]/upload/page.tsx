@@ -1,4 +1,8 @@
+'use client'
 
+import React, { useState } from "react";
+import { useFormStatus } from "react-dom";
+import { useRouter, useParams } from "next/navigation";
 
 const getReceiptData = () => {
     return {
@@ -22,31 +26,57 @@ const getReceiptData = () => {
     };
 }
 
+const Submit = () => {
+    const { pending } = useFormStatus();
+    return <button type="submit">{ !(pending) ? "Submit" : "Submitting" }</button>
+}
 
 const Upload = () => {
+    const router = useRouter();
+    const [receiptData, setReceiptData] = useState(getReceiptData());
+    const attachmentId = useParams().id
 
-    const data = getReceiptData()
+    // retrieve from S3 bucket
     const name = "hotel_for_jim.jpg";
+
+    // will need to become a server function for async/await
+    const handleFormSubmission = (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        const formData = new FormData(event.currentTarget);
+        const data = {
+            total: parseFloat(formData.get("total") as string) || 0,
+            items: receiptData.items.map((_, index) => ({
+                name: formData.get(`items[${index}].name`),
+                quantity: parseInt(formData.get(`items[${index}.quantity]`) as string) || 0,
+                cost: parseFloat(formData.get(`items[${index}.cost]`) as string) || 0,
+            }))
+        }
+
+        console.log(data)
+        const slug = 0;     // slug to be sent from attachments
+        router.push(`/form/${slug}/attachments/${attachmentId}`)
+    }
 
     return (
         <>
             <h2>{ name }</h2>
-            <form>
+            <form onSubmit={(event) => handleFormSubmission(event)} >
                 <div>
                     <label>Total £
-                        <input type="number" value={ data ? data['total'] : 0.00 } />    
+                        <input name="total" type="number" defaultValue={ receiptData ? receiptData.total : 0.00 } />    
                     </label>
                 </div>
                 <div className="flex-3">
                     Item Name No. Cost £
-                    { data && data['items'] && data['items'].map(({ name, quantity, cost}, index) => (
+                    {receiptData && receiptData.items && receiptData.items.map(({ name, quantity, cost}, index) => (
                         <div key={ index }>
-                                <input type="text" value={ name } />
-                                <input type="number" value={ quantity } min="0" />
-                                <input type="number" value={ cost } min="0.00" />
+                                <input name={`items[${index}].name`} type="text" defaultValue={ name ? name : "" } />
+                                <input name={`items[${index}].quantity`} type="number" defaultValue={ quantity ? quantity : 0 } min="0" />
+                                <input name={`items[${index}].cost`} type="number" defaultValue={ cost ? cost : 0.00 } min="0.00" step="0.01" />
                         </div>
                     ))}
                 </div>
+                <Submit />
             </form>
         </>
     )
