@@ -33,7 +33,7 @@ export const Tooltip = ({ content, children }: { content: ReactNode; children: R
         if (tooltipContentRef.current && tooltipRef.current && triangleRef.current && triangleInvertedRef.current) {
             const rect = tooltipContentRef.current.getBoundingClientRect();
 
-            let { top, left, right } = rect;
+            const { top, left, right } = rect;
             const padding = 40;
 
             // overflowing from left side
