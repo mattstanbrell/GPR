@@ -139,7 +139,9 @@ const schema = a.schema({
     userID: a.id().required(),
     messageID: a.id().required(),
     user: a.belongsTo('User','userID'),
-    message: a.belongsTo('Message','messageID')
+    message: a.belongsTo('Message','messageID'),
+    threadID: a.id().required(),
+    isRead: a.boolean()
   }).authorization(allow => [
     allow.authenticated()
   ]),
