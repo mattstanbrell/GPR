@@ -1,12 +1,12 @@
-'use client'
+"use client";
 
 import { Lexend } from "next/font/google";
 import "./globals.scss";
 import ConfigureAmplifyClientSide from "./components/ConfigureAmplify";
 import { audilyPrimary } from "./theme";
 import { GovUKFrontend } from "./components/GovUKInitialiser";
-import Header from '@/app/components/Header';
-import FullscreenMenu from '@/app/components/navigation/FullscreenMenu';
+import Header from "@/app/components/Header";
+import FullscreenMenu from "@/app/components/navigation/FullscreenMenu";
 import { useState, useEffect } from "react";
 import { Hub } from "aws-amplify/utils";
 import { getCurrentUser } from "aws-amplify/auth";
@@ -23,15 +23,17 @@ const lexend = Lexend({
 	variable: "--font-lexend",
 });
 
-export default function RootLayout({children}: Readonly<{children: React.ReactNode;}>) {
+export default function RootLayout({
+	children,
+}: Readonly<{ children: React.ReactNode }>) {
 	const router = useRouter();
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
 	const [isSignedIn, setIsSignedIn] = useState(false);
 
 	const toggleMobileMenu = () => {
 		setIsMenuOpen(!isMenuOpen);
-	}
-	
+	};
+
 	useEffect(() => {
 		Hub.listen("auth", ({ payload }) => {
 			if (payload.event === "signInWithRedirect") {
@@ -66,32 +68,43 @@ export default function RootLayout({children}: Readonly<{children: React.ReactNo
 			<head>
 				<meta name="theme-color" content={audilyPrimary} />
 			</head>
-			{
-				isMenuOpen ? (
-					<body className="govuk-template__body w-full h-[100vh]">
-						<Header toggleMobileMenu={toggleMobileMenu} isMenuOpen={isMenuOpen} isSignedIn={isSignedIn} handleClick={handleClick}/>
-						<FullscreenMenu handleToggle={toggleMobileMenu} handleClick={ handleClick } />
-					</body>
-				) : (				
-					<body className="govuk-template__body">
-						<ConfigureAmplifyClientSide />
-						<GovUKFrontend />
-						<Header toggleMobileMenu={toggleMobileMenu} isMenuOpen={isMenuOpen} isSignedIn={isSignedIn} handleClick={handleClick}/>
+			{isMenuOpen ? (
+				<body className="govuk-template__body w-full h-[100vh]">
+					<Header
+						toggleMobileMenu={toggleMobileMenu}
+						isMenuOpen={isMenuOpen}
+						isSignedIn={isSignedIn}
+						handleClick={handleClick}
+					/>
+					<FullscreenMenu
+						handleToggle={toggleMobileMenu}
+						handleClick={handleClick}
+					/>
+				</body>
+			) : (
+				<body className="govuk-template__body">
+					<ConfigureAmplifyClientSide />
+					<GovUKFrontend />
+					<Header
+						toggleMobileMenu={toggleMobileMenu}
+						isMenuOpen={isMenuOpen}
+						isSignedIn={isSignedIn}
+						handleClick={handleClick}
+					/>
+					<div className="govuk-width-container">
+						<main className="govuk-main-wrapper">{children}</main>
+					</div>
+					<footer className="govuk-footer">
 						<div className="govuk-width-container">
-							<main className="govuk-main-wrapper">{children}</main>
-						</div>
-						<footer className="govuk-footer">
-							<div className="govuk-width-container">
-								<div className="govuk-footer__meta">
-									<div className="govuk-footer__meta-item">
-										© CRITICAL Channel 2025
-									</div>
+							<div className="govuk-footer__meta">
+								<div className="govuk-footer__meta-item">
+									© CRITICAL Channel 2025
 								</div>
 							</div>
-						</footer>
-					</body>
-				)
-			}
+						</div>
+					</footer>
+				</body>
+			)}
 		</html>
 	);
 }
