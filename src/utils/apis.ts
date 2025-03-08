@@ -790,10 +790,8 @@ export async function setMessageReadStatus(
     throw new Error(errors[0].message);
   }
 
-  // Change this so record is used or remove the line
   await createUserMessage(userID, messageID);
 
-  // Change this so that an error is thrown if message is null.
   if (!message){
     throw new Error("No message found");
   }
@@ -810,7 +808,6 @@ export async function setMessageReadStatus(
     status = "true";
   }
 
-  // users read update currently not working
   const { data, errors: errorsUpdate } = await client.models.Message.update({
     id: messageID,
     readStatus: status,
