@@ -669,7 +669,7 @@ export async function getUnreadMessageNumber(threadID: string, userID: string) {
   if (errors) {
     throw new Error(errors[0].message);
   }
-  console.log(newThreadMessages);
+
   const totalMessageNumber = newThreadMessages.length;
   const readMessages = await Promise.all(newThreadMessages.map(async (message) => {
     const {data: user, errors: userErrors} = await client.models.UserMessage.list({
@@ -681,7 +681,7 @@ export async function getUnreadMessageNumber(threadID: string, userID: string) {
 
     return user;
   }));
-  console.log(readMessages);
+
   let readMessageNumber = 0;
 
   if (readMessages[0].length > 0){
