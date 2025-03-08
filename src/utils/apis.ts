@@ -662,16 +662,17 @@ export async function getThreadsWithUser(userID: string) {
 
 // Returns number of all unread messages part of a specific thread for a certain user. (Retrieve messages that are medium/unread from a thread. Find out how many of those are read by that user. Subtract it from number of retrieved messages from that thread.
 export async function getUnreadMessageNumber(threadID: string, userID: string) {
-  //check
+
   const { data: newThreadMessages, errors } = await client.models.Message.list({
-    filter: { threadID: { eq: threadID},or: [ {readStatus: {eq: 'false'}}, {readStatus: {eq: 'medium'}} ]}, //set back to boolean.
+    filter: { threadID: { eq: threadID},or: [ {readStatus: {eq: 'false'}}, {readStatus: {eq: 'medium'}} ]}, //Retrieves all unread messages from a thread.
   });
   if (errors) {
     throw new Error(errors[0].message);
   }
+  console.log(newThreadMessages);
 
   const totalMessageNumber = newThreadMessages.length;
-  const readMessages = await Promise.all(newThreadMessages.map(async (message) => {
+  const readMessages = await Promise.all(newThreadMessages.map(async (message) => { //For each unread message, returns the ones read by the user.
     const {data: user, errors: userErrors} = await client.models.UserMessage.list({
       filter: {messageID: { eq: message.id}, userID: {eq: userID}},
     });
@@ -684,7 +685,7 @@ export async function getUnreadMessageNumber(threadID: string, userID: string) {
 
   let readMessageNumber = 0;
 
-  if (readMessages[0].length > 0){
+  if (readMessages[0] && readMessages[0].length != 0){
     readMessageNumber = readMessages.length;
   }
 
@@ -752,14 +753,14 @@ export async function createUserMessage(
     userID: string,
     messageID: string,
 ) {
-    const { data, errors } = await client.models.UserMessage.create({
-      userID,
-      messageID,
-    });
-    if (errors) {
-      throw new Error(errors[0].message);
-    }
-    return data;
+  const { data, errors } = await client.models.UserMessage.create({
+    userID,
+    messageID,
+  });
+  if (errors) {
+    throw new Error(errors[0].message);
+  }
+  return data;
 }
 
 // Returns number of users part of a specific thread.
@@ -790,7 +791,17 @@ export async function setMessageReadStatus(
     throw new Error(errors[0].message);
   }
 
-  await createUserMessage(userID, messageID);
+  const {data: record, fetchErrors} = await client.models.UserMessage.list({filter:
+        {userID: {eq: userID}, messageID: {eq: messageID}}});
+
+  if (fetchErrors) {
+    throw new Error(fetchErrors[0].message);
+  }
+
+  if (record && record.length === 0){
+    await createUserMessage(userID, messageID);
+  }
+
 
   if (!message){
     throw new Error("No message found");
