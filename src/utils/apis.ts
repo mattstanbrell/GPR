@@ -1,6 +1,5 @@
 import {generateClient} from '@aws-amplify/api';
 import {Schema} from '../../amplify/data/resource';
-import {DateTimeAttribute} from "aws-cdk-lib/aws-cognito";
 
 const client = generateClient<Schema>();
 
