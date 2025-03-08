@@ -791,9 +791,12 @@ export async function setMessageReadStatus(
   }
 
   // Change this so record is used or remove the line
-  const record = await createUserMessage(userID, messageID);
+  await createUserMessage(userID, messageID);
 
-  // Change this so that an error is thrown if message is null
+  // Change this so that an error is thrown if message is null.
+  if (!message){
+    throw new Error("No message found");
+  }
   const userNumPromise = await getUsersInThread(message.threadID);
   const userNum = userNumPromise.length; //Number of Users in thread.
 
@@ -811,7 +814,6 @@ export async function setMessageReadStatus(
   const { data, errors: errorsUpdate } = await client.models.Message.update({
     id: messageID,
     readStatus: status,
-    usersRead: usersReadNow
   });
 
   return {data, errors: errorsUpdate};
