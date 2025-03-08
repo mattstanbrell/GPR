@@ -15,6 +15,7 @@ const schema = a
 				assignments: a.hasMany("FormAssignee", "userID"),
 				children: a.hasMany("UserChild", "userID"),
 				audits: a.hasMany("AuditLog", "userID"),
+				profileOwner: a.string(),
 				address: a.customType({
 					lineOne: a.string(),
 					lineTwo: a.string(),
@@ -29,10 +30,7 @@ const schema = a
 					spacing: a.integer(),
 				}),
 			})
-			.authorization((allow) => [
-				allow.publicApiKey(),
-				allow.authenticated()
-			]),
+			.authorization((allow) => [allow.publicApiKey(), allow.authenticated()]),
 
 		Form: a
 			.model({
@@ -159,8 +157,8 @@ const schema = a
 	})
 	// Add schema-level authorization to grant the norm function access to all models
 	.authorization((allow) => [
-		allow.resource(norm), 
-		allow.resource(postAuthentication)
+		allow.resource(norm),
+		allow.resource(postAuthentication),
 	]);
 
 export type Schema = ClientSchema<typeof schema>;

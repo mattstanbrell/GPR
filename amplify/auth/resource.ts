@@ -18,6 +18,8 @@ export const auth = defineAuth({
 						"https://login.microsoftonline.com/4c70b964-f256-4054-ace6-6375714daa99/v2.0",
 					scopes: ["openid", "profile", "email"],
 					attributeMapping: {
+						givenName: "given_name",
+						familyName: "family_name",
 						custom: {
 							// this is a string (not an array) of group ids
 							// eg '["cab6488b-12e6-4d6e-bdf0-6a2d254b2ec9","0989a8d5-c347-4ce1-9d50-c97641a4d3b5"]'
@@ -48,5 +50,5 @@ export const auth = defineAuth({
 	},
 	triggers: {
 		postAuthentication,
-	}, 
+	},
 });
