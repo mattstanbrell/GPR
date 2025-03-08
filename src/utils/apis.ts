@@ -597,7 +597,7 @@ export async function getThreadbyID(
     threadID: string,
 ) {
   const { data, errors } = await client.models.Thread.get({
-    threadID,
+    id: threadID,
   });
   if (errors) {
     throw new Error(errors[0].message);
@@ -705,7 +705,7 @@ export async function setThreadMessagesToRead(threadID: string, userID: string) 
     throw new Error(errors[0].message);
   }
   return await Promise.all(unreadMessages.map(async (message) => {
-    const {data: thread, messageErrors} = await setMessageReadStatus(message.id, userID);
+    const {data: thread, errors: messageErrors} = await setMessageReadStatus(message.id, userID);
     if (messageErrors) {
       throw new Error(messageErrors[0].message);
     }
@@ -720,7 +720,7 @@ export async function createMessage(
     userID: string,
     threadID: string,
     content: string,
-    timeSent: DateTimeAttribute,
+    timeSent: string,
 ) {
   const { data, errors } = await client.models.Message.create({
     userID,
@@ -739,7 +739,7 @@ export async function getMessagebyID(
     messageID: string,
 ) {
   const { data, errors } = await client.models.Message.get({
-    messageID,
+    id: messageID,
   });
   if (errors) {
     throw new Error(errors[0].message);
@@ -790,8 +790,10 @@ export async function setMessageReadStatus(
     throw new Error(errors[0].message);
   }
 
+  // Change this so record is used or remove the line
   const record = await createUserMessage(userID, messageID);
 
+  // Change this so that an error is thrown if message is null
   const userNumPromise = await getUsersInThread(message.threadID);
   const userNum = userNumPromise.length; //Number of Users in thread.
 
@@ -805,15 +807,14 @@ export async function setMessageReadStatus(
     status = "true";
   }
 
-  const { data, errorsUpdate } = await client.models.Message.update({
+  // users read update currently not working
+  const { data, errors: errorsUpdate } = await client.models.Message.update({
     id: messageID,
     readStatus: status,
     usersRead: usersReadNow
   });
-  if (errorsUpdate) {
-    throw new Error(errorsUpdate[0].message);
-  }
-  return data;
+
+  return {data, errors: errorsUpdate};
 }
 
 
