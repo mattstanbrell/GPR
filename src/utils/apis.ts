@@ -671,7 +671,7 @@ export async function getUnreadMessageNumber(threadID: string, userID: string) {
   if (errors) {
     throw new Error(errors[0].message);
   }
-  console.log(newThreadMessages);
+
   const totalMessageNumber = newThreadMessages.length;
 
   return totalMessageNumber;
@@ -748,16 +748,13 @@ export async function createUserMessage(
   if (fetchErrors) {
     throw new Error(fetchErrors[0].message);
   }
-  console.log(record);
 
   if (record.length === 0){
-    console.log("print");
     const {data: result, errors} = await client.models.UserMessage.create(
         {userID: userID, messageID: messageID, threadID: threadID, isRead: false});
     if (errors) {
       throw new Error(errors[0].message);
     }
-    console.log(result);
   }
 
 }
@@ -812,9 +809,8 @@ export async function setMessageReadStatus(
   if (fetchErrors) {
     throw new Error(fetchErrors[0].message);
   }
-  console.log(record);
+
   if (record[0]){
-    console.log(record[0]);
     await client.models.UserMessage.update({
       id: record[0].id,
       isRead: true
