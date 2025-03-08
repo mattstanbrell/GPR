@@ -1,5 +1,5 @@
 
-import { Context, Callback, Handler } from 'aws-lambda';
+import { Context, Handler } from 'aws-lambda';
 import { Amplify } from 'aws-amplify';
 import outputs from "../../../amplify_outputs.json";
 import { getUserIdByEmail, createUser, updateUser } from '../../../src/utils/apis';
@@ -36,4 +36,6 @@ export const handler: Handler = async (event: any, context: Context) => {
     } catch (error) {
         console.error('Error in postConfirmation trigger:', error);
     }
+
+    return event
 };
