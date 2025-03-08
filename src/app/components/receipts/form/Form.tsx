@@ -10,6 +10,7 @@ const Form = (
     {receiptData: ReceiptData, handleAddItem: () => void, handleDeleteItem: (index: number) => void}
 ) => {
     const router = useRouter();
+    const receiptHasItems = receiptData && receiptData.items.length;
 
     const handleFormSubmission = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -35,7 +36,7 @@ const Form = (
                 handleAddItem={ handleAddItem } 
                 handleDeleteItem={ handleDeleteItem } 
             />
-            <Submit /> 
+            <Submit style={`${!(receiptHasItems) ? "hidden" : "flex justify-center"}` } /> 
         </form>
     )
 }
