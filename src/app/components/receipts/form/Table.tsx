@@ -1,7 +1,7 @@
 
 import React from "react"
 import { DeleteButton } from "@/app/components/receipts/form/Buttons"
-import { FormInputString, FormInputNumber } from "@/app/components/receipts/form/FormInputs";
+import { InputString, InputNumber } from "@/app/components/receipts/form/FormComponents";
 
 const tableRowStyling = "h-[5vh] border-b-1 border-dashed";
 
@@ -23,7 +23,7 @@ const Table = ({receiptData, handleAddItem, handleDeleteItem} : {receiptData: Re
                 <tr className={`${tableRowStyling} font-bold text-xl text-[var(--hounslow-primary)]`}>
                     <TableCell colspan={2} style="text-right" data="Total £" />
                     <TableCell data={ 
-                        <FormInputNumber 
+                        <InputNumber 
                             name="total"
                             defaultValue={ receiptData ? receiptData.total : 0.00 } 
                             step={ 0.01 }
@@ -38,19 +38,19 @@ const Table = ({receiptData, handleAddItem, handleDeleteItem} : {receiptData: Re
                 {receiptData && receiptData.items && receiptData.items.map(({ name, quantity, cost}, index) => (
                     <tr key={ index } title={ name } className={`${tableRowStyling}`}>
                         <TableCell style="md:w-1/2" data = { 
-                            <FormInputString 
+                            <InputString 
                                 name={`items[${index}].name`} 
                                 defaultValue={ name ? name : "" } 
                             /> }
                         /> 
                         <TableCell style="md:w-1/5" data = { 
-                            <FormInputNumber 
+                            <InputNumber 
                                 name={`items[${index}].quantity`} 
                                 defaultValue={ quantity ? quantity : 0 } 
                             /> }
                         /> 
                         <TableCell style="md:w-1/5" data = { 
-                            <FormInputNumber 
+                            <InputNumber 
                                 name={`items[${index}].cost`} 
                                 defaultValue={ cost ? cost : 0.00 } 
                                 step={ 0.01 }

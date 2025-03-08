@@ -1,5 +1,5 @@
 
-const FormInputString = ({name, defaultValue} : {name: string, defaultValue: string}) => {
+const InputString = ({name, defaultValue} : {name: string, defaultValue: string}) => {
     return (
         <div className="hover:bg-[var(--color-background-light)]">
             <input name={ name } type="text" defaultValue={ defaultValue } style={{ width: "100%", padding: "8px" }} />
@@ -7,7 +7,7 @@ const FormInputString = ({name, defaultValue} : {name: string, defaultValue: str
     )
 }
 
-const FormInputNumber = (
+const InputNumber = (
     {name, defaultValue, step = 1} : 
     {name: string, defaultValue: number, step?: number}
 ) => {
@@ -25,4 +25,4 @@ const FormInputNumber = (
     )
 }
 
-export { FormInputString, FormInputNumber }
+export { InputString, InputNumber }
