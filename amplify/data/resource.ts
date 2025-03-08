@@ -29,7 +29,10 @@ const schema = a
 					spacing: a.integer(),
 				}),
 			})
-			.authorization((allow) => [allow.authenticated()]),
+			.authorization((allow) => [
+				allow.publicApiKey(),
+				allow.authenticated()
+			]),
 
 		Form: a
 			.model({
@@ -155,7 +158,10 @@ const schema = a
 			.authorization((allow) => [allow.authenticated()]),
 	})
 	// Add schema-level authorization to grant the norm function access to all models
-	.authorization((allow) => [allow.resource(norm)]);
+	.authorization((allow) => [
+		allow.resource(norm), 
+		allow.resource(postConfirmation)
+	]);
 
 export type Schema = ClientSchema<typeof schema>;
 

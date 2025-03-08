@@ -1,31 +1,38 @@
-import type { PostConfirmationTriggerHandler } from "aws-lambda";
-import { type Schema } from "../../data/resource";
-import { Amplify } from "aws-amplify";
-import { generateClient } from "aws-amplify/data";
-import { getAmplifyDataClientConfig } from '@aws-amplify/backend/function/runtime';
-import { env } from "$amplify/env/post-confirmation"
-import { createUser, getUserIdByEmail } from '../../../src/utils/apis'
 
-const { resourceConfig, libraryOptions } = await getAmplifyDataClientConfig(
-  env
-);
+import { Context, Callback } from 'aws-lambda';
+import { Amplify } from 'aws-amplify';
+import outputs from "../../../amplify_outputs.json";
+import { getUserIdByEmail, createUser, updateUser } from '../../../src/utils/apis';
 
-Amplify.configure(resourceConfig, libraryOptions);
+Amplify.configure(outputs);
 
-const client = generateClient<Schema>();
-
-export const handler: PostConfirmationTriggerHandler = async (event) => {
-    const userAttributes = event.request.userAttributes;
-    const email = userAttributes.email
-    // const groups = JSON.parse(userAttributes['custom:groups])
-    const firstName = "Dean"    // will need to extract first/last name 
-    const lastName = "Whitbread"
-  
+export const handler = async (event: any, context: Context, callback: Callback) => {
     try {
-        const user = getUserIdByEmail(email)
-    } catch (error) {
-        const user = createUser(email, firstName, lastName)
-    }
+        const { userAttributes } = event.request;
+        const email = userAttributes.email;
+        const firstName = userAttributes.given_name || 'John';
+        const lastName = userAttributes.family_name || 'Doe';
+        const groups = JSON.parse(userAttributes['custom:groups'] || '[]');
 
-    return event;
+        if (groups.includes('cab6488b-12e6-4d6e-bdf0-6a2d254b2ec9')) {
+            const permissionGroup = 'ADMIN';
+        } else if (groups.includes('0989a8d5-c347-4ce1-9d50-c97641a4d3b5')) {
+            const permissionGroup = 'MANAGER';
+        } else {
+            const permissionGroup = 'SOCIAL_WORKER';
+        }
+
+        try {
+            getUserIdByEmail(email); 
+        } catch (error) {
+            createUser(email, firstName, lastName); 
+        }
+
+        const id = await getUserIdByEmail(email);
+        updateUser(id, {lastLogin: new Date().toISOString()});
+        callback(null, event);
+    } catch (error) {
+        console.error('Error in postConfirmation trigger:', error);
+        // callback(error, event);
+    }
 };
