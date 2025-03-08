@@ -18,6 +18,12 @@ const Header = ({
 }) => {
 	const isMobile = useIsMobileWindowSize();
 
+	const handleAudilyClick = () => {
+		if (isMenuOpen) {
+			toggleMobileMenu();
+		}
+	};
+
 	return (
 		<header className="govuk-header" data-module="govuk-header">
 			<div className="govuk-header__container govuk-width-container">
@@ -25,6 +31,7 @@ const Header = ({
 					<Link
 						href={HOME}
 						className="text-4xl font-bold no-underline text-white"
+						onClick={handleAudilyClick}
 					>
 						Audily
 					</Link>

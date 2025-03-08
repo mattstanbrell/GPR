@@ -13,6 +13,7 @@ import { getCurrentUser } from "aws-amplify/auth";
 import { HOME } from "@/app/constants/urls";
 import { useRouter } from "next/navigation";
 import { signInWithRedirect, signOut } from "aws-amplify/auth";
+import { useResponsiveMenu } from "@/utils/responsivenessHelpers";
 
 // Alternative font which was used in the figma design
 const lexend = Lexend({
@@ -27,12 +28,8 @@ export default function RootLayout({
 	children,
 }: Readonly<{ children: React.ReactNode }>) {
 	const router = useRouter();
-	const [isMenuOpen, setIsMenuOpen] = useState(false);
+	const { isMenuOpen, toggleMobileMenu } = useResponsiveMenu(false);
 	const [isSignedIn, setIsSignedIn] = useState(false);
-
-	const toggleMobileMenu = () => {
-		setIsMenuOpen(!isMenuOpen);
-	};
 
 	useEffect(() => {
 		Hub.listen("auth", ({ payload }) => {
