@@ -1,6 +1,6 @@
 import { a, defineData, type ClientSchema } from "@aws-amplify/backend";
 import { norm } from "../functions/norm/resource";
-import { postConfirmation } from "../auth/post-confirmation/resource"
+import { postAuthentication } from "../auth/post-authentication/resource";
 
 const schema = a
 	.schema({
@@ -160,7 +160,7 @@ const schema = a
 	// Add schema-level authorization to grant the norm function access to all models
 	.authorization((allow) => [
 		allow.resource(norm), 
-		allow.resource(postConfirmation)
+		allow.resource(postAuthentication)
 	]);
 
 export type Schema = ClientSchema<typeof schema>;

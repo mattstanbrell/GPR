@@ -1,6 +1,6 @@
 import { defineFunction } from '@aws-amplify/backend';
 
-export const postLogin = defineFunction({
-  name: 'post-login',
+export const postAuthentication = defineFunction({
+  name: 'post-authentication',
   entry: "./handler.ts"
 });
