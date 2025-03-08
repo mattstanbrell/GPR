@@ -17,7 +17,6 @@
     "incremental": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedIndexedAccess": true,
     "plugins": [
       {
         "name": "next"
