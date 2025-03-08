@@ -64,8 +64,33 @@ const Home = async () => {
 
 	const user = users?.[0];
 	if (!user) {
-		console.error("User not found in database");
-		throw new Error("User not found in database");
+		return (
+			<div className="govuk-width-container">
+				<div className="govuk-grid-row">
+					<div className="govuk-grid-column-full">
+						<h1 className="govuk-heading-l">Welcome!</h1>
+						<div className="govuk-warning-text">
+							<span className="govuk-warning-text__icon" aria-hidden="true">
+								!
+							</span>
+							<strong className="govuk-warning-text__text">
+								<span className="govuk-warning-text__assistive">Warning</span>{" "}
+								Your user profile has not been created yet. Please try signing
+								out and signing in again.
+							</strong>
+						</div>
+						<div className="govuk-inset-text">
+							If you are still having issues, uncomment the{" "}
+							<code>
+								profileOwner: `{"${userAttributes.sub}::${event.userName}"}`
+							</code>{" "}
+							lines in the update user and update lastLogin sections in{" "}
+							<code>auth/post-authentication/handler.ts</code>
+						</div>
+					</div>
+				</div>
+			</div>
+		);
 	}
 
 	const formattedLastLogin = user.lastLogin

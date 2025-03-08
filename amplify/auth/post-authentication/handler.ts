@@ -73,6 +73,7 @@ export const handler: PostAuthenticationTriggerHandler = async (event) => {
 						lastName: userAttributes.family_name,
 						permissionGroup,
 						lastLogin: now,
+						// profileOwner: `${userAttributes.sub}::${event.userName}`
 					});
 
 				if (updateErrors) {
@@ -87,6 +88,7 @@ export const handler: PostAuthenticationTriggerHandler = async (event) => {
 					await client.models.User.update({
 						id: existingUser.id,
 						lastLogin: now,
+						// profileOwner: `${userAttributes.sub}::${event.userName}`
 					});
 
 				if (updateErrors) {
