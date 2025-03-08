@@ -790,7 +790,7 @@ export async function setMessageReadStatus(
     throw new Error(errors[0].message);
   }
 
-  const {data: record, fetchErrors} = await client.models.UserMessage.list({filter:
+  const {data: record, errors: fetchErrors} = await client.models.UserMessage.list({filter:
         {userID: {eq: userID}, messageID: {eq: messageID}}});
 
   if (fetchErrors) {
