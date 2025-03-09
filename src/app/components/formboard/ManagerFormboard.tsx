@@ -1,35 +1,21 @@
 
 'use client'
 
-import { useState, useEffect } from 'react';
-import Formboard from '@/app/components/formboard/Formboard';
-import { updateIndexHelper, getUserAuthorisedForms, getUserAssignedForms} from '@/app/components/formboard/_helpers'
+import { useState } from "react";
+import Formboard from "@/app/components/formboard/Formboard";
+import { updateIndexHelper, getUserAuthorisedForms, getUserAssignedForms} from "@/app/components/formboard/_helpers"
+import { useIsMobileWindowSize } from "@/utils/responsivenessHelpers";
 
 const ManagerFormboard = () => {
-
-    const [isMobile, setIsMobile] = useState(false);
-    const [index, setIndex] = useState(0); 
-    const TOTAL_BOARDS = 2;
-
-    useEffect(() => {
-        const mediumWindowSize = 768;
-        const handleResize = () => {
-            setIsMobile(window.innerWidth < mediumWindowSize);
-        };
-
-        handleResize();
-        window.addEventListener("resize", handleResize);
-        return () => window.removeEventListener("resize", handleResize);
-    }, []);
-
-    const updateIndex = (isIncrement: boolean) => {
-        updateIndexHelper(isIncrement, index, setIndex, TOTAL_BOARDS); 
-    }
-
+    const [index, setIndex] = useState(0);   
     const boardDetails = [
         { title: "Assigned", forms: getUserAssignedForms() },
         { title: "Authorised", forms: getUserAuthorisedForms() },
     ];
+
+    const updateIndex = (isIncrement: boolean) => {
+        updateIndexHelper(isIncrement, index, setIndex, boardDetails.length); 
+    }
 
     const boards = boardDetails.map(({title, forms}, index) => (
         <div key={ index } className='h-full md:w-1/4 xs:sm:w-full m-2'>
@@ -37,17 +23,7 @@ const ManagerFormboard = () => {
         </div>
     ));
 
-    return (
-        <>
-            {
-                isMobile ? (
-                    boards[index] 
-                ) : (
-                    boards
-                )
-            }
-        </>
-    )
+    return useIsMobileWindowSize() ? boards[index] : boards;
 }
 
 export default ManagerFormboard;
