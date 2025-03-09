@@ -17,7 +17,7 @@ export function FormContent() {
 	const router = useRouter();
 	const searchParams = useSearchParams();
 	const [loading, setLoading] = useState(false);
-	const [error, setError] = useState<string | null>(null);
+	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 	const [lastNormForm, setLastNormForm] = useState<FormData | null>(null);
 	const [form, setForm] = useState<FormData>({
 		status: "DRAFT",
@@ -74,10 +74,10 @@ export function FormContent() {
 						setMessages(processedMessages);
 					}
 				}
-			} catch (error) {
+			} catch (error: unknown) {
 				console.error("Failed to load conversation:", error);
 				if (conversationId) {
-					setError(
+					setErrorMessage(
 						"Failed to load chat history. You can continue filling the form, but the chat may be incomplete.",
 					);
 				}
@@ -102,8 +102,8 @@ export function FormContent() {
 				setForm(existingForm as FormData);
 				setFormCreated(true);
 				await loadConversation(formId);
-			} catch (error) {
-				setError(error instanceof Error ? error.message : String(error));
+			} catch (error: unknown) {
+				setErrorMessage(error instanceof Error ? error.message : String(error));
 			}
 		},
 		[loadConversation],
@@ -146,7 +146,7 @@ export function FormContent() {
 				const newUrl = `/form?id=${newForm.id}`;
 				router.replace(newUrl);
 			} catch (error) {
-				setError(error instanceof Error ? error.message : String(error));
+				setErrorMessage(error instanceof Error ? error.message : String(error));
 			}
 		},
 		[form, formCreated, router, userId],
@@ -166,7 +166,7 @@ export function FormContent() {
 					await createFormSilently(user.userId);
 				}
 			} catch (error) {
-				setError(error instanceof Error ? error.message : String(error));
+				setErrorMessage(error instanceof Error ? error.message : String(error));
 			}
 		}
 
@@ -181,20 +181,8 @@ export function FormContent() {
 	) => {
 		if (!form) return;
 
-		console.log("🔄 handleFormChange called:", {
-			field,
-			value,
-			updateDb,
-			currentAmount: form.amount,
-		});
-
 		setForm((prevForm) => {
 			const newForm = { ...prevForm, [field]: value };
-			console.log("✏️ New form state:", {
-				amount: newForm.amount,
-				field,
-				value,
-			});
 			if (updateDb && newForm.id) {
 				updateFormInDatabase(newForm);
 			}
@@ -212,20 +200,18 @@ export function FormContent() {
 				...formToUpdate,
 				id: formToUpdate.id,
 			};
-			console.log(
-				"💾 Updating database with:",
-				JSON.stringify(updateData, null, 2),
+			const { data: updatedForm } = await client.models.Form.update(
+				updateData,
+				{
+					authMode: "userPool",
+				},
 			);
-			const result = await client.models.Form.update(updateData, {
-				authMode: "userPool",
-			});
-			console.log(
-				"✅ Database update result:",
-				JSON.stringify(result, null, 2),
-			);
-		} catch (error) {
+			if (updatedForm) {
+				console.log("✅ Database update successful");
+			}
+		} catch (error: unknown) {
 			console.error("❌ Database update error:", error);
-			// Don't set error state here to avoid disrupting the user experience
+			setErrorMessage("Failed to update form. Please try again.");
 		}
 	};
 
@@ -252,8 +238,8 @@ export function FormContent() {
 			}
 
 			router.push(FORM_BOARD);
-		} catch (error) {
-			setError(error instanceof Error ? error.message : String(error));
+		} catch (error: unknown) {
+			setErrorMessage(error instanceof Error ? error.message : String(error));
 		} finally {
 			setLoading(false);
 		}
@@ -298,8 +284,8 @@ export function FormContent() {
 		return Object.keys(changes).length > 0 ? changes : null;
 	};
 
-	if (error) {
-		return <FormErrorSummary error={error} />;
+	if (errorMessage) {
+		return <FormErrorSummary error={errorMessage} />;
 	}
 
 	return (

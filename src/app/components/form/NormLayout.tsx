@@ -50,6 +50,7 @@ export function NormLayout({
 	getFormChanges,
 }: NormLayoutProps) {
 	const [systemPrompt, setSystemPrompt] = useState<string>("");
+	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
 	// Function to render message content
 	const renderMessageContent = (content: string): string => {
@@ -119,8 +120,6 @@ export function NormLayout({
 						].filter(Boolean),
 					);
 
-			console.log("📨 Sending messages to Norm:", JSON.parse(messagesPayload));
-
 			const { data: normResponse } = await client.queries.Norm({
 				conversationID: conversationId,
 				messages: messagesPayload,
@@ -138,7 +137,6 @@ export function NormLayout({
 
 			try {
 				if (normResponse?.messages) {
-					console.log("🔄 Norm response:", normResponse.messages);
 					const formattedMessages = processMessages(normResponse.messages);
 					if (formattedMessages.length > 0) {
 						// Store the system prompt if this is our first message
@@ -182,12 +180,6 @@ export function NormLayout({
 				if (normResponse?.currentFormState) {
 					const updatedForm = JSON.parse(normResponse.currentFormState);
 					if (updatedForm) {
-						console.log("📊 Form data from Norm:", {
-							amount: updatedForm.amount,
-							type: typeof updatedForm.amount,
-							stringified: JSON.stringify(updatedForm.amount),
-						});
-
 						// Only update if Norm actually changed something
 						const hasChanges = Object.keys(updatedForm as FormData).some(
 							(key) =>
@@ -197,16 +189,13 @@ export function NormLayout({
 						);
 
 						if (hasChanges) {
-							console.log("🔄 Updating form with:", {
-								amount: updatedForm.amount,
-								fullForm: updatedForm,
-							});
 							onFormUpdate(updatedForm);
 						}
 					}
 				}
-			} catch (error) {
-				console.error("Error processing Norm response:", error);
+			} catch (error: unknown) {
+				console.error("Failed to load messages:", error);
+				setErrorMessage("Failed to load messages. Please try again.");
 				setMessages((prev: UIMessage[]) => [
 					...prev,
 					{
@@ -217,8 +206,9 @@ export function NormLayout({
 					},
 				]);
 			}
-		} catch (error) {
-			console.error("Error calling Norm:", error);
+		} catch (error: unknown) {
+			console.error("Failed to send message:", error);
+			setErrorMessage("Failed to send message. Please try again.");
 			setMessages((prev: UIMessage[]) => [
 				...prev,
 				{
@@ -286,6 +276,11 @@ export function NormLayout({
 					border-color: var(--hounslow-primary);
 					border-left-width: 5px;
 				}
+				
+				.error-message {
+					color: #d4351c;
+					margin-bottom: 15px;
+				}
 			`}</style>
 			<div
 				style={{
@@ -300,6 +295,11 @@ export function NormLayout({
 				}}
 			>
 				<h2 className="govuk-heading-l">Norm</h2>
+				{errorMessage && (
+					<div className="govuk-error-message error-message">
+						{errorMessage}
+					</div>
+				)}
 				<div
 					style={{
 						flexGrow: 1,

@@ -79,7 +79,6 @@ export default async function AllFormsPage() {
 		});
 
 		if (errors) {
-			console.error("Error fetching forms:", errors);
 			throw new Error(`Failed to fetch forms: ${JSON.stringify(errors)}`);
 		}
 
