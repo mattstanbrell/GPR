@@ -38,7 +38,7 @@ const FormTable = ({forms} : {forms: Array<Form>}) => {
     )
 }
 
-const EmptyMessage = () => {
+const NoFormsMessage = () => {
     return (
         <tr className='text-center'>
             <td colSpan={2} className='p-2'>No forms to display.</td>
@@ -58,7 +58,7 @@ const FormboardTable = (
             <div className='h-9/10 bg-white overflow-scroll rounded-b-[8px]'>
                 <table className="w-full text-left">
                     <tbody>
-                        { !(hasForms) ? <EmptyMessage /> : <FormTable forms={ boardForms } /> }
+                        { !(hasForms) ? <NoFormsMessage /> : <FormTable forms={ boardForms } /> }
                     </tbody>
                 </table>
             </div>
