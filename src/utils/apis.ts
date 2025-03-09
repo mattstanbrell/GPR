@@ -722,6 +722,11 @@ export async function createMessage(
     throw new Error("Message could not be created.");
   }
 
+  await client.models.Thread.update({
+    id: threadID,
+    lastMessageTime: timeSent
+  });
+
   const messageID = data.id;
   await createUserMessage(userID, messageID, threadID);
   return data;
