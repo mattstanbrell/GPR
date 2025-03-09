@@ -10,8 +10,7 @@ import type { ParsedChatCompletion } from "openai/resources/beta/chat/completion
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 
 // Configure Amplify with the proper backend configuration
-const { resourceConfig, libraryOptions } =
-	await getAmplifyDataClientConfig(env);
+const { resourceConfig, libraryOptions } = await getAmplifyDataClientConfig(env);
 Amplify.configure(resourceConfig, libraryOptions);
 
 // Now we can use generateClient
@@ -79,16 +78,13 @@ async function lookupCaseNumber(name: string, userID: string) {
 	}
 
 	// First, get all UserChild records for this user
-	const { data: userChildren, errors: userChildErrors } =
-		await client.models.UserChild.list({
-			// @ts-ignore - The type definitions don't match the actual API
-			filter: { userID: { eq: userID } },
-		});
+	const { data: userChildren, errors: userChildErrors } = await client.models.UserChild.list({
+		// @ts-ignore - The type definitions don't match the actual API
+		filter: { userID: { eq: userID } },
+	});
 
 	if (userChildErrors) {
-		throw new Error(
-			`Error querying user-child relationships: ${userChildErrors.map((e) => e.message).join(", ")}`,
-		);
+		throw new Error(`Error querying user-child relationships: ${userChildErrors.map((e) => e.message).join(", ")}`);
 	}
 
 	if (!userChildren || userChildren.length === 0) {
@@ -103,18 +99,14 @@ async function lookupCaseNumber(name: string, userID: string) {
 	const childResults = await Promise.all(childPromises);
 
 	// Filter out any errors and extract the data
-	const children = childResults
-		.filter((result) => !result.errors && result.data)
-		.map((result) => result.data);
+	const children = childResults.filter((result) => !result.errors && result.data).map((result) => result.data);
 
 	if (children.length === 0) {
 		throw new Error("No children found for this user");
 	}
 
 	// Find the child with the matching name
-	const foundChild = children.find(
-		(child) => child?.firstName === firstName && child?.lastName === lastName,
-	);
+	const foundChild = children.find((child) => child?.firstName === firstName && child?.lastName === lastName);
 
 	if (!foundChild) {
 		throw new Error(`No child named ${name} found for this user`);
@@ -184,13 +176,7 @@ async function processLLMResponse(
 			response_format: zodResponseFormat(llmResponseSchema, "schema"),
 		});
 
-		return processLLMResponse(
-			followUpCompletion,
-			messages,
-			currentFormState,
-			formID,
-			userID,
-		);
+		return processLLMResponse(followUpCompletion, messages, currentFormState, formID, userID);
 	}
 
 	messages.push({
@@ -218,10 +204,7 @@ function formatLondonTime() {
 		minute: "numeric",
 		hour12: true,
 	};
-	return new Date().toLocaleString(
-		"en-GB",
-		options as Intl.DateTimeFormatOptions,
-	);
+	return new Date().toLocaleString("en-GB", options as Intl.DateTimeFormatOptions);
 }
 
 async function getUserDetails(userID: string) {
@@ -266,8 +249,7 @@ export const handler: Schema["Norm"]["functionHandler"] = async (event) => {
 
 	if (!userIdFromIdentity) {
 		return {
-			followUp:
-				"Unable to process your request. User authentication is required.",
+			followUp: "Unable to process your request. User authentication is required.",
 			conversationID: "",
 			messages: "[]",
 			formID: "",
@@ -275,8 +257,7 @@ export const handler: Schema["Norm"]["functionHandler"] = async (event) => {
 		};
 	}
 
-	const { conversationID, messages, formID, currentFormState } =
-		event.arguments;
+	const { conversationID, messages, formID, currentFormState } = event.arguments;
 
 	// Get user details for the system prompt
 	const userDetails = await getUserDetails(userIdFromIdentity);
@@ -385,10 +366,7 @@ Your approach should be clear, structured, and directly focused on gathering the
 	// Add system message to the beginning of the messages array if it's not already there
 	// This ensures the system message is always part of the conversation
 	let messagesWithSystem = messagesJSON;
-	if (
-		messagesJSON.length === 1 ||
-		!messagesJSON.some((m: ChatCompletionMessageParam) => m.role === "system")
-	) {
+	if (messagesJSON.length === 1 || !messagesJSON.some((m: ChatCompletionMessageParam) => m.role === "system")) {
 		messagesWithSystem = [systemMessage, ...messagesJSON];
 	}
 
@@ -404,8 +382,7 @@ Your approach should be clear, structured, and directly focused on gathering the
 		};
 
 		// Create a new conversation
-		const { data: newConversation } =
-			await client.models.NormConversation.create(conversationData);
+		const { data: newConversation } = await client.models.NormConversation.create(conversationData);
 
 		if (!newConversation) {
 			throw new Error("Failed to create conversation record");
@@ -444,10 +421,7 @@ Your approach should be clear, structured, and directly focused on gathering the
 		: Promise.resolve({ data: currentFormStateJSON });
 
 	// Wait for both operations to complete simultaneously
-	const [conversationResult, formResult] = await Promise.all([
-		conversationUpdatePromise,
-		formUpdatePromise,
-	]);
+	const [conversationResult, formResult] = await Promise.all([conversationUpdatePromise, formUpdatePromise]);
 
 	// Get the updated form data
 	const updatedForm = formResult.data || currentFormStateJSON;

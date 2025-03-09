@@ -19,8 +19,6 @@ const [users, setUsers] = useState<User[]>([]);
 
 */
 
-type CreateFormInput = Partial<Schema["Form"]["type"]> & { creatorID: string };
-
 // Update Types
 type UserUpdates = {
 	firstName?: string;
@@ -164,6 +162,7 @@ export async function updateForm(formId: string, updates: Partial<Schema["Form"]
 		id: formId,
 		...updates,
 	});
+	console.log("form updates", updates);
 	if (errors) {
 		throw new Error(errors[0].message);
 	}

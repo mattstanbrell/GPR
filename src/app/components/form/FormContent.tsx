@@ -169,10 +169,13 @@ export function FormContent() {
 
 	// Update the form in the database
 	const updateFormInDatabase = async (formToUpdate = form) => {
-		if (!formToUpdate.id) return;
+		if (!formToUpdate.id || !userId) return;
 
 		try {
-			const updatedForm = await updateForm(formToUpdate.id, formToUpdate);
+			const updatedForm = await updateForm(formToUpdate.id, {
+				...formToUpdate,
+				creatorID: userId,
+			});
 			if (updatedForm) {
 				console.log("✅ Database update successful");
 			}
