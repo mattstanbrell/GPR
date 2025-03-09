@@ -1,25 +1,27 @@
-import { AuthGetCurrentUserServer } from "@/utils/amplifyServerUtils";
+'use client'
+
 import Message from "./Message"
 import { MessageType } from "./types"
+import { useAuth } from "@/utils/authHelpers";
 
 interface MessagesContainerProps {
-    messages: MessageType[]
+    messages?: MessageType[]
 }
 
 
 
-const MessagesContainer = async ({ messages }: MessagesContainerProps) => {
-    const currentUser = await AuthGetCurrentUserServer();
+const MessagesContainer = ({ messages }: MessagesContainerProps) => {
+    const currentUser = useAuth();
 
     return (
         <div>
-            {messages.map((message, i) => {
+            {messages?.map((message, i) => {
                 return (
                     <Message
                         message={message}
                         className={
                             `flex flex-col 
-                            ${currentUser?.userId == message.userID ? "bg-(--colour-background-medium)" : "bg-(--colour-background-dark)"} 
+                            ${currentUser?.id == message.userID ? "bg-(--colour-background-medium)" : "bg-(--colour-background-dark)"} 
                             ${i == messages.length - 1 ? "mb-4" : "mb-2"}`}
                         key={message.id}
                     />
