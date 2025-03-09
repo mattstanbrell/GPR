@@ -8,4 +8,4 @@ export interface ThreadType {
 }
 
 
-export type MessageType = Schema["Message"]["type"]
+export type MessageType = {id: string, userID: string, content: string, timeSent: string}; 

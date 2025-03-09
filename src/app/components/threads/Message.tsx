@@ -1,5 +1,7 @@
+import { MessageType } from "./types"
+
 interface MessageProps {
-    message: any
+    message: MessageType
     className?: string
 }
 
@@ -9,7 +11,7 @@ const Message = ({ message, className }: MessageProps) => {
         <div className={`${className}`}>
             <p>{message.userID}</p>
             <p>{message.content}</p>
-            <p>{message.createdAt}</p>
+            <p>{message.timeSent}</p>
         </div>
     )
 }
