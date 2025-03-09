@@ -14,7 +14,7 @@ export const handler: PostAuthenticationTriggerHandler = async (event) => {
 	console.log("Post Authentication Event:", JSON.stringify(event, null, 2));
 
 	const userAttributes = event.request.userAttributes;
-
+	
 	if (
 		"sub" in userAttributes &&
 		"email" in userAttributes &&
@@ -38,45 +38,21 @@ export const handler: PostAuthenticationTriggerHandler = async (event) => {
 		const dateTimeNow = new Date().toISOString();
 
 		if (existingUser) {
-			// User exists - check if we need to update any details
-			if (
-				existingUser.firstName !== userAttributes.given_name ||
-				existingUser.lastName !== userAttributes.family_name ||
-				existingUser.permissionGroup !== permissionGroup
-			) {
-				// Details have changed - update the user
-				const { data: updatedUser, errors: updateErrors } =
-					await client.models.User.update({
-						id: existingUser.id,
-						firstName: userAttributes.given_name,
-						lastName: userAttributes.family_name,
-						permissionGroup,
-						lastLogin: dateTimeNow,
-						profileOwner: `${userAttributes.sub}::${event.userName}`
-					});
+			const { data: updatedUser, errors: updateErrors } = await client.models.User.update({
+				id: existingUser.id,
+				firstName: userAttributes.given_name,
+				lastName: userAttributes.family_name,
+				permissionGroup,
+				lastLogin: dateTimeNow,
+				profileOwner: `${userAttributes.sub}::${event.userName}`
+			});
 
-				if (updateErrors) {
-					console.error("Error updating user:", updateErrors);
-					throw new Error("Failed to update user");
-				}
-
-				console.log("Updated user details:", updatedUser);
-			} else {
-				// Even if other details haven't changed, we should still update lastLogin
-				const { data: updatedUser, errors: updateErrors } =
-					await client.models.User.update({
-						id: existingUser.id,
-						lastLogin: dateTimeNow,
-						profileOwner: `${userAttributes.sub}::${event.userName}`
-					});
-
-				if (updateErrors) {
-					console.error("Error updating lastLogin:", updateErrors);
-					throw new Error("Failed to update lastLogin");
-				}
-
-				console.log("Updated lastLogin:", updatedUser);
+			if (updateErrors) {
+				console.error("Error updating lastLogin:", updateErrors);
+				throw new Error("Failed to update lastLogin");
 			}
+
+			console.log("Updated lastLogin:", updatedUser);
 		} else {
 			// User doesn't exist - create them
 			const { data: newUser, errors: createErrors } =
