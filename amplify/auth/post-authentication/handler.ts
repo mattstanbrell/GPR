@@ -4,23 +4,17 @@ import { generateClient } from "aws-amplify/data";
 import { env } from "$amplify/env/norm";
 import { getAmplifyDataClientConfig } from "@aws-amplify/backend/function/runtime";
 import type { Schema } from "../../data/resource";
+import { getPermissionGroup } from "./_helpers";
 
-const { resourceConfig, libraryOptions } =
-	await getAmplifyDataClientConfig(env);
+const { resourceConfig, libraryOptions } = await getAmplifyDataClientConfig(env);
 Amplify.configure(resourceConfig, libraryOptions);
-
 const client = generateClient<Schema>();
-
-// Azure AD group IDs
-const ADMIN_GROUP = "cab6488b-12e6-4d6e-bdf0-6a2d254b2ec9";
-const MANAGER_GROUP = "0989a8d5-c347-4ce1-9d50-c97641a4d3b5";
-const SOCIAL_WORKER_GROUP = "2a53f41c-3491-40f2-919c-9500c71029b2";
 
 export const handler: PostAuthenticationTriggerHandler = async (event) => {
 	console.log("Post Authentication Event:", JSON.stringify(event, null, 2));
 
 	const userAttributes = event.request.userAttributes;
-
+	
 	if (
 		"sub" in userAttributes &&
 		"email" in userAttributes &&
@@ -39,24 +33,9 @@ export const handler: PostAuthenticationTriggerHandler = async (event) => {
 		}
 
 		const existingUser = users?.[0];
-		const groupIds = JSON.parse(userAttributes["custom:groups"]) as string[];
-
-		// Get highest permission (ADMIN > MANAGER > SOCIAL_WORKER)
-		// Because they may have many in entra, and we only support one
-		const permissionGroup = groupIds.includes(ADMIN_GROUP)
-			? "ADMIN"
-			: groupIds.includes(MANAGER_GROUP)
-				? "MANAGER"
-				: groupIds.includes(SOCIAL_WORKER_GROUP)
-					? "SOCIAL_WORKER"
-					: null;
-
-		if (!permissionGroup) {
-			console.error("User has no valid permission groups:", groupIds);
-			throw new Error("User has no valid permission groups");
-		}
-
-		const now = new Date().toISOString();
+		const OIDCGroupIds = JSON.parse(userAttributes["custom:groups"]) as string[];
+		const permissionGroup = getPermissionGroup(OIDCGroupIds)
+		const dateTimeNow = new Date().toISOString();
 
 		if (existingUser) {
 			// User exists - check if we need to update any details
@@ -72,7 +51,7 @@ export const handler: PostAuthenticationTriggerHandler = async (event) => {
 						firstName: userAttributes.given_name,
 						lastName: userAttributes.family_name,
 						permissionGroup,
-						lastLogin: now,
+						lastLogin: dateTimeNow,
 						// profileOwner: `${userAttributes.sub}::${event.userName}`
 					});
 
@@ -87,7 +66,7 @@ export const handler: PostAuthenticationTriggerHandler = async (event) => {
 				const { data: updatedUser, errors: updateErrors } =
 					await client.models.User.update({
 						id: existingUser.id,
-						lastLogin: now,
+						lastLogin: dateTimeNow,
 						// profileOwner: `${userAttributes.sub}::${event.userName}`
 					});
 
@@ -106,8 +85,8 @@ export const handler: PostAuthenticationTriggerHandler = async (event) => {
 					firstName: userAttributes.given_name,
 					lastName: userAttributes.family_name,
 					permissionGroup,
-					lastLogin: now,
-					profileOwner: `${userAttributes.sub}::${event.userName}`,
+					lastLogin: dateTimeNow,
+					// profileOwner: `${userAttributes.sub}::${event.userName}`,
 				});
 
 			if (createErrors) {
