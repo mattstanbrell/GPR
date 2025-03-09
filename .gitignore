@@ -46,6 +46,7 @@ amplify_outputs*
 amplifyconfiguration*
 
 NOTES.md
+TODO.md
 # Ignore the entire test directory
 /src/app/test/
 

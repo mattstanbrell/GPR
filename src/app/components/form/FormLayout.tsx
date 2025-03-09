@@ -6,6 +6,7 @@ interface FormLayoutProps {
 	handleFormChange: (field: string, value: unknown, updateDb?: boolean) => void;
 	handleSubmit: (e: React.FormEvent) => void;
 	isFormValid: (form: FormData | null) => boolean;
+	disabled: boolean;
 }
 
 export function FormLayout({
@@ -14,6 +15,7 @@ export function FormLayout({
 	handleFormChange,
 	handleSubmit,
 	isFormValid,
+	disabled,
 }: FormLayoutProps) {
 	return (
 		<>
@@ -84,13 +86,14 @@ export function FormLayout({
 									id="caseNumber"
 									name="caseNumber"
 									type="text"
-									value={form.caseNumber || ""}
+									defaultValue={form.caseNumber || ""}
 									onChange={(e) =>
 										handleFormChange("caseNumber", e.target.value)
 									}
-									onBlur={() =>
-										handleFormChange("caseNumber", form.caseNumber || "", true)
+									onBlur={(e) =>
+										handleFormChange("caseNumber", e.target.value, true)
 									}
+									disabled={disabled}
 								/>
 							</div>
 
@@ -103,11 +106,12 @@ export function FormLayout({
 									id="reason"
 									name="reason"
 									rows={3}
-									value={form.reason || ""}
+									defaultValue={form.reason || ""}
 									onChange={(e) => handleFormChange("reason", e.target.value)}
-									onBlur={() =>
-										handleFormChange("reason", form.reason || "", true)
+									onBlur={(e) =>
+										handleFormChange("reason", e.target.value, true)
 									}
+									disabled={disabled}
 								/>
 							</div>
 
@@ -125,15 +129,25 @@ export function FormLayout({
 										name="amount"
 										type="text"
 										spellCheck="false"
-										value={form.amount?.toString() || ""}
-										onChange={(e) => {
-											const value = e.target.value;
-											const numericValue = value ? Number.parseFloat(value) : 0;
-											handleFormChange("amount", numericValue);
-										}}
-										onBlur={() =>
-											handleFormChange("amount", form.amount || "", true)
+										defaultValue={form.amount?.toString() ?? ""}
+										onChange={(e) =>
+											handleFormChange(
+												"amount",
+												e.target.value
+													? Number.parseFloat(e.target.value)
+													: null,
+											)
 										}
+										onBlur={(e) =>
+											handleFormChange(
+												"amount",
+												e.target.value
+													? Number.parseFloat(e.target.value)
+													: null,
+												true,
+											)
+										}
+										disabled={disabled}
 									/>
 								</div>
 							</div>
@@ -161,7 +175,7 @@ export function FormLayout({
 													name="date-required-day"
 													type="text"
 													inputMode="numeric"
-													value={
+													defaultValue={
 														form.dateRequired?.day
 															? form.dateRequired.day.toString()
 															: ""
@@ -176,13 +190,21 @@ export function FormLayout({
 															day,
 														});
 													}}
-													onBlur={() =>
+													onBlur={(e) => {
+														const value = e.target.value.trim();
+														const day = value
+															? Number.parseInt(value, 10)
+															: null;
 														handleFormChange(
 															"dateRequired",
-															form.dateRequired || {},
+															{
+																...form.dateRequired,
+																day,
+															},
 															true,
-														)
-													}
+														);
+													}}
+													disabled={disabled}
 												/>
 											</div>
 										</div>
@@ -200,7 +222,7 @@ export function FormLayout({
 													name="date-required-month"
 													type="text"
 													inputMode="numeric"
-													value={
+													defaultValue={
 														form.dateRequired?.month
 															? form.dateRequired.month.toString()
 															: ""
@@ -215,13 +237,21 @@ export function FormLayout({
 															month,
 														});
 													}}
-													onBlur={() =>
+													onBlur={(e) => {
+														const value = e.target.value.trim();
+														const month = value
+															? Number.parseInt(value, 10)
+															: null;
 														handleFormChange(
 															"dateRequired",
-															form.dateRequired || {},
+															{
+																...form.dateRequired,
+																month,
+															},
 															true,
-														)
-													}
+														);
+													}}
+													disabled={disabled}
 												/>
 											</div>
 										</div>
@@ -239,7 +269,7 @@ export function FormLayout({
 													name="date-required-year"
 													type="text"
 													inputMode="numeric"
-													value={
+													defaultValue={
 														form.dateRequired?.year
 															? form.dateRequired.year.toString()
 															: ""
@@ -254,13 +284,21 @@ export function FormLayout({
 															year,
 														});
 													}}
-													onBlur={() =>
+													onBlur={(e) => {
+														const value = e.target.value.trim();
+														const year = value
+															? Number.parseInt(value, 10)
+															: null;
 														handleFormChange(
 															"dateRequired",
-															form.dateRequired || {},
+															{
+																...form.dateRequired,
+																year,
+															},
 															true,
-														)
-													}
+														);
+													}}
+													disabled={disabled}
 												/>
 											</div>
 										</div>
@@ -288,7 +326,7 @@ export function FormLayout({
 									id="firstName"
 									name="firstName"
 									type="text"
-									value={form.recipientDetails?.name?.firstName || ""}
+									defaultValue={form.recipientDetails?.name?.firstName || ""}
 									onChange={(e) =>
 										handleFormChange("recipientDetails", {
 											...form.recipientDetails,
@@ -298,13 +336,20 @@ export function FormLayout({
 											},
 										})
 									}
-									onBlur={() =>
+									onBlur={(e) =>
 										handleFormChange(
 											"recipientDetails",
-											form.recipientDetails || {},
+											{
+												...form.recipientDetails,
+												name: {
+													...form.recipientDetails?.name,
+													firstName: e.target.value,
+												},
+											},
 											true,
 										)
 									}
+									disabled={disabled}
 								/>
 							</div>
 
@@ -317,7 +362,7 @@ export function FormLayout({
 									id="lastName"
 									name="lastName"
 									type="text"
-									value={form.recipientDetails?.name?.lastName || ""}
+									defaultValue={form.recipientDetails?.name?.lastName || ""}
 									onChange={(e) =>
 										handleFormChange("recipientDetails", {
 											...form.recipientDetails,
@@ -327,13 +372,20 @@ export function FormLayout({
 											},
 										})
 									}
-									onBlur={() =>
+									onBlur={(e) =>
 										handleFormChange(
 											"recipientDetails",
-											form.recipientDetails || {},
+											{
+												...form.recipientDetails,
+												name: {
+													...form.recipientDetails?.name,
+													lastName: e.target.value,
+												},
+											},
 											true,
 										)
 									}
+									disabled={disabled}
 								/>
 							</div>
 
@@ -346,7 +398,7 @@ export function FormLayout({
 									id="address-line-1"
 									name="address-line-1"
 									type="text"
-									value={form.recipientDetails?.address?.lineOne || ""}
+									defaultValue={form.recipientDetails?.address?.lineOne || ""}
 									onChange={(e) =>
 										handleFormChange("recipientDetails", {
 											...form.recipientDetails,
@@ -356,13 +408,20 @@ export function FormLayout({
 											},
 										})
 									}
-									onBlur={() =>
+									onBlur={(e) =>
 										handleFormChange(
 											"recipientDetails",
-											form.recipientDetails || {},
+											{
+												...form.recipientDetails,
+												address: {
+													...form.recipientDetails?.address,
+													lineOne: e.target.value,
+												},
+											},
 											true,
 										)
 									}
+									disabled={disabled}
 									autoComplete="address-line1"
 								/>
 							</div>
@@ -376,7 +435,7 @@ export function FormLayout({
 									id="address-line-2"
 									name="address-line-2"
 									type="text"
-									value={form.recipientDetails?.address?.lineTwo || ""}
+									defaultValue={form.recipientDetails?.address?.lineTwo || ""}
 									onChange={(e) =>
 										handleFormChange("recipientDetails", {
 											...form.recipientDetails,
@@ -386,13 +445,20 @@ export function FormLayout({
 											},
 										})
 									}
-									onBlur={() =>
+									onBlur={(e) =>
 										handleFormChange(
 											"recipientDetails",
-											form.recipientDetails || {},
+											{
+												...form.recipientDetails,
+												address: {
+													...form.recipientDetails?.address,
+													lineTwo: e.target.value,
+												},
+											},
 											true,
 										)
 									}
+									disabled={disabled}
 									autoComplete="address-line2"
 								/>
 							</div>
@@ -406,7 +472,9 @@ export function FormLayout({
 									id="address-town"
 									name="address-town"
 									type="text"
-									value={form.recipientDetails?.address?.townOrCity || ""}
+									defaultValue={
+										form.recipientDetails?.address?.townOrCity || ""
+									}
 									onChange={(e) =>
 										handleFormChange("recipientDetails", {
 											...form.recipientDetails,
@@ -416,13 +484,20 @@ export function FormLayout({
 											},
 										})
 									}
-									onBlur={() =>
+									onBlur={(e) =>
 										handleFormChange(
 											"recipientDetails",
-											form.recipientDetails || {},
+											{
+												...form.recipientDetails,
+												address: {
+													...form.recipientDetails?.address,
+													townOrCity: e.target.value,
+												},
+											},
 											true,
 										)
 									}
+									disabled={disabled}
 									autoComplete="address-level2"
 								/>
 							</div>
@@ -436,7 +511,7 @@ export function FormLayout({
 									id="address-postcode"
 									name="address-postcode"
 									type="text"
-									value={form.recipientDetails?.address?.postcode || ""}
+									defaultValue={form.recipientDetails?.address?.postcode || ""}
 									onChange={(e) =>
 										handleFormChange("recipientDetails", {
 											...form.recipientDetails,
@@ -446,13 +521,20 @@ export function FormLayout({
 											},
 										})
 									}
-									onBlur={() =>
+									onBlur={(e) =>
 										handleFormChange(
 											"recipientDetails",
-											form.recipientDetails || {},
+											{
+												...form.recipientDetails,
+												address: {
+													...form.recipientDetails?.address,
+													postcode: e.target.value,
+												},
+											},
 											true,
 										)
 									}
+									disabled={disabled}
 									autoComplete="postal-code"
 								/>
 							</div>

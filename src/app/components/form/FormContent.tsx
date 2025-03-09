@@ -8,7 +8,7 @@ import type { Schema } from "../../../../amplify/data/resource";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FORM_BOARD } from "../../constants/urls";
 import { isFormValid, processMessages } from "./_helpers";
-import type { FormData, UIMessage } from "./types";
+import type { FormData, UIMessage, FormChanges } from "./types";
 import { FormErrorSummary } from "./FormErrorSummary";
 import { FormLayout } from "./FormLayout";
 import { NormLayout } from "./NormLayout";
@@ -18,11 +18,12 @@ export function FormContent() {
 	const searchParams = useSearchParams();
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
+	const [lastNormForm, setLastNormForm] = useState<FormData | null>(null);
 	const [form, setForm] = useState<FormData>({
 		status: "DRAFT",
 		caseNumber: "",
 		reason: "",
-		amount: 0,
+		amount: null,
 		dateRequired: {
 			day: null,
 			month: null,
@@ -173,8 +174,20 @@ export function FormContent() {
 	) => {
 		if (!form) return;
 
+		console.log("🔄 handleFormChange called:", {
+			field,
+			value,
+			updateDb,
+			currentAmount: form.amount,
+		});
+
 		setForm((prevForm) => {
 			const newForm = { ...prevForm, [field]: value };
+			console.log("✏️ New form state:", {
+				amount: newForm.amount,
+				field,
+				value,
+			});
 			if (updateDb && newForm.id) {
 				updateFormInDatabase(newForm);
 			}
@@ -192,10 +205,19 @@ export function FormContent() {
 				...formToUpdate,
 				id: formToUpdate.id,
 			};
-			await client.models.Form.update(updateData, {
+			console.log(
+				"💾 Updating database with:",
+				JSON.stringify(updateData, null, 2),
+			);
+			const result = await client.models.Form.update(updateData, {
 				authMode: "userPool",
 			});
-		} catch {
+			console.log(
+				"✅ Database update result:",
+				JSON.stringify(result, null, 2),
+			);
+		} catch (error) {
+			console.error("❌ Database update error:", error);
 			// Don't set error state here to avoid disrupting the user experience
 		}
 	};
@@ -230,6 +252,66 @@ export function FormContent() {
 		}
 	};
 
+	// Add function to detect form changes
+	const getFormChanges = (): FormChanges | null => {
+		if (!lastNormForm || !form) return null;
+
+		const changes: FormChanges = {};
+
+		// Check top-level fields
+		if (lastNormForm.caseNumber !== form.caseNumber) {
+			changes.caseNumber = {
+				from: lastNormForm.caseNumber,
+				to: form.caseNumber,
+			};
+		}
+		if (lastNormForm.reason !== form.reason) {
+			changes.reason = { from: lastNormForm.reason, to: form.reason };
+		}
+		if (lastNormForm.amount !== form.amount) {
+			changes.amount = { from: lastNormForm.amount, to: form.amount };
+		}
+
+		// Check date required
+		if (
+			JSON.stringify(lastNormForm.dateRequired) !==
+			JSON.stringify(form.dateRequired)
+		) {
+			changes.dateRequired = {
+				from: lastNormForm.dateRequired,
+				to: form.dateRequired,
+			};
+		}
+
+		// Check recipient details
+		const lastRecipient = lastNormForm.recipientDetails || {};
+		const currentRecipient = form.recipientDetails || {};
+
+		// Check name
+		if (
+			JSON.stringify(lastRecipient.name) !==
+			JSON.stringify(currentRecipient.name)
+		) {
+			changes.recipientName = {
+				from: lastRecipient.name,
+				to: currentRecipient.name,
+			};
+		}
+
+		// Check address
+		if (
+			JSON.stringify(lastRecipient.address) !==
+			JSON.stringify(currentRecipient.address)
+		) {
+			changes.recipientAddress = {
+				from: lastRecipient.address,
+				to: currentRecipient.address,
+			};
+		}
+
+		return Object.keys(changes).length > 0 ? changes : null;
+	};
+
 	if (error) {
 		return <FormErrorSummary error={error} />;
 	}
@@ -251,6 +333,7 @@ export function FormContent() {
 							handleFormChange={handleFormChange}
 							handleSubmit={handleSubmit}
 							isFormValid={isFormValid}
+							disabled={processingMessage}
 						/>
 						<NormLayout
 							messages={messages}
@@ -260,10 +343,14 @@ export function FormContent() {
 							formId={form.id}
 							conversationId={conversationId}
 							onConversationIdChange={setConversationId}
-							onFormUpdate={setForm}
+							onFormUpdate={(updatedForm: FormData) => {
+								setForm(updatedForm);
+								setLastNormForm(updatedForm);
+							}}
 							currentForm={form}
 							processingMessage={processingMessage}
 							setProcessingMessage={setProcessingMessage}
+							getFormChanges={getFormChanges}
 						/>
 					</div>
 				</div>

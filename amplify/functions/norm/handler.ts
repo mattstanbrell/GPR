@@ -424,6 +424,7 @@ Remember:
 		messagesJSON.length === 1 ||
 		!messagesJSON.some((m: ChatCompletionMessageParam) => m.role === "system")
 	) {
+		console.log("Adding system message to the beginning of the messages array");
 		messagesWithSystem = [systemMessage, ...messagesJSON];
 	}
 
