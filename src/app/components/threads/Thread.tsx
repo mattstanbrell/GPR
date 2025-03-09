@@ -3,12 +3,14 @@ import { Avatar, getInitials } from "../util/Avatar"
 import { PrimaryButton } from "../util/Button"
 import Toggle from "./Toggle"
 import { FORM } from "@/app/constants/urls"
+import MessagesContainer from "./MessagesContainer"
+import { useAuth, getName } from "@/utils/authHelpers"
 
 
 const thread = {
     name: "Bob",
     threadId: "1",
-    users: ["Alice", "Bob Dean", "Greg Dylan Cooper"],
+    users: [{id: "121313", firstName: "Alice", lastName: "Smith"}, {id: "121314", firstName: "Bob", lastName: "Jones"}],
     formId: "1",
     messages: [
         {
@@ -24,11 +26,6 @@ const thread = {
     ]
 }
 
-const currentUser = {
-    name: "Alice",
-    userId: "1",
-    threads: ["1", "2", "3"]
-}
 
 interface ThreadProps {
     sidebarToggle: () => void
@@ -38,6 +35,8 @@ interface ThreadProps {
 }
 
 const Thread = ({ threadId, className, isMobile, sidebarToggle }: ThreadProps) => {
+    const currentUser = useAuth();
+
     return (
         <div className={`flex flex-col bg-(--color-background-darkest) ${className}`}>
 
@@ -51,15 +50,15 @@ const Thread = ({ threadId, className, isMobile, sidebarToggle }: ThreadProps) =
                                 {
                                     thread.users.map((user, i) => {
                                         const zindex = `z-${thread.users.length - i}`;
-                                        const colour = currentUser.name === user ? "bg-(--color-background-medium)" : "bg-(--color-background-dark)";
+                                        const colour = currentUser?.id === user.id ? "bg-(--color-background-medium)" : "bg-(--color-background-dark)";
                                         return (
                                             <Avatar 
-                                                text={getInitials(user)} 
+                                                text={getInitials(user.firstName + user.lastName)} 
                                                 style={{ zIndex: thread.users.length - i }} 
                                                 colour={colour} 
                                                 className={`w-10 h-10 text-[0.6em] outline-3 order-first outline-(--color-background-light) ${zindex}`} 
-                                                key={user} 
-                                                tooltipText={user}
+                                                key={user.id}
+                                                tooltipText={getName(user)}
                                             />
                                         )
                                     })
@@ -78,9 +77,7 @@ const Thread = ({ threadId, className, isMobile, sidebarToggle }: ThreadProps) =
                     /> : null
                 }
             </div>
-            <div>
-                Messages
-            </div>
+            <MessagesContainer />
             <div>
                 Input
             </div>
