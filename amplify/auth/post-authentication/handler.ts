@@ -14,7 +14,7 @@ export const handler: PostAuthenticationTriggerHandler = async (event) => {
 	console.log("Post Authentication Event:", JSON.stringify(event, null, 2));
 
 	const userAttributes = event.request.userAttributes;
-	
+
 	if (
 		"sub" in userAttributes &&
 		"email" in userAttributes &&
@@ -52,7 +52,7 @@ export const handler: PostAuthenticationTriggerHandler = async (event) => {
 						lastName: userAttributes.family_name,
 						permissionGroup,
 						lastLogin: dateTimeNow,
-						// profileOwner: `${userAttributes.sub}::${event.userName}`
+						profileOwner: `${userAttributes.sub}::${event.userName}`
 					});
 
 				if (updateErrors) {
@@ -67,7 +67,7 @@ export const handler: PostAuthenticationTriggerHandler = async (event) => {
 					await client.models.User.update({
 						id: existingUser.id,
 						lastLogin: dateTimeNow,
-						// profileOwner: `${userAttributes.sub}::${event.userName}`
+						profileOwner: `${userAttributes.sub}::${event.userName}`
 					});
 
 				if (updateErrors) {
@@ -86,7 +86,7 @@ export const handler: PostAuthenticationTriggerHandler = async (event) => {
 					lastName: userAttributes.family_name,
 					permissionGroup,
 					lastLogin: dateTimeNow,
-					// profileOwner: `${userAttributes.sub}::${event.userName}`,
+					profileOwner: `${userAttributes.sub}::${event.userName}`,
 				});
 
 			if (createErrors) {
