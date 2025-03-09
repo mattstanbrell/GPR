@@ -11,8 +11,6 @@ Amplify.configure(resourceConfig, libraryOptions);
 const client = generateClient<Schema>();
 
 export const handler: PostAuthenticationTriggerHandler = async (event) => {
-	console.log("Post Authentication Event:", JSON.stringify(event, null, 2));
-
 	const userAttributes = event.request.userAttributes;
 	
 	if (
@@ -22,55 +20,50 @@ export const handler: PostAuthenticationTriggerHandler = async (event) => {
 		"family_name" in userAttributes &&
 		"custom:groups" in userAttributes
 	) {
-		// Get existing user if they exist
+		// retrive all User models and filter to see if user exists
 		const { data: users, errors } = await client.models.User.list({
 			filter: { email: { eq: userAttributes.email } },
 		});
 
 		if (errors) {
-			console.error("Error fetching user:", errors);
-			throw new Error("Failed to fetch user");
+			throw new Error("Failed to retrieve list of users from the database.");
 		}
 
 		const existingUser = users?.[0];
+
+		// retrieve users' permission group and current date time. 
 		const OIDCGroupIds = JSON.parse(userAttributes["custom:groups"]) as string[];
 		const permissionGroup = getPermissionGroup(OIDCGroupIds)
-		const dateTimeNow = new Date().toISOString();
+		const lastLogin = new Date().toISOString();
 
 		if (existingUser) {
+			// update existing User model. 
 			const { data: updatedUser, errors: updateErrors } = await client.models.User.update({
 				id: existingUser.id,
 				firstName: userAttributes.given_name,
 				lastName: userAttributes.family_name,
 				permissionGroup,
-				lastLogin: dateTimeNow,
+				lastLogin,
 				profileOwner: `${userAttributes.sub}::${event.userName}`
 			});
 
 			if (updateErrors) {
-				console.error("Error updating lastLogin:", updateErrors);
-				throw new Error("Failed to update lastLogin");
+				throw new Error("Failed to update existing User model.");
 			}
-
-			console.log("Updated lastLogin:", updatedUser);
 		} else {
-			// User doesn't exist - create them
-			const { data: newUser, errors: createErrors } =
-				await client.models.User.create({
-					email: userAttributes.email,
-					firstName: userAttributes.given_name,
-					lastName: userAttributes.family_name,
-					permissionGroup,
-					lastLogin: dateTimeNow,
-					profileOwner: `${userAttributes.sub}::${event.userName}`,
-				});
+			// create new User model. 
+			const { data: newUser, errors: createErrors } = await client.models.User.create({
+				email: userAttributes.email,
+				firstName: userAttributes.given_name,
+				lastName: userAttributes.family_name,
+				permissionGroup,
+				lastLogin,
+				profileOwner: `${userAttributes.sub}::${event.userName}`,
+			});
 
 			if (createErrors) {
-				console.error("Error creating user:", createErrors);
-				throw new Error("Failed to create user");
+				throw new Error("Failed to create a new User model.");
 			}
-
-			console.log("Created new user:", newUser);
 		}
 	}
 
