@@ -73,7 +73,7 @@ export default async function AllFormsPage() {
 			operation: async () => {
 				const client = cookiesClient;
 				return await client.models.Form.list({
-					filter: { id: { eq: user.userId } },
+					filter: { creatorID: { eq: user.userId } },
 				});
 			},
 		});
