@@ -1,16 +1,43 @@
 
 'use client'
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Formboard from "@/app/components/formboard/Formboard";
-import { getNewIndex, getUserAuthorisedForms, getUserAssignedForms} from "@/app/components/formboard/_helpers"
+import { getNewIndex } from "@/app/components/formboard/_helpers"
 import { useIsMobileWindowSize } from "@/utils/responsivenessHelpers";
+import { type Form } from "@/app/types/models";
+import { FORM_STATUS } from "@/app/constants/models";
+import { getFormsAssignedToUser, getUserIdByEmail } from "@/utils/apis"
 
 const ManagerFormboard = () => {
     const [index, setIndex] = useState(0);   
+    const [userId, setUserId] = useState(""); 
+    const [assignedForms, setAssignedForms] = useState(Array<Form>);
+    const [authorisedForms, setAuthorisedForms] = useState(Array<Form>); 
+
+    useEffect(() => {
+        const fetchUserId = async () => {
+            setUserId(await getUserIdByEmail(""));
+        }
+        fetchUserId();
+    }, [])
+
+    useEffect(() => {
+        const fetchAssignedForms = async (userId: string) => {
+            const status = FORM_STATUS.SUBMITTED;
+            setAssignedForms(await getFormsAssignedToUser(userId, status))
+        }
+        const fetchAuthorisedForms = async (userId: string) => {
+            const status = FORM_STATUS.AUTHORISED;
+            setAssignedForms(await getFormsAssignedToUser(userId, status))
+        }
+        fetchAssignedForms(userId);
+        fetchAuthorisedForms(userId);
+    }, [userId])
+
     const boardDetails = [
-        { title: "Assigned", forms: getUserAssignedForms() },
-        { title: "Authorised", forms: getUserAuthorisedForms() },
+        { title: "Assigned", forms: assignedForms },
+        { title: "Authorised", forms: authorisedForms },
     ];
 
     const updateIndex = (isIncrement: boolean) => {
