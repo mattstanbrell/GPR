@@ -1,5 +1,5 @@
 import ReactMarkdown from "react-markdown";
-import type { UIMessage, FormData, FormChanges } from "./types";
+import type { UIMessage, FormChanges } from "./types";
 import { generateClient } from "aws-amplify/api";
 import type { Schema } from "../../../../amplify/data/resource";
 import { useState, type Dispatch, type SetStateAction } from "react";
@@ -12,8 +12,8 @@ interface NormLayoutProps {
 	formId: string | undefined;
 	conversationId: string | null;
 	onConversationIdChange: (id: string) => void;
-	onFormUpdate: (updatedForm: FormData) => void;
-	currentForm: FormData;
+	onFormUpdate: (updatedForm: Partial<Schema["Form"]["type"]>) => void;
+	currentForm: Partial<Schema["Form"]["type"]>;
 	processingMessage: boolean;
 	setProcessingMessage: (processing: boolean) => void;
 	getFormChanges: () => FormChanges | null;
@@ -95,13 +95,8 @@ export function NormLayout({
 							...messages, // Include all previous messages
 							{
 								role: "system",
-								content: `User manually changed the following fields: ${Object.entries(
-									formChanges,
-								)
-									.map(
-										([field, { from, to }]) =>
-											`${field}: from ${JSON.stringify(from)} to ${JSON.stringify(to)}`,
-									)
+								content: `User manually changed the following fields: ${Object.entries(formChanges)
+									.map(([field, { from, to }]) => `${field}: from ${JSON.stringify(from)} to ${JSON.stringify(to)}`)
 									.join(", ")}`,
 							},
 							userMessage,
@@ -181,11 +176,11 @@ export function NormLayout({
 					const updatedForm = JSON.parse(normResponse.currentFormState);
 					if (updatedForm) {
 						// Only update if Norm actually changed something
-						const hasChanges = Object.keys(updatedForm as FormData).some(
+						const hasChanges = Object.keys(updatedForm as Partial<Schema["Form"]["type"]>).some(
 							(key) =>
 								JSON.stringify(
-									(updatedForm as FormData)[key as keyof FormData],
-								) !== JSON.stringify(currentForm[key as keyof FormData]),
+									(updatedForm as Partial<Schema["Form"]["type"]>)[key as keyof Partial<Schema["Form"]["type"]>],
+								) !== JSON.stringify(currentForm[key as keyof Partial<Schema["Form"]["type"]>]),
 						);
 
 						if (hasChanges) {
@@ -201,8 +196,7 @@ export function NormLayout({
 					{
 						id: Date.now(),
 						role: "assistant",
-						content:
-							"Sorry, I encountered an error processing the response. Please try again.",
+						content: "Sorry, I encountered an error processing the response. Please try again.",
 					},
 				]);
 			}
@@ -214,8 +208,7 @@ export function NormLayout({
 				{
 					id: Date.now(),
 					role: "assistant",
-					content:
-						"Sorry, I encountered an error processing your request. Please try again.",
+					content: "Sorry, I encountered an error processing your request. Please try again.",
 				},
 			]);
 		} finally {
@@ -295,11 +288,7 @@ export function NormLayout({
 				}}
 			>
 				<h2 className="govuk-heading-l">Norm</h2>
-				{errorMessage && (
-					<div className="govuk-error-message error-message">
-						{errorMessage}
-					</div>
-				)}
+				{errorMessage && <div className="govuk-error-message error-message">{errorMessage}</div>}
 				<div
 					style={{
 						flexGrow: 1,
@@ -314,19 +303,14 @@ export function NormLayout({
 					{messages.map((msg) => (
 						<div
 							key={msg.id}
-							className={`govuk-inset-text ${
-								msg.role === "assistant" ? "govuk-inset-text--purple" : ""
-							}`}
+							className={`govuk-inset-text ${msg.role === "assistant" ? "govuk-inset-text--purple" : ""}`}
 							style={{
 								marginLeft: msg.role === "user" ? "auto" : "0",
 								marginRight: msg.role === "assistant" ? "auto" : "0",
 								maxWidth: "80%",
 								marginTop: 0,
 								marginBottom: 0,
-								backgroundColor:
-									msg.role === "user"
-										? "#f3f2f1"
-										: "var(--color-background-light)",
+								backgroundColor: msg.role === "user" ? "#f3f2f1" : "var(--color-background-light)",
 								borderLeftWidth: msg.role === "assistant" ? "5px" : "0",
 								borderRightWidth: msg.role === "user" ? "5px" : "0",
 								borderTopWidth: "0",
@@ -335,14 +319,10 @@ export function NormLayout({
 								borderRightStyle: "solid",
 								borderTopStyle: "solid",
 								borderBottomStyle: "solid",
-								borderLeftColor:
-									msg.role === "user" ? "#505a5f" : "var(--hounslow-primary)",
-								borderRightColor:
-									msg.role === "user" ? "#505a5f" : "var(--hounslow-primary)",
-								borderTopColor:
-									msg.role === "user" ? "#505a5f" : "var(--hounslow-primary)",
-								borderBottomColor:
-									msg.role === "user" ? "#505a5f" : "var(--hounslow-primary)",
+								borderLeftColor: msg.role === "user" ? "#505a5f" : "var(--hounslow-primary)",
+								borderRightColor: msg.role === "user" ? "#505a5f" : "var(--hounslow-primary)",
+								borderTopColor: msg.role === "user" ? "#505a5f" : "var(--hounslow-primary)",
+								borderBottomColor: msg.role === "user" ? "#505a5f" : "var(--hounslow-primary)",
 							}}
 						>
 							<ReactMarkdown
@@ -352,20 +332,13 @@ export function NormLayout({
 											className="govuk-body"
 											style={{
 												margin: 0,
-												color:
-													msg.role === "assistant"
-														? "var(--color-button-primary)"
-														: "inherit",
+												color: msg.role === "assistant" ? "var(--color-button-primary)" : "inherit",
 											}}
 										>
 											{renderMessageContent(String(children) ?? "")}
 										</p>
 									),
-									ul: ({ children }) => (
-										<ul className="govuk-list govuk-list--bullet">
-											{children}
-										</ul>
-									),
+									ul: ({ children }) => <ul className="govuk-list govuk-list--bullet">{children}</ul>,
 									li: ({ children }) => (
 										<li className="govuk-body" style={{ margin: 0 }}>
 											{children}
@@ -429,8 +402,7 @@ export function NormLayout({
 							left: 0,
 							right: 0,
 							height: "30px",
-							background:
-								"linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.9))",
+							background: "linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.9))",
 							pointerEvents: "none",
 						}}
 					/>

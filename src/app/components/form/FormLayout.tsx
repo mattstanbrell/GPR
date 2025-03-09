@@ -1,11 +1,11 @@
-import type { FormData } from "./types";
+import type { Schema } from "../../../../amplify/data/resource";
 
 interface FormLayoutProps {
-	form: FormData;
+	form: Partial<Schema["Form"]["type"]>;
 	loading: boolean;
 	handleFormChange: (field: string, value: unknown, updateDb?: boolean) => void;
 	handleSubmit: (e: React.FormEvent) => void;
-	isFormValid: (form: FormData | null) => boolean;
+	isFormValid: (form: Partial<Schema["Form"]["type"]> | null) => boolean;
 	disabled: boolean;
 	updatedFields: Set<string>;
 }
@@ -99,9 +99,7 @@ export function FormLayout({
 				}}
 			>
 				<h1
-					className={`govuk-heading-l form-title ${
-						updatedFields.has("title") ? "field-updated" : ""
-					}`}
+					className={`govuk-heading-l form-title ${updatedFields.has("title") ? "field-updated" : ""}`}
 					style={{ marginLeft: "3px" }}
 					contentEditable
 					suppressContentEditableWarning
@@ -129,20 +127,13 @@ export function FormLayout({
 					{form.title || "Form"}
 				</h1>
 				<div style={{ flexGrow: 1, overflowY: "auto", paddingRight: "0" }}>
-					<form
-						onSubmit={handleSubmit}
-						style={{ paddingRight: "20px", paddingLeft: "3px" }}
-					>
+					<form onSubmit={handleSubmit} style={{ paddingRight: "20px", paddingLeft: "3px" }}>
 						<fieldset className="govuk-fieldset">
 							<legend className="govuk-fieldset__legend govuk-fieldset__legend--m">
 								<h2 className="govuk-fieldset__heading">Expense details</h2>
 							</legend>
 
-							<div
-								className={`govuk-form-group ${
-									updatedFields.has("caseNumber") ? "form-group-updated" : ""
-								}`}
-							>
+							<div className={`govuk-form-group ${updatedFields.has("caseNumber") ? "form-group-updated" : ""}`}>
 								<label className="govuk-label" htmlFor="caseNumber">
 									Case number
 								</label>
@@ -154,45 +145,29 @@ export function FormLayout({
 									name="caseNumber"
 									type="text"
 									defaultValue={form.caseNumber || ""}
-									onChange={(e) =>
-										handleFormChange("caseNumber", e.target.value)
-									}
-									onBlur={(e) =>
-										handleFormChange("caseNumber", e.target.value, true)
-									}
+									onChange={(e) => handleFormChange("caseNumber", e.target.value)}
+									onBlur={(e) => handleFormChange("caseNumber", e.target.value, true)}
 									disabled={disabled}
 								/>
 							</div>
 
-							<div
-								className={`govuk-form-group ${
-									updatedFields.has("reason") ? "form-group-updated" : ""
-								}`}
-							>
+							<div className={`govuk-form-group ${updatedFields.has("reason") ? "form-group-updated" : ""}`}>
 								<label className="govuk-label" htmlFor="reason">
 									Reason for expense
 								</label>
 								<textarea
-									className={`govuk-textarea ${
-										updatedFields.has("reason") ? "field-updated" : ""
-									}`}
+									className={`govuk-textarea ${updatedFields.has("reason") ? "field-updated" : ""}`}
 									id="reason"
 									name="reason"
 									rows={3}
 									defaultValue={form.reason || ""}
 									onChange={(e) => handleFormChange("reason", e.target.value)}
-									onBlur={(e) =>
-										handleFormChange("reason", e.target.value, true)
-									}
+									onBlur={(e) => handleFormChange("reason", e.target.value, true)}
 									disabled={disabled}
 								/>
 							</div>
 
-							<div
-								className={`govuk-form-group ${
-									updatedFields.has("amount") ? "form-group-updated" : ""
-								}`}
-							>
+							<div className={`govuk-form-group ${updatedFields.has("amount") ? "form-group-updated" : ""}`}>
 								<label className="govuk-label" htmlFor="amount">
 									Amount
 								</label>
@@ -201,77 +176,44 @@ export function FormLayout({
 										£
 									</div>
 									<input
-										className={`govuk-input govuk-input--width-5 ${
-											updatedFields.has("amount") ? "field-updated" : ""
-										}`}
+										className={`govuk-input govuk-input--width-5 ${updatedFields.has("amount") ? "field-updated" : ""}`}
 										id="amount"
 										name="amount"
 										type="text"
 										spellCheck="false"
 										defaultValue={form.amount?.toString() ?? ""}
 										onChange={(e) =>
-											handleFormChange(
-												"amount",
-												e.target.value
-													? Number.parseFloat(e.target.value)
-													: null,
-											)
+											handleFormChange("amount", e.target.value ? Number.parseFloat(e.target.value) : null)
 										}
 										onBlur={(e) =>
-											handleFormChange(
-												"amount",
-												e.target.value
-													? Number.parseFloat(e.target.value)
-													: null,
-												true,
-											)
+											handleFormChange("amount", e.target.value ? Number.parseFloat(e.target.value) : null, true)
 										}
 										disabled={disabled}
 									/>
 								</div>
 							</div>
 
-							<div
-								className={`govuk-form-group ${
-									updatedFields.has("dateRequired") ? "form-group-updated" : ""
-								}`}
-							>
-								<fieldset
-									className="govuk-fieldset"
-									aria-describedby="date-required-hint"
-								>
-									<legend className="govuk-fieldset__legend">
-										Date prepaid card is needed by
-									</legend>
+							<div className={`govuk-form-group ${updatedFields.has("dateRequired") ? "form-group-updated" : ""}`}>
+								<fieldset className="govuk-fieldset" aria-describedby="date-required-hint">
+									<legend className="govuk-fieldset__legend">Date prepaid card is needed by</legend>
 									<div className="govuk-date-input" id="date-required">
 										<div className="govuk-date-input__item">
 											<div className="govuk-form-group">
-												<label
-													className="govuk-label govuk-date-input__label"
-													htmlFor="date-required-day"
-												>
+												<label className="govuk-label govuk-date-input__label" htmlFor="date-required-day">
 													Day
 												</label>
 												<input
 													className={`govuk-input govuk-date-input__input govuk-input--width-2 ${
-														updatedFields.has("dateRequired")
-															? "field-updated"
-															: ""
+														updatedFields.has("dateRequired") ? "field-updated" : ""
 													}`}
 													id="date-required-day"
 													name="date-required-day"
 													type="text"
 													inputMode="numeric"
-													defaultValue={
-														form.dateRequired?.day
-															? form.dateRequired.day.toString()
-															: ""
-													}
+													defaultValue={form.dateRequired?.day ? form.dateRequired.day.toString() : ""}
 													onChange={(e) => {
 														const value = e.target.value.trim();
-														const day = value
-															? Number.parseInt(value, 10)
-															: null;
+														const day = value ? Number.parseInt(value, 10) : null;
 														handleFormChange("dateRequired", {
 															...form.dateRequired,
 															day,
@@ -279,9 +221,7 @@ export function FormLayout({
 													}}
 													onBlur={(e) => {
 														const value = e.target.value.trim();
-														const day = value
-															? Number.parseInt(value, 10)
-															: null;
+														const day = value ? Number.parseInt(value, 10) : null;
 														handleFormChange(
 															"dateRequired",
 															{
@@ -297,32 +237,21 @@ export function FormLayout({
 										</div>
 										<div className="govuk-date-input__item">
 											<div className="govuk-form-group">
-												<label
-													className="govuk-label govuk-date-input__label"
-													htmlFor="date-required-month"
-												>
+												<label className="govuk-label govuk-date-input__label" htmlFor="date-required-month">
 													Month
 												</label>
 												<input
 													className={`govuk-input govuk-date-input__input govuk-input--width-2 ${
-														updatedFields.has("dateRequired")
-															? "field-updated"
-															: ""
+														updatedFields.has("dateRequired") ? "field-updated" : ""
 													}`}
 													id="date-required-month"
 													name="date-required-month"
 													type="text"
 													inputMode="numeric"
-													defaultValue={
-														form.dateRequired?.month
-															? form.dateRequired.month.toString()
-															: ""
-													}
+													defaultValue={form.dateRequired?.month ? form.dateRequired.month.toString() : ""}
 													onChange={(e) => {
 														const value = e.target.value.trim();
-														const month = value
-															? Number.parseInt(value, 10)
-															: null;
+														const month = value ? Number.parseInt(value, 10) : null;
 														handleFormChange("dateRequired", {
 															...form.dateRequired,
 															month,
@@ -330,9 +259,7 @@ export function FormLayout({
 													}}
 													onBlur={(e) => {
 														const value = e.target.value.trim();
-														const month = value
-															? Number.parseInt(value, 10)
-															: null;
+														const month = value ? Number.parseInt(value, 10) : null;
 														handleFormChange(
 															"dateRequired",
 															{
@@ -348,32 +275,21 @@ export function FormLayout({
 										</div>
 										<div className="govuk-date-input__item">
 											<div className="govuk-form-group">
-												<label
-													className="govuk-label govuk-date-input__label"
-													htmlFor="date-required-year"
-												>
+												<label className="govuk-label govuk-date-input__label" htmlFor="date-required-year">
 													Year
 												</label>
 												<input
 													className={`govuk-input govuk-date-input__input govuk-input--width-4 ${
-														updatedFields.has("dateRequired")
-															? "field-updated"
-															: ""
+														updatedFields.has("dateRequired") ? "field-updated" : ""
 													}`}
 													id="date-required-year"
 													name="date-required-year"
 													type="text"
 													inputMode="numeric"
-													defaultValue={
-														form.dateRequired?.year
-															? form.dateRequired.year.toString()
-															: ""
-													}
+													defaultValue={form.dateRequired?.year ? form.dateRequired.year.toString() : ""}
 													onChange={(e) => {
 														const value = e.target.value.trim();
-														const year = value
-															? Number.parseInt(value, 10)
-															: null;
+														const year = value ? Number.parseInt(value, 10) : null;
 														handleFormChange("dateRequired", {
 															...form.dateRequired,
 															year,
@@ -381,9 +297,7 @@ export function FormLayout({
 													}}
 													onBlur={(e) => {
 														const value = e.target.value.trim();
-														const year = value
-															? Number.parseInt(value, 10)
-															: null;
+														const year = value ? Number.parseInt(value, 10) : null;
 														handleFormChange(
 															"dateRequired",
 															{
@@ -404,28 +318,16 @@ export function FormLayout({
 
 						<fieldset className="govuk-fieldset">
 							<legend className="govuk-fieldset__legend govuk-fieldset__legend--m">
-								<h2 className="govuk-fieldset__heading">
-									Card recipient details
-								</h2>
+								<h2 className="govuk-fieldset__heading">Card recipient details</h2>
 							</legend>
-							<div className="govuk-hint">
-								Details of the person receiving the prepaid card.
-							</div>
+							<div className="govuk-hint">Details of the person receiving the prepaid card.</div>
 
-							<div
-								className={`govuk-form-group ${
-									updatedFields.has("recipientDetails")
-										? "form-group-updated"
-										: ""
-								}`}
-							>
+							<div className={`govuk-form-group ${updatedFields.has("recipientDetails") ? "form-group-updated" : ""}`}>
 								<label className="govuk-label" htmlFor="firstName">
 									First name
 								</label>
 								<input
-									className={`govuk-input ${
-										updatedFields.has("recipientDetails") ? "field-updated" : ""
-									}`}
+									className={`govuk-input ${updatedFields.has("recipientDetails") ? "field-updated" : ""}`}
 									id="firstName"
 									name="firstName"
 									type="text"
@@ -456,20 +358,12 @@ export function FormLayout({
 								/>
 							</div>
 
-							<div
-								className={`govuk-form-group ${
-									updatedFields.has("recipientDetails")
-										? "form-group-updated"
-										: ""
-								}`}
-							>
+							<div className={`govuk-form-group ${updatedFields.has("recipientDetails") ? "form-group-updated" : ""}`}>
 								<label className="govuk-label" htmlFor="lastName">
 									Last name
 								</label>
 								<input
-									className={`govuk-input ${
-										updatedFields.has("recipientDetails") ? "field-updated" : ""
-									}`}
+									className={`govuk-input ${updatedFields.has("recipientDetails") ? "field-updated" : ""}`}
 									id="lastName"
 									name="lastName"
 									type="text"
@@ -500,20 +394,12 @@ export function FormLayout({
 								/>
 							</div>
 
-							<div
-								className={`govuk-form-group ${
-									updatedFields.has("recipientDetails")
-										? "form-group-updated"
-										: ""
-								}`}
-							>
+							<div className={`govuk-form-group ${updatedFields.has("recipientDetails") ? "form-group-updated" : ""}`}>
 								<label className="govuk-label" htmlFor="address-line-1">
 									Address line 1
 								</label>
 								<input
-									className={`govuk-input ${
-										updatedFields.has("recipientDetails") ? "field-updated" : ""
-									}`}
+									className={`govuk-input ${updatedFields.has("recipientDetails") ? "field-updated" : ""}`}
 									id="address-line-1"
 									name="address-line-1"
 									type="text"
@@ -545,20 +431,12 @@ export function FormLayout({
 								/>
 							</div>
 
-							<div
-								className={`govuk-form-group ${
-									updatedFields.has("recipientDetails")
-										? "form-group-updated"
-										: ""
-								}`}
-							>
+							<div className={`govuk-form-group ${updatedFields.has("recipientDetails") ? "form-group-updated" : ""}`}>
 								<label className="govuk-label" htmlFor="address-line-2">
 									Address line 2 (optional)
 								</label>
 								<input
-									className={`govuk-input ${
-										updatedFields.has("recipientDetails") ? "field-updated" : ""
-									}`}
+									className={`govuk-input ${updatedFields.has("recipientDetails") ? "field-updated" : ""}`}
 									id="address-line-2"
 									name="address-line-2"
 									type="text"
@@ -590,13 +468,7 @@ export function FormLayout({
 								/>
 							</div>
 
-							<div
-								className={`govuk-form-group ${
-									updatedFields.has("recipientDetails")
-										? "form-group-updated"
-										: ""
-								}`}
-							>
+							<div className={`govuk-form-group ${updatedFields.has("recipientDetails") ? "form-group-updated" : ""}`}>
 								<label className="govuk-label" htmlFor="address-town">
 									Town or city
 								</label>
@@ -607,9 +479,7 @@ export function FormLayout({
 									id="address-town"
 									name="address-town"
 									type="text"
-									defaultValue={
-										form.recipientDetails?.address?.townOrCity || ""
-									}
+									defaultValue={form.recipientDetails?.address?.townOrCity || ""}
 									onChange={(e) =>
 										handleFormChange("recipientDetails", {
 											...form.recipientDetails,
@@ -637,13 +507,7 @@ export function FormLayout({
 								/>
 							</div>
 
-							<div
-								className={`govuk-form-group ${
-									updatedFields.has("recipientDetails")
-										? "form-group-updated"
-										: ""
-								}`}
-							>
+							<div className={`govuk-form-group ${updatedFields.has("recipientDetails") ? "form-group-updated" : ""}`}>
 								<label className="govuk-label" htmlFor="address-postcode">
 									Postcode
 								</label>

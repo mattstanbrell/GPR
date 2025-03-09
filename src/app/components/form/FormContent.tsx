@@ -2,24 +2,24 @@
 
 import type React from "react";
 import { useEffect, useState, useCallback } from "react";
-import { generateClient } from "aws-amplify/api";
 import { getCurrentUser } from "aws-amplify/auth";
 import type { Schema } from "../../../../amplify/data/resource";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FORM_BOARD } from "../../constants/urls";
 import { isFormValid, processMessages } from "./_helpers";
-import type { FormData, UIMessage, FormChanges } from "./types";
+import type { UIMessage, FormChanges } from "./types";
 import { FormErrorSummary } from "./FormErrorSummary";
 import { FormLayout } from "./FormLayout";
 import { NormLayout } from "./NormLayout";
+import { createForm, updateForm, getFormById, getNormConversationByFormId } from "../../../utils/apis";
 
 export function FormContent() {
 	const router = useRouter();
 	const searchParams = useSearchParams();
 	const [loading, setLoading] = useState(false);
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
-	const [lastNormForm, setLastNormForm] = useState<FormData | null>(null);
-	const [form, setForm] = useState<FormData>({
+	const [lastNormForm, setLastNormForm] = useState<Partial<Schema["Form"]["type"]> | null>(null);
+	const [form, setForm] = useState<Partial<Schema["Form"]["type"]>>({
 		status: "DRAFT",
 		caseNumber: "",
 		reason: "",
@@ -59,15 +59,9 @@ export function FormContent() {
 	const loadConversation = useCallback(
 		async (formId: string) => {
 			try {
-				const client = generateClient<Schema>();
-				const { data: conversationData } =
-					await client.models.NormConversation.list({
-						filter: { formID: { eq: formId } },
-						authMode: "userPool",
-					});
+				const conversation = await getNormConversationByFormId(formId);
 
-				if (conversationData && conversationData.length > 0) {
-					const conversation = conversationData[0];
+				if (conversation) {
 					setConversationId(conversation.id);
 					if (conversation.messages) {
 						const processedMessages = processMessages(conversation.messages);
@@ -89,17 +83,13 @@ export function FormContent() {
 	const loadExistingForm = useCallback(
 		async (formId: string) => {
 			try {
-				const client = generateClient<Schema>();
-				const { data: existingForm } = await client.models.Form.get(
-					{ id: formId },
-					{ authMode: "userPool" },
-				);
+				const existingForm = await getFormById(formId);
 
 				if (!existingForm) {
 					return;
 				}
 
-				setForm(existingForm as FormData);
+				setForm(existingForm as Partial<Schema["Form"]["type"]>);
 				setFormCreated(true);
 				await loadConversation(formId);
 			} catch (error: unknown) {
@@ -117,15 +107,11 @@ export function FormContent() {
 			if (!effectiveUserId || formCreated) return;
 
 			try {
-				const client = generateClient<Schema>();
-				const { data: newForm } = await client.models.Form.create(
-					{
-						...form,
-						status: "DRAFT",
-						creatorID: effectiveUserId,
-					},
-					{ authMode: "userPool" },
-				);
+				const newForm = await createForm({
+					...form,
+					status: "DRAFT",
+					creatorID: effectiveUserId,
+				});
 
 				if (!newForm) {
 					throw new Error("Failed to create form: No form data returned");
@@ -134,12 +120,7 @@ export function FormContent() {
 				setForm({
 					...form,
 					id: newForm.id,
-					status: newForm.status as
-						| "DRAFT"
-						| "SUBMITTED"
-						| "AUTHORISED"
-						| "VALIDATED"
-						| "COMPLETED",
+					status: newForm.status as "DRAFT" | "SUBMITTED" | "AUTHORISED" | "VALIDATED" | "COMPLETED",
 				});
 				setFormCreated(true);
 
@@ -174,11 +155,7 @@ export function FormContent() {
 	}, [searchParams, loadExistingForm, createFormSilently]);
 
 	// Handle form field changes
-	const handleFormChange = (
-		field: string,
-		value: unknown,
-		updateDb = false,
-	) => {
+	const handleFormChange = (field: string, value: unknown, updateDb = false) => {
 		if (!form) return;
 
 		setForm((prevForm) => {
@@ -195,17 +172,7 @@ export function FormContent() {
 		if (!formToUpdate.id) return;
 
 		try {
-			const client = generateClient<Schema>();
-			const updateData = {
-				...formToUpdate,
-				id: formToUpdate.id,
-			};
-			const { data: updatedForm } = await client.models.Form.update(
-				updateData,
-				{
-					authMode: "userPool",
-				},
-			);
+			const updatedForm = await updateForm(formToUpdate.id, formToUpdate);
 			if (updatedForm) {
 				console.log("✅ Database update successful");
 			}
@@ -223,20 +190,7 @@ export function FormContent() {
 
 		try {
 			setLoading(true);
-
-			const client = generateClient<Schema>();
-			const { errors } = await client.models.Form.update(
-				{
-					id: form.id,
-					status: "SUBMITTED",
-				},
-				{ authMode: "userPool" },
-			);
-
-			if (errors) {
-				throw new Error(`Failed to update form: ${JSON.stringify(errors)}`);
-			}
-
+			await updateForm(form.id, { status: "SUBMITTED" });
 			router.push(FORM_BOARD);
 		} catch (error: unknown) {
 			setErrorMessage(error instanceof Error ? error.message : String(error));
@@ -290,14 +244,8 @@ export function FormContent() {
 
 	return (
 		<div style={{ height: "calc(100vh - 140px)", overflow: "hidden" }}>
-			<main
-				className="govuk-main-wrapper"
-				style={{ height: "100%", padding: "0" }}
-			>
-				<div
-					className="govuk-width-container"
-					style={{ height: "100%", paddingLeft: "15px", paddingRight: "15px" }}
-				>
+			<main className="govuk-main-wrapper" style={{ height: "100%", padding: "0" }}>
+				<div className="govuk-width-container" style={{ height: "100%", paddingLeft: "15px", paddingRight: "15px" }}>
 					<div className="govuk-grid-row" style={{ height: "100%", margin: 0 }}>
 						<FormLayout
 							form={form}
@@ -316,7 +264,7 @@ export function FormContent() {
 							formId={form.id}
 							conversationId={conversationId}
 							onConversationIdChange={setConversationId}
-							onFormUpdate={(updatedForm: FormData) => {
+							onFormUpdate={(updatedForm: Partial<Schema["Form"]["type"]>) => {
 								// Find which fields changed
 								const changedFields = new Set<string>();
 								if (!form) return;
@@ -330,10 +278,7 @@ export function FormContent() {
 
 								// Check nested fields
 								for (const field of formFields.nested) {
-									if (
-										JSON.stringify(form[field]) !==
-										JSON.stringify(updatedForm[field])
-									) {
+									if (JSON.stringify(form[field]) !== JSON.stringify(updatedForm[field])) {
 										changedFields.add(field);
 									}
 								}
