@@ -4,27 +4,29 @@ import { useRouter } from "next/navigation";
 interface AuditLogEntry {
   id: string;
   action: string;
-  date: Date;
+  date: string;
+  userId: string;
+  formId: string;
 }
 interface AuditLogsClientProps {
   logs: AuditLogEntry[];
 }
 
 // Function to display date&time in custom format
-function formatDate(date: Date): string {
-  const options: Intl.DateTimeFormatOptions = {
-    day: "2-digit",
-    month: "2-digit",
-    year: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false, // 24-hour time
-  };
+// function formatDate(date: Date): string {
+//   const options: Intl.DateTimeFormatOptions = {
+//     day: "2-digit",
+//     month: "2-digit",
+//     year: "2-digit",
+//     hour: "2-digit",
+//     minute: "2-digit",
+//     hour12: false, // 24-hour time
+//   };
   
-  return new Intl.DateTimeFormat("en-GB", options)
-    .format(date)
-    .replace(",", "");
-}
+//   return new Intl.DateTimeFormat("en-GB", options)
+//     .format(date)
+//     .replace(",", "");
+// }
 
 export default function AuditLogsClient({ logs }: AuditLogsClientProps) {
   const router = useRouter();
@@ -52,7 +54,8 @@ export default function AuditLogsClient({ logs }: AuditLogsClientProps) {
             style={{ cursor: "pointer" }} // Make it clear it's clickable
             >
               <th scope="row" className="govuk-table__header">{log.action}</th>
-              <td className="govuk-table__cell">{formatDate(log.date)}</td>
+              {/* <td className="govuk-table__cell">{formatDate(log.date)}</td> */}
+              <td className="govuk-table__cell">{log.date}</td>
             </tr>
           ))
         ) : (
