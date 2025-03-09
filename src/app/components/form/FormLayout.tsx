@@ -69,6 +69,16 @@ export function FormLayout({
 				.form-title {
 					transition: opacity 0.3s ease;
 					opacity: 1;
+					cursor: text;
+					outline: none;
+				}
+
+				.form-title:hover {
+					background: transparent;
+				}
+
+				.form-title:focus {
+					background: transparent;
 				}
 
 				.form-title.updating {
@@ -91,6 +101,28 @@ export function FormLayout({
 				<h1
 					className={`govuk-heading-l form-title ${isUpdating ? "updating" : ""}`}
 					style={{ marginLeft: "3px" }}
+					contentEditable
+					suppressContentEditableWarning
+					onBlur={(e) => {
+						const newTitle = e.currentTarget.textContent?.trim();
+						if (newTitle && newTitle !== displayedTitle) {
+							handleFormChange("title", newTitle, true);
+						} else {
+							// Reset to current title if empty or unchanged
+							e.currentTarget.textContent = displayedTitle;
+						}
+					}}
+					onKeyDown={(e) => {
+						if (e.key === "Enter") {
+							e.preventDefault();
+							e.currentTarget.blur();
+						}
+						if (e.key === "Escape") {
+							e.preventDefault();
+							e.currentTarget.textContent = displayedTitle;
+							e.currentTarget.blur();
+						}
+					}}
 				>
 					{displayedTitle}
 				</h1>

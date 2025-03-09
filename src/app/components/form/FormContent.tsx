@@ -49,6 +49,12 @@ export function FormContent() {
 	const [processingMessage, setProcessingMessage] = useState(false);
 	const [formCreated, setFormCreated] = useState(false);
 
+	// Get the form fields directly from the schema
+	const formFields = {
+		simple: ["title", "caseNumber", "reason", "amount"] as const,
+		nested: ["dateRequired", "recipientDetails"] as const,
+	};
+
 	const loadConversation = useCallback(
 		async (formId: string) => {
 			try {
@@ -258,55 +264,24 @@ export function FormContent() {
 
 		const changes: FormChanges = {};
 
-		// Check top-level fields
-		if (lastNormForm.caseNumber !== form.caseNumber) {
-			changes.caseNumber = {
-				from: lastNormForm.caseNumber,
-				to: form.caseNumber,
-			};
-		}
-		if (lastNormForm.reason !== form.reason) {
-			changes.reason = { from: lastNormForm.reason, to: form.reason };
-		}
-		if (lastNormForm.amount !== form.amount) {
-			changes.amount = { from: lastNormForm.amount, to: form.amount };
+		// Handle simple fields
+		for (const field of formFields.simple) {
+			if (lastNormForm[field] !== form[field]) {
+				changes[field] = {
+					from: lastNormForm[field],
+					to: form[field],
+				};
+			}
 		}
 
-		// Check date required
-		if (
-			JSON.stringify(lastNormForm.dateRequired) !==
-			JSON.stringify(form.dateRequired)
-		) {
-			changes.dateRequired = {
-				from: lastNormForm.dateRequired,
-				to: form.dateRequired,
-			};
-		}
+		// Handle nested fields
+		for (const field of formFields.nested) {
+			const lastValue = lastNormForm[field];
+			const currentValue = form[field];
 
-		// Check recipient details
-		const lastRecipient = lastNormForm.recipientDetails || {};
-		const currentRecipient = form.recipientDetails || {};
-
-		// Check name
-		if (
-			JSON.stringify(lastRecipient.name) !==
-			JSON.stringify(currentRecipient.name)
-		) {
-			changes.recipientName = {
-				from: lastRecipient.name,
-				to: currentRecipient.name,
-			};
-		}
-
-		// Check address
-		if (
-			JSON.stringify(lastRecipient.address) !==
-			JSON.stringify(currentRecipient.address)
-		) {
-			changes.recipientAddress = {
-				from: lastRecipient.address,
-				to: currentRecipient.address,
-			};
+			if (JSON.stringify(lastValue) !== JSON.stringify(currentValue)) {
+				changes[field] = { from: lastValue, to: currentValue };
+			}
 		}
 
 		return Object.keys(changes).length > 0 ? changes : null;
