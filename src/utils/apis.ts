@@ -718,6 +718,10 @@ export async function createMessage(
   if (errors) {
     throw new Error(errors[0].message);
   }
+  if (!data){
+    throw new Error("Message could not be created.");
+  }
+
   const messageID = data.id;
   await createUserMessage(userID, messageID, threadID);
   return data;
@@ -741,7 +745,7 @@ export async function createUserMessage(
     messageID: string,
     threadID: string
 ) {
-  const {data: record, fetchErrors} = await client.models.UserMessage.list({filter:
+  const {data: record, errors: fetchErrors} = await client.models.UserMessage.list({filter:
         {userID: {eq: userID}, messageID: {eq: messageID}}});
 
   if (fetchErrors) {
@@ -749,7 +753,7 @@ export async function createUserMessage(
   }
 
   if (record.length === 0){
-    const {data: result, errors} = await client.models.UserMessage.create(
+    const {errors: errors} = await client.models.UserMessage.create(
         {userID: userID, messageID: messageID, threadID: threadID, isRead: false});
     if (errors) {
       throw new Error(errors[0].message);
@@ -802,13 +806,13 @@ export async function setMessageReadStatus(
     status = "true";
   }
 
-  const {data: record, fetchErrors} = await client.models.UserMessage.list({filter:
+  const {data: record, errors: fetchErrors} = await client.models.UserMessage.list({filter:
         {userID: {eq: userID}, messageID: {eq: messageID}}});
 
   if (fetchErrors) {
     throw new Error(fetchErrors[0].message);
   }
-
+  
   if (record[0]){
     await client.models.UserMessage.update({
       id: record[0].id,
