@@ -48,6 +48,7 @@ export function FormContent() {
 	const [conversationId, setConversationId] = useState<string | null>(null);
 	const [processingMessage, setProcessingMessage] = useState(false);
 	const [formCreated, setFormCreated] = useState(false);
+	const [updatedFields, setUpdatedFields] = useState<Set<string>>(new Set());
 
 	// Get the form fields directly from the schema
 	const formFields = {
@@ -258,6 +259,16 @@ export function FormContent() {
 		}
 	};
 
+	// Clear updated fields after animation
+	useEffect(() => {
+		if (updatedFields.size > 0) {
+			const timer = setTimeout(() => {
+				setUpdatedFields(new Set());
+			}, 1000); // Animation duration + a little extra
+			return () => clearTimeout(timer);
+		}
+	}, [updatedFields]);
+
 	// Add function to detect form changes
 	const getFormChanges = (): FormChanges | null => {
 		if (!lastNormForm || !form) return null;
@@ -309,6 +320,7 @@ export function FormContent() {
 							handleSubmit={handleSubmit}
 							isFormValid={isFormValid}
 							disabled={processingMessage}
+							updatedFields={updatedFields}
 						/>
 						<NormLayout
 							messages={messages}
@@ -319,6 +331,28 @@ export function FormContent() {
 							conversationId={conversationId}
 							onConversationIdChange={setConversationId}
 							onFormUpdate={(updatedForm: FormData) => {
+								// Find which fields changed
+								const changedFields = new Set<string>();
+								if (!form) return;
+
+								// Check simple fields
+								for (const field of formFields.simple) {
+									if (form[field] !== updatedForm[field]) {
+										changedFields.add(field);
+									}
+								}
+
+								// Check nested fields
+								for (const field of formFields.nested) {
+									if (
+										JSON.stringify(form[field]) !==
+										JSON.stringify(updatedForm[field])
+									) {
+										changedFields.add(field);
+									}
+								}
+
+								setUpdatedFields(changedFields);
 								setForm(updatedForm);
 								setLastNormForm(updatedForm);
 							}}

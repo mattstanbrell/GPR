@@ -1,5 +1,4 @@
 import type { FormData } from "./types";
-import { useState, useEffect } from "react";
 
 interface FormLayoutProps {
 	form: FormData;
@@ -8,6 +7,7 @@ interface FormLayoutProps {
 	handleSubmit: (e: React.FormEvent) => void;
 	isFormValid: (form: FormData | null) => boolean;
 	disabled: boolean;
+	updatedFields: Set<string>;
 }
 
 export function FormLayout({
@@ -17,21 +17,8 @@ export function FormLayout({
 	handleSubmit,
 	isFormValid,
 	disabled,
+	updatedFields,
 }: FormLayoutProps) {
-	const [displayedTitle, setDisplayedTitle] = useState(form.title || "Form");
-	const [isUpdating, setIsUpdating] = useState(false);
-
-	useEffect(() => {
-		if (form.title !== displayedTitle) {
-			setIsUpdating(true);
-			const timer = setTimeout(() => {
-				setDisplayedTitle(form.title || "Form");
-				setIsUpdating(false);
-			}, 300); // Match the CSS transition duration
-			return () => clearTimeout(timer);
-		}
-	}, [form.title, displayedTitle]);
-
 	return (
 		<>
 			<style jsx>{`
@@ -67,22 +54,35 @@ export function FormLayout({
 				}
 
 				.form-title {
-					transition: opacity 0.3s ease;
-					opacity: 1;
 					cursor: text;
 					outline: none;
+					width: fit-content;
+					padding: 0 2px;
+					margin-right: 10px;
 				}
 
-				.form-title:hover {
+				.form-title:hover, .form-title:focus {
 					background: transparent;
 				}
 
-				.form-title:focus {
-					background: transparent;
+				@keyframes flash-update {
+					0% {
+						background-color: transparent;
+					}
+					50% {
+						background-color: var(--color-background-light);
+					}
+					100% {
+						background-color: transparent;
+					}
 				}
 
-				.form-title.updating {
-					opacity: 0;
+				.field-updated {
+					animation: flash-update 0.8s ease;
+				}
+
+				.form-title.field-updated {
+					animation: flash-update 0.8s ease;
 				}
 			`}</style>
 			<div
@@ -99,17 +99,19 @@ export function FormLayout({
 				}}
 			>
 				<h1
-					className={`govuk-heading-l form-title ${isUpdating ? "updating" : ""}`}
+					className={`govuk-heading-l form-title ${
+						updatedFields.has("title") ? "field-updated" : ""
+					}`}
 					style={{ marginLeft: "3px" }}
 					contentEditable
 					suppressContentEditableWarning
 					onBlur={(e) => {
 						const newTitle = e.currentTarget.textContent?.trim();
-						if (newTitle && newTitle !== displayedTitle) {
+						if (newTitle && newTitle !== form.title) {
 							handleFormChange("title", newTitle, true);
 						} else {
 							// Reset to current title if empty or unchanged
-							e.currentTarget.textContent = displayedTitle;
+							e.currentTarget.textContent = form.title || "Form";
 						}
 					}}
 					onKeyDown={(e) => {
@@ -119,12 +121,12 @@ export function FormLayout({
 						}
 						if (e.key === "Escape") {
 							e.preventDefault();
-							e.currentTarget.textContent = displayedTitle;
+							e.currentTarget.textContent = form.title || "Form";
 							e.currentTarget.blur();
 						}
 					}}
 				>
-					{displayedTitle}
+					{form.title || "Form"}
 				</h1>
 				<div style={{ flexGrow: 1, overflowY: "auto", paddingRight: "0" }}>
 					<form
@@ -136,12 +138,18 @@ export function FormLayout({
 								<h2 className="govuk-fieldset__heading">Expense details</h2>
 							</legend>
 
-							<div className="govuk-form-group">
+							<div
+								className={`govuk-form-group ${
+									updatedFields.has("caseNumber") ? "form-group-updated" : ""
+								}`}
+							>
 								<label className="govuk-label" htmlFor="caseNumber">
 									Case number
 								</label>
 								<input
-									className="govuk-input govuk-input--width-20"
+									className={`govuk-input govuk-input--width-20 ${
+										updatedFields.has("caseNumber") ? "field-updated" : ""
+									}`}
 									id="caseNumber"
 									name="caseNumber"
 									type="text"
@@ -156,12 +164,18 @@ export function FormLayout({
 								/>
 							</div>
 
-							<div className="govuk-form-group">
+							<div
+								className={`govuk-form-group ${
+									updatedFields.has("reason") ? "form-group-updated" : ""
+								}`}
+							>
 								<label className="govuk-label" htmlFor="reason">
 									Reason for expense
 								</label>
 								<textarea
-									className="govuk-textarea"
+									className={`govuk-textarea ${
+										updatedFields.has("reason") ? "field-updated" : ""
+									}`}
 									id="reason"
 									name="reason"
 									rows={3}
@@ -174,7 +188,11 @@ export function FormLayout({
 								/>
 							</div>
 
-							<div className="govuk-form-group">
+							<div
+								className={`govuk-form-group ${
+									updatedFields.has("amount") ? "form-group-updated" : ""
+								}`}
+							>
 								<label className="govuk-label" htmlFor="amount">
 									Amount
 								</label>
@@ -183,7 +201,9 @@ export function FormLayout({
 										£
 									</div>
 									<input
-										className="govuk-input govuk-input--width-5"
+										className={`govuk-input govuk-input--width-5 ${
+											updatedFields.has("amount") ? "field-updated" : ""
+										}`}
 										id="amount"
 										name="amount"
 										type="text"
@@ -211,7 +231,11 @@ export function FormLayout({
 								</div>
 							</div>
 
-							<div className="govuk-form-group">
+							<div
+								className={`govuk-form-group ${
+									updatedFields.has("dateRequired") ? "form-group-updated" : ""
+								}`}
+							>
 								<fieldset
 									className="govuk-fieldset"
 									aria-describedby="date-required-hint"
@@ -229,7 +253,11 @@ export function FormLayout({
 													Day
 												</label>
 												<input
-													className="govuk-input govuk-date-input__input govuk-input--width-2"
+													className={`govuk-input govuk-date-input__input govuk-input--width-2 ${
+														updatedFields.has("dateRequired")
+															? "field-updated"
+															: ""
+													}`}
 													id="date-required-day"
 													name="date-required-day"
 													type="text"
@@ -276,7 +304,11 @@ export function FormLayout({
 													Month
 												</label>
 												<input
-													className="govuk-input govuk-date-input__input govuk-input--width-2"
+													className={`govuk-input govuk-date-input__input govuk-input--width-2 ${
+														updatedFields.has("dateRequired")
+															? "field-updated"
+															: ""
+													}`}
 													id="date-required-month"
 													name="date-required-month"
 													type="text"
@@ -323,7 +355,11 @@ export function FormLayout({
 													Year
 												</label>
 												<input
-													className="govuk-input govuk-date-input__input govuk-input--width-4"
+													className={`govuk-input govuk-date-input__input govuk-input--width-4 ${
+														updatedFields.has("dateRequired")
+															? "field-updated"
+															: ""
+													}`}
 													id="date-required-year"
 													name="date-required-year"
 													type="text"
@@ -376,12 +412,20 @@ export function FormLayout({
 								Details of the person receiving the prepaid card.
 							</div>
 
-							<div className="govuk-form-group">
+							<div
+								className={`govuk-form-group ${
+									updatedFields.has("recipientDetails")
+										? "form-group-updated"
+										: ""
+								}`}
+							>
 								<label className="govuk-label" htmlFor="firstName">
 									First name
 								</label>
 								<input
-									className="govuk-input"
+									className={`govuk-input ${
+										updatedFields.has("recipientDetails") ? "field-updated" : ""
+									}`}
 									id="firstName"
 									name="firstName"
 									type="text"
@@ -412,12 +456,20 @@ export function FormLayout({
 								/>
 							</div>
 
-							<div className="govuk-form-group">
+							<div
+								className={`govuk-form-group ${
+									updatedFields.has("recipientDetails")
+										? "form-group-updated"
+										: ""
+								}`}
+							>
 								<label className="govuk-label" htmlFor="lastName">
 									Last name
 								</label>
 								<input
-									className="govuk-input"
+									className={`govuk-input ${
+										updatedFields.has("recipientDetails") ? "field-updated" : ""
+									}`}
 									id="lastName"
 									name="lastName"
 									type="text"
@@ -448,12 +500,20 @@ export function FormLayout({
 								/>
 							</div>
 
-							<div className="govuk-form-group">
+							<div
+								className={`govuk-form-group ${
+									updatedFields.has("recipientDetails")
+										? "form-group-updated"
+										: ""
+								}`}
+							>
 								<label className="govuk-label" htmlFor="address-line-1">
 									Address line 1
 								</label>
 								<input
-									className="govuk-input"
+									className={`govuk-input ${
+										updatedFields.has("recipientDetails") ? "field-updated" : ""
+									}`}
 									id="address-line-1"
 									name="address-line-1"
 									type="text"
@@ -485,12 +545,20 @@ export function FormLayout({
 								/>
 							</div>
 
-							<div className="govuk-form-group">
+							<div
+								className={`govuk-form-group ${
+									updatedFields.has("recipientDetails")
+										? "form-group-updated"
+										: ""
+								}`}
+							>
 								<label className="govuk-label" htmlFor="address-line-2">
 									Address line 2 (optional)
 								</label>
 								<input
-									className="govuk-input"
+									className={`govuk-input ${
+										updatedFields.has("recipientDetails") ? "field-updated" : ""
+									}`}
 									id="address-line-2"
 									name="address-line-2"
 									type="text"
@@ -522,12 +590,20 @@ export function FormLayout({
 								/>
 							</div>
 
-							<div className="govuk-form-group">
+							<div
+								className={`govuk-form-group ${
+									updatedFields.has("recipientDetails")
+										? "form-group-updated"
+										: ""
+								}`}
+							>
 								<label className="govuk-label" htmlFor="address-town">
 									Town or city
 								</label>
 								<input
-									className="govuk-input govuk-input--width-20"
+									className={`govuk-input govuk-input--width-20 ${
+										updatedFields.has("recipientDetails") ? "field-updated" : ""
+									}`}
 									id="address-town"
 									name="address-town"
 									type="text"
@@ -561,12 +637,20 @@ export function FormLayout({
 								/>
 							</div>
 
-							<div className="govuk-form-group">
+							<div
+								className={`govuk-form-group ${
+									updatedFields.has("recipientDetails")
+										? "form-group-updated"
+										: ""
+								}`}
+							>
 								<label className="govuk-label" htmlFor="address-postcode">
 									Postcode
 								</label>
 								<input
-									className="govuk-input govuk-input--width-10"
+									className={`govuk-input govuk-input--width-10 ${
+										updatedFields.has("recipientDetails") ? "field-updated" : ""
+									}`}
 									id="address-postcode"
 									name="address-postcode"
 									type="text"
