@@ -9,11 +9,11 @@ const getFormboardHeader = (boardTitle: string, handleIndex: (isIncrement: boole
     return (
         <div className="w-full p-2 flex  text-center font-bold text-xl">
             <div className='md:w-0 md:invisible xs:sm:visible cursor-pointer' onClick={() => handleIndex(false)}>
-                { getNavigationButton("./previous.svg", "picture of a circle with a left arrow") }
+                { getNavigationButton("/previous.svg", "picture of a circle with a left arrow") }
             </div>
             <h2 className='w-full text-[var(--color-background-dark)]'>{ boardTitle }</h2>
             <div className='md:invisible xs:sm:visible md:w-0 cursor-pointer' onClick={() => handleIndex(true)}>
-                { getNavigationButton("./next.svg", "picture of a circle with a right arrow") }
+                { getNavigationButton("/next.svg", "picture of a circle with a right arrow") }
             </div>
         </div>
     )
