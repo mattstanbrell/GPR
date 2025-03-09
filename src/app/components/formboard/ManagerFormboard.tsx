@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import Formboard from "@/app/components/formboard/Formboard";
-import { updateIndexHelper, getUserAuthorisedForms, getUserAssignedForms} from "@/app/components/formboard/_helpers"
+import { getNewIndex, getUserAuthorisedForms, getUserAssignedForms} from "@/app/components/formboard/_helpers"
 import { useIsMobileWindowSize } from "@/utils/responsivenessHelpers";
 
 const ManagerFormboard = () => {
@@ -14,7 +14,8 @@ const ManagerFormboard = () => {
     ];
 
     const updateIndex = (isIncrement: boolean) => {
-        updateIndexHelper(isIncrement, index, setIndex, boardDetails.length); 
+        const newIndex = getNewIndex(isIncrement, index, boardDetails.length);
+        setIndex(newIndex); 
     }
 
     const boards = boardDetails.map(({title, forms}, index) => (
