@@ -1,9 +1,8 @@
 import ReactMarkdown from "react-markdown";
-import type { UIMessage } from "./types";
-import type { FormData } from "./types";
+import type { UIMessage, FormData, FormChanges } from "./types";
 import { generateClient } from "aws-amplify/api";
 import type { Schema } from "../../../../amplify/data/resource";
-import type { Dispatch, SetStateAction } from "react";
+import { useState, type Dispatch, type SetStateAction } from "react";
 
 interface NormLayoutProps {
 	messages: UIMessage[];
@@ -17,7 +16,24 @@ interface NormLayoutProps {
 	currentForm: FormData;
 	processingMessage: boolean;
 	setProcessingMessage: (processing: boolean) => void;
+	getFormChanges: () => FormChanges | null;
 }
+
+interface SystemMessage {
+	role: "system";
+	content: string;
+}
+
+interface NormMessage {
+	role: "system" | "user" | "assistant";
+	content: string;
+	id?: number;
+}
+
+// Type guard for system messages
+const isSystemMessage = (message: NormMessage): message is SystemMessage => {
+	return message.role === "system";
+};
 
 export function NormLayout({
 	messages,
@@ -31,7 +47,11 @@ export function NormLayout({
 	currentForm,
 	processingMessage,
 	setProcessingMessage,
+	getFormChanges,
 }: NormLayoutProps) {
+	const [systemPrompt, setSystemPrompt] = useState<string>("");
+	const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
 	// Function to render message content
 	const renderMessageContent = (content: string): string => {
 		if (!content) return "";
@@ -48,22 +68,61 @@ export function NormLayout({
 
 		setProcessingMessage(true);
 
+		// Check for form changes
+		const formChanges = getFormChanges();
 		const userMessage: UIMessage = {
 			id: Date.now(),
 			role: "user",
 			content: message,
 		};
 
-		setMessages((prev: UIMessage[]) => [...prev, userMessage]);
+		setMessages((prev) => [...prev, userMessage]);
 		setMessage("");
 
 		try {
 			const client = generateClient<Schema>();
-			const messagePayload = JSON.stringify(messages.concat([userMessage]));
+
+			// If there are form changes, insert them just before the new user message
+			const messagesPayload = formChanges
+				? JSON.stringify(
+						[
+							systemPrompt
+								? {
+										role: "system",
+										content: systemPrompt,
+									}
+								: null,
+							...messages, // Include all previous messages
+							{
+								role: "system",
+								content: `User manually changed the following fields: ${Object.entries(
+									formChanges,
+								)
+									.map(
+										([field, { from, to }]) =>
+											`${field}: from ${JSON.stringify(from)} to ${JSON.stringify(to)}`,
+									)
+									.join(", ")}`,
+							},
+							userMessage,
+						].filter(Boolean),
+					)
+				: JSON.stringify(
+						[
+							systemPrompt
+								? {
+										role: "system",
+										content: systemPrompt,
+									}
+								: null,
+							...messages,
+							userMessage,
+						].filter(Boolean),
+					);
 
 			const { data: normResponse } = await client.queries.Norm({
 				conversationID: conversationId,
-				messages: messagePayload,
+				messages: messagesPayload,
 				formID: formId,
 				currentFormState: JSON.stringify(currentForm),
 			});
@@ -76,13 +135,36 @@ export function NormLayout({
 				onConversationIdChange(normResponse.conversationID);
 			}
 
-			if (normResponse?.messages) {
-				const formattedMessages = processMessages(normResponse.messages);
-				if (formattedMessages.length > 0) {
-					// Keep the user's message and append Norm's response
-					const lastMessage = formattedMessages[formattedMessages.length - 1];
-					if (lastMessage.role === "assistant") {
-						setMessages((prev: UIMessage[]) => [...prev, lastMessage]);
+			try {
+				if (normResponse?.messages) {
+					const formattedMessages = processMessages(normResponse.messages);
+					if (formattedMessages.length > 0) {
+						// Store the system prompt if this is our first message
+						const firstMessage = formattedMessages[0];
+						if (messages.length === 0 && isSystemMessage(firstMessage)) {
+							setSystemPrompt(firstMessage.content);
+						}
+						// Add only the assistant's response
+						const lastMessage = formattedMessages[formattedMessages.length - 1];
+						if (lastMessage.role === "assistant") {
+							setMessages((prev: UIMessage[]) => [
+								...prev,
+								{
+									id: Date.now(),
+									role: "assistant",
+									content: lastMessage.content,
+								},
+							]);
+						}
+					} else {
+						setMessages((prev: UIMessage[]) => [
+							...prev,
+							{
+								id: Date.now(),
+								role: "assistant",
+								content: "I'm sorry, I couldn't process your request.",
+							},
+						]);
 					}
 				} else {
 					setMessages((prev: UIMessage[]) => [
@@ -94,28 +176,39 @@ export function NormLayout({
 						},
 					]);
 				}
-			} else {
+
+				if (normResponse?.currentFormState) {
+					const updatedForm = JSON.parse(normResponse.currentFormState);
+					if (updatedForm) {
+						// Only update if Norm actually changed something
+						const hasChanges = Object.keys(updatedForm as FormData).some(
+							(key) =>
+								JSON.stringify(
+									(updatedForm as FormData)[key as keyof FormData],
+								) !== JSON.stringify(currentForm[key as keyof FormData]),
+						);
+
+						if (hasChanges) {
+							onFormUpdate(updatedForm);
+						}
+					}
+				}
+			} catch (error: unknown) {
+				console.error("Failed to load messages:", error);
+				setErrorMessage("Failed to load messages. Please try again.");
 				setMessages((prev: UIMessage[]) => [
 					...prev,
 					{
 						id: Date.now(),
 						role: "assistant",
-						content: "I'm sorry, I couldn't process your request.",
+						content:
+							"Sorry, I encountered an error processing the response. Please try again.",
 					},
 				]);
 			}
-
-			if (normResponse?.currentFormState) {
-				try {
-					const updatedForm = JSON.parse(normResponse.currentFormState);
-					if (updatedForm) {
-						onFormUpdate(updatedForm);
-					}
-				} catch {
-					// Simply log the error instead of attempting complex recovery
-				}
-			}
-		} catch {
+		} catch (error: unknown) {
+			console.error("Failed to send message:", error);
+			setErrorMessage("Failed to send message. Please try again.");
 			setMessages((prev: UIMessage[]) => [
 				...prev,
 				{
@@ -138,7 +231,7 @@ export function NormLayout({
 	};
 
 	// Helper function to process messages
-	const processMessages = (messagesString: string): UIMessage[] => {
+	const processMessages = (messagesString: string): NormMessage[] => {
 		try {
 			return JSON.parse(messagesString);
 		} catch {
@@ -183,6 +276,11 @@ export function NormLayout({
 					border-color: var(--hounslow-primary);
 					border-left-width: 5px;
 				}
+				
+				.error-message {
+					color: #d4351c;
+					margin-bottom: 15px;
+				}
 			`}</style>
 			<div
 				style={{
@@ -197,6 +295,11 @@ export function NormLayout({
 				}}
 			>
 				<h2 className="govuk-heading-l">Norm</h2>
+				{errorMessage && (
+					<div className="govuk-error-message error-message">
+						{errorMessage}
+					</div>
+				)}
 				<div
 					style={{
 						flexGrow: 1,
@@ -224,13 +327,22 @@ export function NormLayout({
 									msg.role === "user"
 										? "#f3f2f1"
 										: "var(--color-background-light)",
-								borderColor:
-									msg.role === "user" ? "#505a5f" : "var(--hounslow-primary)",
 								borderLeftWidth: msg.role === "assistant" ? "5px" : "0",
 								borderRightWidth: msg.role === "user" ? "5px" : "0",
-								borderStyle: "solid",
-								borderTop: "none",
-								borderBottom: "none",
+								borderTopWidth: "0",
+								borderBottomWidth: "0",
+								borderLeftStyle: "solid",
+								borderRightStyle: "solid",
+								borderTopStyle: "solid",
+								borderBottomStyle: "solid",
+								borderLeftColor:
+									msg.role === "user" ? "#505a5f" : "var(--hounslow-primary)",
+								borderRightColor:
+									msg.role === "user" ? "#505a5f" : "var(--hounslow-primary)",
+								borderTopColor:
+									msg.role === "user" ? "#505a5f" : "var(--hounslow-primary)",
+								borderBottomColor:
+									msg.role === "user" ? "#505a5f" : "var(--hounslow-primary)",
 							}}
 						>
 							<ReactMarkdown
@@ -276,12 +388,18 @@ export function NormLayout({
 								marginTop: 0,
 								marginBottom: 0,
 								backgroundColor: "var(--color-background-light)",
-								borderColor: "var(--hounslow-primary)",
 								borderLeftWidth: "5px",
 								borderRightWidth: "0",
-								borderStyle: "solid",
-								borderTop: "none",
-								borderBottom: "none",
+								borderTopWidth: "0",
+								borderBottomWidth: "0",
+								borderLeftStyle: "solid",
+								borderRightStyle: "solid",
+								borderTopStyle: "solid",
+								borderBottomStyle: "solid",
+								borderLeftColor: "var(--hounslow-primary)",
+								borderRightColor: "var(--hounslow-primary)",
+								borderTopColor: "var(--hounslow-primary)",
+								borderBottomColor: "var(--hounslow-primary)",
 							}}
 						>
 							<p className="govuk-body" style={{ margin: 0 }}>

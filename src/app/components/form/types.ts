@@ -9,13 +9,21 @@ export type FormData = Pick<
 	| "amount"
 	| "dateRequired"
 	| "recipientDetails"
+	| "title"
 > & {
 	id?: string;
 };
 
-// Message type for our UI
-export type UIMessage = {
+export type FormChanges = Record<
+	string,
+	{
+		from: unknown;
+		to: unknown;
+	}
+>;
+
+export interface UIMessage {
 	id: number;
 	role: "user" | "assistant";
 	content: string;
-};
+}

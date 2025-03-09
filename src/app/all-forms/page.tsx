@@ -16,7 +16,7 @@ export const dynamic = "force-dynamic";
 // Define a type for the form data
 type FormData = Pick<
 	Schema["Form"]["type"],
-	"status" | "caseNumber" | "reason" | "amount"
+	"status" | "caseNumber" | "reason" | "amount" | "title"
 > & {
 	id: string;
 	createdAt: string;
@@ -79,7 +79,6 @@ export default async function AllFormsPage() {
 		});
 
 		if (errors) {
-			console.error("Error fetching forms:", errors);
 			throw new Error(`Failed to fetch forms: ${JSON.stringify(errors)}`);
 		}
 
@@ -104,13 +103,13 @@ export default async function AllFormsPage() {
 								<thead className="govuk-table__head">
 									<tr className="govuk-table__row">
 										<th scope="col" className="govuk-table__header">
+											Title
+										</th>
+										<th scope="col" className="govuk-table__header">
 											Case Number
 										</th>
 										<th scope="col" className="govuk-table__header">
 											Status
-										</th>
-										<th scope="col" className="govuk-table__header">
-											Reason
 										</th>
 										<th scope="col" className="govuk-table__header">
 											Amount
@@ -135,8 +134,11 @@ export default async function AllFormsPage() {
 													className="govuk-link"
 													style={{ cursor: "pointer" }}
 												>
-													{form.caseNumber || "Untitled Form"}
+													{form.title || "Untitled Form"}
 												</Link>
+											</td>
+											<td className="govuk-table__cell">
+												{form.caseNumber || ""}
 											</td>
 											<td className="govuk-table__cell">
 												<strong
@@ -145,7 +147,6 @@ export default async function AllFormsPage() {
 													{form.status}
 												</strong>
 											</td>
-											<td className="govuk-table__cell">{form.reason || ""}</td>
 											<td className="govuk-table__cell">£{form.amount}</td>
 											<td className="govuk-table__cell">
 												{formatSmartDate(form.createdAt)}

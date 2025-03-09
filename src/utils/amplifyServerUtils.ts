@@ -2,7 +2,11 @@ import { cookies } from "next/headers";
 
 import { createServerRunner } from "@aws-amplify/adapter-nextjs";
 import { generateServerClientUsingCookies } from "@aws-amplify/adapter-nextjs/api";
-import { getCurrentUser, fetchAuthSession, fetchUserAttributes } from "aws-amplify/auth/server";
+import {
+	getCurrentUser,
+	fetchAuthSession,
+	fetchUserAttributes,
+} from "aws-amplify/auth/server";
 
 import type { Schema } from "../../amplify/data/resource";
 import outputs from "../../amplify_outputs.json";
@@ -26,8 +30,8 @@ export async function isAuthenticated() {
 			},
 		});
 		return session;
-	} catch (error) {
-		console.error("[Auth] Session check error:", error);
+	} catch (error: unknown) {
+		console.error("Error checking authentication:", error);
 		return false;
 	}
 }
@@ -44,8 +48,8 @@ export async function AuthGetCurrentUserServer() {
 			operation: (contextSpec) => getCurrentUser(contextSpec),
 		});
 		return currentUser;
-	} catch (error) {
-		console.error("[Auth] Get current user error:", error);
+	} catch (error: unknown) {
+		console.error("Error getting current user:", error);
 		return null;
 	}
 }
@@ -62,8 +66,8 @@ export async function AuthGetUserAttributesServer() {
 			operation: (contextSpec) => fetchUserAttributes(contextSpec),
 		});
 		return currentUser;
-	} catch (error) {
-		console.error("[Auth] Get current user error:", error);
+	} catch (error: unknown) {
+		console.error("Error getting user attributes:", error);
 		return null;
 	}
 }
