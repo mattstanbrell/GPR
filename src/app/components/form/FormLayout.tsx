@@ -1,4 +1,5 @@
 import type { FormData } from "./types";
+import { useState, useEffect } from "react";
 
 interface FormLayoutProps {
 	form: FormData;
@@ -17,6 +18,20 @@ export function FormLayout({
 	isFormValid,
 	disabled,
 }: FormLayoutProps) {
+	const [displayedTitle, setDisplayedTitle] = useState(form.title || "Form");
+	const [isUpdating, setIsUpdating] = useState(false);
+
+	useEffect(() => {
+		if (form.title !== displayedTitle) {
+			setIsUpdating(true);
+			const timer = setTimeout(() => {
+				setDisplayedTitle(form.title || "Form");
+				setIsUpdating(false);
+			}, 300); // Match the CSS transition duration
+			return () => clearTimeout(timer);
+		}
+	}, [form.title, displayedTitle]);
+
 	return (
 		<>
 			<style jsx>{`
@@ -50,6 +65,15 @@ export function FormLayout({
 					z-index: -1;
 					border-top: 1px solid rgba(177, 180, 182, 0.3);
 				}
+
+				.form-title {
+					transition: opacity 0.3s ease;
+					opacity: 1;
+				}
+
+				.form-title.updating {
+					opacity: 0;
+				}
 			`}</style>
 			<div
 				style={{
@@ -64,8 +88,11 @@ export function FormLayout({
 					boxSizing: "border-box",
 				}}
 			>
-				<h1 className="govuk-heading-l" style={{ marginLeft: "3px" }}>
-					Form
+				<h1
+					className={`govuk-heading-l form-title ${isUpdating ? "updating" : ""}`}
+					style={{ marginLeft: "3px" }}
+				>
+					{displayedTitle}
 				</h1>
 				<div style={{ flexGrow: 1, overflowY: "auto", paddingRight: "0" }}>
 					<form

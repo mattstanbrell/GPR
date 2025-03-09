@@ -9,6 +9,7 @@ export type FormData = Pick<
 	| "amount"
 	| "dateRequired"
 	| "recipientDetails"
+	| "title"
 > & {
 	id?: string;
 };
