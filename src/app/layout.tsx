@@ -1,11 +1,19 @@
-import type { Metadata } from "next";
+"use client";
+
 import { Lexend } from "next/font/google";
 import "./globals.scss";
 import ConfigureAmplifyClientSide from "./components/ConfigureAmplify";
 import { audilyPrimary } from "./theme";
-import Link from "next/link";
 import { GovUKFrontend } from "./components/GovUKInitialiser";
-import NavSignInButton from "./components/NavSignInButton";
+import Header from "@/app/components/Header";
+import FullscreenMenu from "@/app/components/navigation/FullscreenMenu";
+import { useState, useEffect } from "react";
+import { Hub } from "aws-amplify/utils";
+import { getCurrentUser } from "aws-amplify/auth";
+import { HOME } from "@/app/constants/urls";
+import { useRouter } from "next/navigation";
+import { signInWithRedirect, signOut } from "aws-amplify/auth";
+import { useResponsiveMenu } from "@/utils/responsivenessHelpers";
 
 // Alternative font which was used in the figma design
 const lexend = Lexend({
@@ -16,16 +24,39 @@ const lexend = Lexend({
 	variable: "--font-lexend",
 });
 
-export const metadata: Metadata = {
-	title: "Audily",
-	description: "An auditable expenditure form management system",
-};
-
 export default function RootLayout({
 	children,
-}: Readonly<{
-	children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
+	const router = useRouter();
+	const { isMenuOpen, toggleMobileMenu } = useResponsiveMenu(false);
+	const [isSignedIn, setIsSignedIn] = useState(false);
+
+	useEffect(() => {
+		Hub.listen("auth", ({ payload }) => {
+			if (payload.event === "signInWithRedirect") {
+				router.push(HOME);
+			}
+			if (payload.event === "signedOut") {
+				setIsSignedIn(false);
+				router.push("/");
+			}
+		});
+
+		getCurrentUser()
+			.then(() => setIsSignedIn(true))
+			.catch(() => setIsSignedIn(false));
+	}, [router]);
+
+	const handleClick = async () => {
+		if (isSignedIn) {
+			await signOut();
+		} else {
+			await signInWithRedirect({
+				provider: { custom: "MicrosoftEntraID" },
+			});
+		}
+	};
+
 	return (
 		<html
 			lang="en"
@@ -34,45 +65,43 @@ export default function RootLayout({
 			<head>
 				<meta name="theme-color" content={audilyPrimary} />
 			</head>
-			<body className="govuk-template__body">
-				<ConfigureAmplifyClientSide />
-				<GovUKFrontend />
-				<header className="govuk-header" data-module="govuk-header">
-					<div className="govuk-header__container govuk-width-container">
-						<div
-							className="govuk-header__content"
-							style={{
-								display: "flex",
-								justifyContent: "space-between",
-								alignItems: "center",
-								width: "100%",
-							}}
-						>
-							<Link
-								href="/"
-								className="govuk-header__link govuk-header__service-name"
-							>
-								Audily
-							</Link>
-							<div>
-								<NavSignInButton />
-							</div>
-						</div>
-					</div>
-				</header>
-				<div className="govuk-width-container">
-					<main className="govuk-main-wrapper">{children}</main>
-				</div>
-				<footer className="govuk-footer">
+			{isMenuOpen ? (
+				<body className="govuk-template__body w-full h-[100vh]">
+					<Header
+						toggleMobileMenu={toggleMobileMenu}
+						isMenuOpen={isMenuOpen}
+						isSignedIn={isSignedIn}
+						handleClick={handleClick}
+					/>
+					<FullscreenMenu
+						handleToggle={toggleMobileMenu}
+						handleClick={handleClick}
+					/>
+				</body>
+			) : (
+				<body className="govuk-template__body">
+					<ConfigureAmplifyClientSide />
+					<GovUKFrontend />
+					<Header
+						toggleMobileMenu={toggleMobileMenu}
+						isMenuOpen={isMenuOpen}
+						isSignedIn={isSignedIn}
+						handleClick={handleClick}
+					/>
 					<div className="govuk-width-container">
-						<div className="govuk-footer__meta">
-							<div className="govuk-footer__meta-item">
-								© CRITICAL Channel 2025
+						<main className="govuk-main-wrapper">{children}</main>
+					</div>
+					<footer className="govuk-footer">
+						<div className="govuk-width-container">
+							<div className="govuk-footer__meta">
+								<div className="govuk-footer__meta-item">
+									© CRITICAL Channel 2025
+								</div>
 							</div>
 						</div>
-					</div>
-				</footer>
-			</body>
+					</footer>
+				</body>
+			)}
 		</html>
 	);
 }
