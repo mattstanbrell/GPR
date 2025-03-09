@@ -1,6 +1,6 @@
 "use client"
 import * as React from 'react';
-import Preview from './preview';
+import Preview from './Preview';
 
 const DEFAULT_FONT_SIZE = 1;
 const DEFAULT_FONT = 'lexend';

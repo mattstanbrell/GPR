@@ -1,4 +1,4 @@
-import SettingsClient from "./settingsClient";
+import SettingsClient from "./SettingsClient";
 
 async function getUserSettings() {
   // REPLACE with call to DB to fetch audit logs data
