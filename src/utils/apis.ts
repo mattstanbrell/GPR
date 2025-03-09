@@ -11,7 +11,7 @@ type User = Schema['User']['type'];
 
 for any Model types you might be using in your components
 
-If you wanted to store a list of users which could be updated in 
+If you wanted to store a list of users which could be updated in
 your component, you would need this line:
 
 const [users, setUsers] = useState<User[]>([]);
@@ -646,3 +646,261 @@ export async function getAuditLogsForForm(formId: string) {
 	}
 	return data;
 }
+
+// -------------- Thread APIs --------------
+
+// Create a new thread
+export async function createThread(
+    formID: string,
+) {
+  const { data, errors } = await client.models.Thread.create({
+    formID,
+  });
+  if (errors) {
+    throw new Error(errors[0].message);
+  }
+  return data;
+}
+
+export async function getThreadbyID(
+    threadID: string,
+) {
+  const { data, errors } = await client.models.Thread.get({
+    id: threadID,
+  });
+  if (errors) {
+    throw new Error(errors[0].message);
+  }
+  return data;
+}
+
+export async function createUserThread(
+    threadID: string,
+    userID: string,
+) {
+  const { data, errors } = await client.models.UserThread.create({
+    threadID: threadID,
+    userID: userID
+  });
+  if (errors) {
+    throw new Error(errors[0].message);
+  }
+  return data;
+}
+
+// Returns number of users part of a specific thread.
+export async function getUsersInThread(threadID: string) {
+  const { data: users, errors } = await client.models.UserThread.list({
+    filter: { threadID: { eq: threadID} },
+  });
+
+  if (errors) {
+    throw new Error(errors[0].message);
+  }
+  const people = await Promise.all(users.map(async (userThread) => {
+    const {data: user, errors: userErrors} = await client.models.User.get({id: userThread.userID});
+    if (userErrors) {
+      throw new Error(userErrors[0].message);
+    }
+
+    return user;
+  }));
+  return people;
+}
+
+// Returns all threads a user is a member of.
+export async function getThreadsWithUser(userID: string) {
+  const { data: userThreads, errors } = await client.models.UserThread.list({
+    filter: { userID: { eq: userID} },
+  });
+
+  if (errors) {
+    throw new Error(errors[0].message);
+  }
+  const threads = await Promise.all(userThreads.map(async (userThread) => {
+    const {data: thread, errors: userErrors} = await client.models.Thread.get({id: userThread.threadID});
+    if (userErrors) {
+      throw new Error(userErrors[0].message);
+    }
+
+    return thread;
+  }));
+  return threads;
+}
+
+
+// Returns the number of unread messages in a thread for a particular user.
+export async function getUnreadMessageNumber(threadID: string, userID: string) {
+
+  const { data: newThreadMessages, errors } = await client.models.UserMessage.list({
+    filter: { and: [{threadID: { eq: threadID}},
+        {userID: {eq: userID}},
+        {isRead: {eq: false}}
+  ]}});
+  if (errors) {
+    throw new Error(errors[0].message);
+  }
+
+  const totalMessageNumber = newThreadMessages.length;
+
+  return totalMessageNumber;
+}
+
+
+
+//Create a hook(subscribe) that increments threads unread message count(new field) on update.
+
+// Mark all unread messages in a certain thread as read.
+export async function setThreadMessagesToRead(threadID: string, userID: string) {
+  const { data: unreadMessages, errors } = await client.models.Message.list({
+    filter: { and: [
+        {threadID: { eq: threadID}},
+        {readStatus: {eq: 'false'}}]}, //set back to boolean.
+  });
+  if (errors) {
+    throw new Error(errors[0].message);
+  }
+  return await Promise.all(unreadMessages.map(async (message) => {
+    const {data: thread, errors: messageErrors} = await setMessageReadStatus(message.id, userID);
+    if (messageErrors) {
+      throw new Error(messageErrors[0].message);
+    }
+    return thread;
+  }));
+}
+
+// -------------- Message APIs --------------
+
+// Create a new message
+export async function createMessage(
+    userID: string,
+    threadID: string,
+    content: string,
+    timeSent: string,
+) {
+  const { data, errors } = await client.models.Message.create({
+    userID,
+    threadID,
+    content,
+    timeSent,
+    readStatus: "false"
+  });
+  if (errors) {
+    throw new Error(errors[0].message);
+  }
+  if (!data){
+    throw new Error("Message could not be created.");
+  }
+
+  await client.models.Thread.update({
+    id: threadID,
+    lastMessageTime: timeSent
+  });
+
+  const messageID = data.id;
+  await createUserMessage(userID, messageID, threadID);
+  return data;
+}
+
+export async function getMessagebyID(
+    messageID: string,
+) {
+  const { data, errors } = await client.models.Message.get({
+    id: messageID,
+  });
+  if (errors) {
+    throw new Error(errors[0].message);
+  }
+  return data;
+}
+
+// Create a new message
+export async function createUserMessage(
+    userID: string,
+    messageID: string,
+    threadID: string
+) {
+  const {data: record, errors: fetchErrors} = await client.models.UserMessage.list({filter:
+        {userID: {eq: userID}, messageID: {eq: messageID}}});
+
+  if (fetchErrors) {
+    throw new Error(fetchErrors[0].message);
+  }
+
+  if (record.length === 0){
+    const {errors: errors} = await client.models.UserMessage.create(
+        {userID: userID, messageID: messageID, threadID: threadID, isRead: false});
+    if (errors) {
+      throw new Error(errors[0].message);
+    }
+  }
+
+}
+
+// Returns number of users part of a specific thread.
+export async function getMessageReaders(messageID: string) {
+  const { data: users, errors } = await client.models.UserMessage.list({
+    filter: { messageID: { eq: messageID} },
+  });
+  if (errors) {
+    throw new Error(errors[0].message);
+  }
+  return await Promise.all(users.map(async (reader) => {
+    const {data: user, errors: userErrors} = await client.models.User.get({id: reader.userID});
+    if (userErrors) {
+      throw new Error(userErrors[0].message);
+    }
+    return user;
+  }));
+}
+
+// Mark new message status.
+export async function setMessageReadStatus(
+    messageID: string,
+    userID: string
+) {
+  const {data: message, errors} = await client.models.Message.get({id: messageID});
+
+  if (errors) {
+    throw new Error(errors[0].message);
+  }
+
+  if (!message){
+    throw new Error("No message found");
+  }
+  const userNumPromise = await getUsersInThread(message.threadID);
+  const userNum = userNumPromise.length; //Number of Users in thread.
+
+  const usersReadNowPromise = await getMessageReaders(messageID);
+  const usersReadNow = usersReadNowPromise.length + 1; //Number of Users reading message including this one.
+
+  let status: string = "";
+  if (usersReadNow < userNum ) {
+    status = "medium";
+  } else {
+    status = "true";
+  }
+
+  const {data: record, errors: fetchErrors} = await client.models.UserMessage.list({filter:
+        {userID: {eq: userID}, messageID: {eq: messageID}}});
+
+  if (fetchErrors) {
+    throw new Error(fetchErrors[0].message);
+  }
+
+  if (record[0]){
+    await client.models.UserMessage.update({
+      id: record[0].id,
+      isRead: true
+    });
+  }
+
+  const { data, errors: errorsUpdate } = await client.models.Message.update({
+    id: messageID,
+    readStatus: status,
+  });
+
+  return {data, errors: errorsUpdate};
+}
+
+
