@@ -1,5 +1,6 @@
 import { generateClient } from "@aws-amplify/api";
 import type { Schema } from "../../amplify/data/resource";
+import { type FormStatus } from '../app/types/models';
 
 const client = generateClient<Schema>();
 
@@ -236,15 +237,23 @@ export async function deleteForm(formId: string) {
 }
 
 // Returns all forms created by a specific user by filtering on creatorID
-export async function getFormsCreatedByUser(userId: string) {
-	const { data, errors } = await client.models.Form.list({
-		filter: { creatorID: { eq: userId } },
-	});
-	if (errors) {
-		throw new Error(errors[0].message);
+export async function getFormsCreatedByUser(userId: string, status?: FormStatus) {
+	const filter: any = { creatorID: { eq: userId } };
+	
+	if (status) {
+	  filter.status = { eq: status };
 	}
+  
+	const { data, errors } = await client.models.Form.list({
+	  filter: filter,
+	});
+  
+	if (errors) {
+	  throw new Error(errors[0].message);
+	}
+  
 	return data;
-}
+  }
 
 // fetch all forms associated with a specific child
 export async function getFormsForChild(childId: string) {
