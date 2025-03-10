@@ -59,9 +59,9 @@
 .hoverable-secondary-background {
     @include hoverable(
         $color-secondary, 
-        $color-background-medium, 
+        color.adjust($color-secondary, $lightness: 10%),
         $color-text-light, 
-        $color-background-medium,
+        color.adjust($color-secondary, $lightness: 10%),
         $color-background-dark,
     );
 }
