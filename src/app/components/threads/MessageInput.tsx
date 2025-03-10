@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
+import Image from "next/image";
+
 
 interface MessageInputProps {
     placeholder?: string;
     onChange?: (event: React.ChangeEvent<HTMLTextAreaElement>) => void;
     onKeyDown?: (event: React.KeyboardEvent<HTMLTextAreaElement>) => void;
     onSubmit?: (event: React.FormEvent<HTMLTextAreaElement>) => void;
+    onClick?: (event: React.MouseEvent<HTMLImageElement>) => void;
     className?: string;
 }
 
@@ -15,7 +18,8 @@ const MessageInput = (
         onChange,
         onKeyDown,
         onSubmit,
-        className
+        className,
+        onClick
     } : MessageInputProps) => {
     const [rows, setRows] = useState(1);
     const currentRowsMax = 3;
@@ -32,19 +36,32 @@ const MessageInput = (
         }
 
         setRows(currentRows);
+        if (onChange) {
+            onChange(event);
+        }
     };
 
     return (
-        <textarea
-            className={`govuk-textarea !py-3 !ps-3 !w-auto bg-(--color-background-light) !resize-none ${className}`}
-            id="message"
-            name="message"
-            rows={rows}
-            placeholder={placeholder}
-            onChange={handleInput}
-            onKeyDown={onKeyDown}
-            onSubmit={onSubmit}
-        ></textarea>
+        <div className={`relative  justify-items-center bg-(--color-background-light)  ${className}`}>
+            <textarea
+                className={`!py-3  flex-1 !ps-3 !pe-15 govuk-focusable !border-0 govuk-textarea !mb-0 pointer-events-auto  !resize-none `}
+                id="message"
+                name="message"
+                rows={rows}
+                placeholder={placeholder}
+                onChange={handleInput}
+                onKeyDown={onKeyDown}
+                onSubmit={onSubmit}
+            ></textarea>
+            <Image
+                src="/send.svg"
+                alt="Send"
+                width={24}
+                height={24}
+                className="absolute top-[50%] translate-y-[-50%] right-4 cursor-pointer w-7"
+                onClick={onClick}
+            />
+        </div>
     );
 };
 
