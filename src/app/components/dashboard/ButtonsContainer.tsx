@@ -1,6 +1,6 @@
 
 
-const ButtonsContainer = async ({
+const ButtonsContainer = ({
     children, className,
 }: Readonly<{ children: React.ReactNode, className?: string }
 >) => {
