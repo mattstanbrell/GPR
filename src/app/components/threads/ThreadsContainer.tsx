@@ -12,7 +12,7 @@ const threads = [
         unreadCount: 2
     },
     {
-        name: "James",
+        name: "James Suit",
         threadId: "2",
         unreadCount: 0,
         message: "I think we need to add more detail to the requirements"
