@@ -98,5 +98,5 @@ export const getUserDetailsFromCookiesClient = async () => {
 		throw new Error("Failed to fetch user details");
 	}
 
-	return data
+	return data[0]
 }
