@@ -1,4 +1,3 @@
-import { Schema } from "../../../../amplify/data/resource"
 
 export interface ThreadType {
     name: string

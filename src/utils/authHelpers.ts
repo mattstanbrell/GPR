@@ -6,7 +6,7 @@ import { Schema } from "../../amplify/data/resource";
 
 type User = Schema["User"]["type"];
 
-export const useAuth = (dependencies: any[] = []) => {
+export const useAuth = (dependencies: [] = []) => {
 	const [user, setUser] = useState<User | null>(null);
 
 	useEffect(() => {
