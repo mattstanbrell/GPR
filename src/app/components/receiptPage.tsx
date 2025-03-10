@@ -1,6 +1,9 @@
-"use client";
+"use client"; 
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+
+// SLUG WILL NEED TO BE PASSED IN HERE (SLUG SHOULD BE FORM ID)
 
 type Item = {
   name: string;
@@ -28,9 +31,9 @@ type ModelResult = AnalysisResult | AnalysisError;
 export default function ReceiptPage() {
   const [isDragging, setIsDragging] = useState(false);
   const [file, setFile] = useState<File | null>(null);
-  const [result, setResult] = useState<ModelResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -61,7 +64,6 @@ export default function ReceiptPage() {
 
   const handleFile = async (file: File) => {
     setError(null);
-    setResult(null);
 
     // Validate file size (20MB)
     if (file.size > 20 * 1024 * 1024) {
@@ -101,7 +103,10 @@ export default function ReceiptPage() {
       }
 
       const data = await response.json();
-      setResult(data);
+
+
+      // router.push(`/form/${slug}/upload?result=${encodeURIComponent(JSON.stringify(data))}`);
+      router.push(`/form/3/upload?result=${encodeURIComponent(JSON.stringify(data))}`);
     } catch (error) {
       console.error("Error analyzing receipt:", error);
       setError(
@@ -112,52 +117,6 @@ export default function ReceiptPage() {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const renderResult = (result: ModelResult | null) => {
-    if (!result) {
-      return null;
-    }
-
-    if ("error" in result) {
-      return (
-        <div className="govuk-error-summary" role="alert">
-          <h2 className="govuk-error-summary__title">Error</h2>
-          <div className="govuk-error-summary__body">{result.error}</div>
-        </div>
-      );
-    }
-
-    return (
-      <div className="govuk-panel govuk-panel--confirmation">
-        <h2 className="govuk-panel__title">Receipt Analysis</h2>
-        <div className="govuk-panel__body">
-          <div style={{ marginTop: "12px", marginBottom: "12px" }}>
-            Total: {result.total}
-          </div>
-          <div style={{ color: "white", fontSize: "16px", marginTop: "8px" }}>
-            <div>Time: {result.timeTaken}ms</div>
-            <div>Cost: ${result.cost.toFixed(6)}</div>
-            {result.tokenInfo && (
-              <div>
-                Tokens: {result.tokenInfo.inputTokens} in /{" "}
-                {result.tokenInfo.outputTokens} out
-              </div>
-            )}
-          </div>
-          <div style={{ marginTop: "20px" }}>
-            <h3>Items:</h3>
-            <ul>
-              {result.items.map((item, index) => (
-                <li key={index}>
-                  {item.name} (Qty: {item.quantity}, Cost: £{item.cost})
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      </div>
-    );
   };
 
   return (
@@ -198,7 +157,7 @@ export default function ReceiptPage() {
           </div>
         </div>
 
-        {isLoading && !result && (
+        {isLoading && (
           <div className="govuk-body">
             <progress className="govuk-progress">
               <span className="govuk-visually-hidden">Loading...</span>
@@ -206,8 +165,6 @@ export default function ReceiptPage() {
             Analyzing receipt...
           </div>
         )}
-
-        {result && renderResult(result)}
       </main>
     </div>
   );
