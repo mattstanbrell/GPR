@@ -2,67 +2,47 @@
 import { useEffect, useState } from "react";
 import ThreadsSidebar from "./ThreadsSidebar";
 import Thread from "./Thread";
-import { getThreadsWithUser } from "@/utils/apis";
+import { getThreadbyID, getThreadsWithUser } from "@/utils/apis";
 import { useAuth } from "@/utils/authHelpers";
 import { ThreadType } from "./types";
+import useIsMobileWindowSize from "@/utils/responsivenessHelpers";
 
-
-const threads = [
-    {
-        name: "Bob",
-        threadId: "1",
-        message: "I'm unsure why that didn't work",
-        unreadCount: 2
-    },
-    {
-        name: "James Suit",
-        threadId: "2",
-        unreadCount: 0,
-        message: "I think we need to add more detail to the requirements"
-    },
-    {
-        name: "Dave",
-        threadId: "3",
-        message: "I think we'll need more than that, what else is available?",
-        unreadCount: 10
-    }
-]
 
 interface ThreadsContainerProps {
     threadId?: string
     startWithSidebar ?: boolean
 }
 
-
-
 const ThreadsContainer = ({threadId, startWithSidebar = true} : ThreadsContainerProps) => {
-    const [isMobile, setIsMobile] = useState(false);
+    const isMobile = useIsMobileWindowSize();
     const [threads, setThreads] = useState<ThreadType[] | null>(null);
+    const [currentThread, setCurrentThread] = useState<ThreadType | null>(null);
     const [viewSidebar, setViewSidebar] = useState(startWithSidebar); //When the screen is mobile, the sidebar is hidden by default
-
     const currentUser = useAuth()
     
     useEffect(() => {
-        async function getThreads(userId: string) {
-            setThreads(await getThreadsWithUser(userId));
-        }
-        const mediumWindowSize = 768;
-        const handleResize = () => {
-            setIsMobile(window.innerWidth < mediumWindowSize);
-        };
+        async function fetchThreads() {
+            if(!currentUser) return;
+            if(!threadId) return;
 
-        if (currentUser) {
-            getThreads(currentUser.id);
+            try{
+                const [threads, thread] = await Promise.all([
+                    getThreadsWithUser(currentUser.id),
+                    getThreadbyID(threadId)
+                ]);
+
+                setThreads(threads);
+                setCurrentThread(thread);
+            } catch (error) {
+                console.error(error);
+            }
         }
-        handleResize();
-        window.addEventListener("resize", handleResize);
-        return () => window.removeEventListener("resize", handleResize);
+        fetchThreads();
     }, []);
 
     return (
         <div className="flex flex-row">
-            {isMobile && !viewSidebar ?
-                null :
+            { !isMobile || viewSidebar &&
                 <ThreadsSidebar 
                     threads={threads}
                     sidebarToggle={() => setViewSidebar(!viewSidebar)}
@@ -70,10 +50,9 @@ const ThreadsContainer = ({threadId, startWithSidebar = true} : ThreadsContainer
                     isMobile={isMobile} 
                     className={`${!isMobile? " w-1/3" : "w-full" } shrink-1 preset-secondary`} />
             }
-            {isMobile && viewSidebar ? 
-                null : 
+            { !(isMobile && viewSidebar) &&
                 <Thread 
-                    threadId={threadId}
+                    thread={currentThread}
                     sidebarToggle={() => setViewSidebar(!viewSidebar)} 
                     isMobile={isMobile} 
                     className="flex-1 grow" />

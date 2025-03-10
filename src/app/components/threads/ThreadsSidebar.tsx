@@ -14,64 +14,62 @@ interface ThreadsSidebarProps {
     className?: string
     selectedId?: string
     isMobile?: boolean
-
 }
-
-
 
 const ThreadsSidebar = ({ className, sidebarToggle, threads, selectedId, isMobile }: ThreadsSidebarProps) => {
     const currentUser = useAuth();
 
     useEffect(() => {
-        async function getLastMessage(thread: ThreadType) {
-            const { data: messages } = await thread.messages();
-            return messages[messages.length - 1];
-        }
-
-        async function getUnreadCount(thread: ThreadType, userID: string) {
-            return await getUnreadMessageNumber(thread.id, userID);
-        }
-
-        async function fetchLastMessages() {
-            if (threads && currentUser) {
+        async function fetchUnreadData() {
+            if (!threads) return;
+            if (!currentUser) return;
+            
+            try{
                 for (const thread of threads) {
-                    const lastMessage = await getLastMessage(thread);
-                    thread.lastMessage = lastMessage;
+                    const [{data: messages}, unreadCount] = await Promise.all([
+                        thread.messages(),
+                        getUnreadMessageNumber(thread.id, currentUser.id)
+                    ]);
 
-                    const unreadCount = await getUnreadCount(thread, currentUser.id);
+                    thread.lastMessage = messages[messages.length - 1];
                     thread.unreadCount = unreadCount;
-                }
+                }  
+            } catch (error) {
+                console.error(error);
             }
         }
-        fetchLastMessages();
+        fetchUnreadData();
     }, [threads])
 
     return (
         <div className={`flex flex-col ${className}`}>
             <div className="relative font-bold  min-h-28 text-3xl w-full app-background justify-self-center content-center">
                 <p className="justify-self-center">All Threads</p>
-                {isMobile ?
+                { isMobile &&
                     <Toggle
                         sidebarToggle={sidebarToggle}
                         className="absolute right-2 top-6 filter-(--color-background-lightest-filter)"
-                    /> : null
+                    />
                 }
             </div>
             <table className="flex flex-1 bg-(--color-background-medium) flex-col">
                 <tbody className="flex flex-col">
-                    {threads ? threads.map((thread) => {
-                        return (
-                            <ThreadRow
-                                name={"PLACEHOLDER"}
-                                threadId={thread.id}
-                                message={thread.lastMessage?.content}
-                                unreadCount={thread?.unreadCount || 0}
-                                key={thread.id}
-                                selected={selectedId == thread.id}
-                            />
-                        )
-                    }) :
-                    <tr className="flex text-center"><td className="font-bold pt-5 flex-1">No Threads yet!</td></tr>}
+                    { !threads ? 
+                        <tr className="flex text-center"><td className="font-bold py-5 flex-1">No Threads yet!</td></tr>
+                        :
+                        threads.map((thread) => {
+                            return (
+                                <ThreadRow
+                                    name={"PLACEHOLDER"}
+                                    threadId={thread.id}
+                                    message={thread.lastMessage?.content}
+                                    unreadCount={thread?.unreadCount || 0}
+                                    key={thread.id}
+                                    selected={selectedId == thread.id}
+                                />
+                            )
+                        })
+                    }
                 </tbody>
             </table>
         </div>
