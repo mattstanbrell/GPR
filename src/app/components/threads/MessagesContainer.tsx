@@ -21,7 +21,7 @@ const MessagesContainer = ({ messages }: MessagesContainerProps) => {
                         message={message}
                         className={
                             `flex flex-col 
-                            ${currentUser?.id == message.userID ? "bg-(--colour-background-medium)" : "bg-(--colour-background-dark)"} 
+                            ${currentUser?.id == message.id ? "bg-(--colour-background-medium)" : "bg-(--colour-background-dark)"} 
                             ${i == messages.length - 1 ? "mb-4" : "mb-2"}`}
                         key={message.id}
                     />
