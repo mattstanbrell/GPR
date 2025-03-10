@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { getCurrentUser } from "aws-amplify/auth";
 import type { Schema } from "../../../../amplify/data/resource";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -49,6 +49,7 @@ export function FormContent() {
 	const [processingMessage, setProcessingMessage] = useState(false);
 	const [formCreated, setFormCreated] = useState(false);
 	const [updatedFields, setUpdatedFields] = useState<Set<string>>(new Set());
+	const formCreationAttempted = useRef(false);
 
 	// Get the form fields directly from the schema
 	const formFields = {
@@ -136,6 +137,9 @@ export function FormContent() {
 	// Get the current user when the component mounts and check for existing form ID in URL
 	useEffect(() => {
 		async function getUserIdAndInitializeForm() {
+			if (formCreationAttempted.current) return;
+			formCreationAttempted.current = true;
+
 			try {
 				const user = await getCurrentUser();
 				setUserId(user.userId);
