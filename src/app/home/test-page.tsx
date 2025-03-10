@@ -1,12 +1,8 @@
-import { redirect } from "next/navigation";
+
 import SocialWorkerButtons from "../components/dashboard/SocialWorkerButtons";
 import ManagerButtons from "../components/dashboard/ManagerButtons";
 import AdminButtons from "../components/dashboard/AdminButtons";
-import {
-	AuthGetCurrentUserServer,
-	AuthGetUserAttributesServer,
-	runWithAmplifyServerContext,
-} from "@/utils/amplifyServerUtils";
+import { getUserDetailsFromCookiesClient } from "@/utils/amplifyServerUtils";
 import { cookies } from "next/headers";
 import { generateServerClientUsingCookies } from "@aws-amplify/adapter-nextjs/api";
 import type { Schema } from "../../../amplify/data/resource";
@@ -33,36 +29,9 @@ function renderButtons(permissionGroup: string | null) {
 }
 
 const Home = async () => {
-	const authUser = await AuthGetCurrentUserServer();
-	if (!authUser) {
-		redirect("/");
-	}
-
-	// Get user attributes
-	const userAttributes = await AuthGetUserAttributesServer();
-	if (!userAttributes?.sub) {
-		throw new Error("User sub not found in attributes");
-	}
-
-	// Construct the profileOwner in the same format as the post-authentication handler
-	const profileOwner = `${userAttributes.sub}::${authUser.username}`;
-
-	// Get user details from the database
-	const { data: users, errors } = await runWithAmplifyServerContext({
-		nextServerContext: { cookies },
-		operation: async () => {
-			return await cookiesClient.models.User.list({
-				filter: { profileOwner: { eq: profileOwner } },
-			});
-		},
-	});
-
-	if (errors) {
-		console.error("Error fetching user:", errors);
-		throw new Error("Failed to fetch user details");
-	}
-
+	const users = await getUserDetailsFromCookiesClient()
 	const user = users?.[0];
+	
 	if (!user) {
 		return (
 			<div className="govuk-width-container">
