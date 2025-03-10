@@ -48,7 +48,7 @@ const Thread = ({ thread, className, isMobile, sidebarToggle }: ThreadProps) => 
             }
         }
         fetchThreadData();
-    },[thread])
+    },[thread, currentUser]);
 
     function onMessageSend(e: React.FormEvent<HTMLTextAreaElement>) {
         if(!currentUser?.id || !thread?.id || !e.currentTarget.value ) return;
@@ -83,7 +83,8 @@ const Thread = ({ thread, className, isMobile, sidebarToggle }: ThreadProps) => 
                                                 colour={colour} 
                                                 className={`w-10 h-10 text-[0.6em] 
                                                     outline-3 order-first outline-(--color-background-light) cursor-pointer 
-                                                    transition delay-150 duration-300 ease-in-out hover:-translate-y-1 hover:scale-110 hover:opacity-90 ${zindex}`} 
+                                                    transition delay-150 duration-300 ease-in-out hover:-translate-y-1 hover:scale-110 hover:opacity-90 
+                                                    ${zindex}`} 
                                                 key={user.id}
                                                 tooltipText={getName(user)}
                                             />
@@ -102,7 +103,9 @@ const Thread = ({ thread, className, isMobile, sidebarToggle }: ThreadProps) => 
                 { isMobile &&
                     <Toggle
                         sidebarToggle={sidebarToggle}
-                        className="absolute right-2 top-6 filter-(--hounslow-primary-filter)"
+                        className="absolute right-2 top-6 
+                            filter-(--hounslow-primary-filter)
+                            transition delay-150 duration-300 ease-in-out hover:-translate-y-1 hover:scale-110 hover:opacity-90"
                     />
                 }
             </div>

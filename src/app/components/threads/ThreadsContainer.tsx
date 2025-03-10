@@ -38,11 +38,11 @@ const ThreadsContainer = ({threadId, startWithSidebar = true} : ThreadsContainer
             }
         }
         fetchThreads();
-    }, []);
+    }, [currentUser, threadId]);
 
     return (
         <div className="flex flex-row">
-            { !isMobile || viewSidebar &&
+            { (!isMobile || viewSidebar) &&
                 <ThreadsSidebar 
                     threads={threads}
                     sidebarToggle={() => setViewSidebar(!viewSidebar)}

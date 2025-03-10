@@ -39,7 +39,7 @@ const ThreadsSidebar = ({ className, sidebarToggle, threads, selectedId, isMobil
             }
         }
         fetchUnreadData();
-    }, [threads])
+    }, [threads, currentUser])
 
     return (
         <div className={`flex flex-col ${className}`}>
