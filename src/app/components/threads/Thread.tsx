@@ -69,7 +69,7 @@ const Thread = ({ threadId, className, isMobile, sidebarToggle }: ThreadProps) =
     const currentUser = useAuth();
 
     return (
-        <div className={`flex flex-col bg-(--color-background-darkest) ${className}`}>
+        <div className={`flex flex-col bg-(--color-background-darkest) max-h-140 ${className}`}>
 
             <div className="relative bg-(--color-background-light) flex justify-center flex-col min-h-28 ">
                 {threadId ?
@@ -113,7 +113,7 @@ const Thread = ({ threadId, className, isMobile, sidebarToggle }: ThreadProps) =
                 }
             </div>
             <MessagesContainer messages={thread.messages} />
-            <MessageInput className={isMobile ? "!mb-0" : "!mx-4 !mb-4 !mt-2"}/>
+            <MessageInput className={isMobile ? "!mb-0" : "!mx-4 !mb-4 !mt-0"}/>
         </div>
     )
 }
