@@ -113,7 +113,7 @@ const Thread = ({ threadId, className, isMobile, sidebarToggle }: ThreadProps) =
                 }
             </div>
             <MessagesContainer messages={thread.messages} />
-            <MessageInput />
+            <MessageInput className={isMobile ? "!mb-0" : "!mx-4 !mb-4 !mt-2"}/>
         </div>
     )
 }
