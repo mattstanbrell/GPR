@@ -11,7 +11,6 @@ interface MessageInputProps {
     className?: string;
 }
 
-
 const MessageInput = (
     {
         placeholder="Type your message here...",
