@@ -1,10 +1,10 @@
-import { redirect } from "next/navigation"
 import { Avatar, getInitials } from "../util/Avatar"
 import { PrimaryButton } from "../util/Button"
 import Toggle from "./Toggle"
 import { FORM } from "@/app/constants/urls"
 import MessagesContainer from "./MessagesContainer"
 import { useAuth, getName } from "@/utils/authHelpers"
+import Link from "next/link"
 
 
 const thread = {
@@ -75,7 +75,9 @@ const Thread = ({ threadId, className, isMobile, sidebarToggle }: ThreadProps) =
                                     })
                                 }
                             </div>
-                            <PrimaryButton className="me-4 h-10 text-xl" onClick={() => redirect(`${FORM}`)}>View Form</PrimaryButton>
+                            <Link href={`${FORM}/${thread.formId}`}>
+                                <PrimaryButton className="me-4 h-10 text-xl">View Form</PrimaryButton>
+                            </Link>
                         </div>
                     </div>
                     :

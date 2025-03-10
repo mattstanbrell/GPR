@@ -1,7 +1,7 @@
 'use client'
 import { THREAD } from "@/app/constants/urls"
 import NotificationBadge from "../util/NotificationBadge"
-import { redirect } from "next/navigation"
+import Link from "next/link"
 
 interface ButtonProps {
     name: string
@@ -16,8 +16,6 @@ const ThreadRow = ({ name, threadId, message, unreadCount, className, selected }
     return (
         <tr
             key={threadId}
-            onClick={() => redirect(`${THREAD}${threadId}`)}
-            
             className={`
                 w-full font-bold cursor-pointer
                 ${selected?"preset-light" : "preset-secondary"}
@@ -32,17 +30,19 @@ const ThreadRow = ({ name, threadId, message, unreadCount, className, selected }
                         app-background
                         app-hoverable
             ">
-                <div className="flex-1">
-                    <span className="text-2xl text-left">{name}</span>
-                </div>
-                <div className={`flex-1 w-1/2 flex gap-1 app-alt-text`}>
-                    <div className={`truncate `}>
-                        <span className="text-left">{message}</span>
+                <Link href={`${THREAD}${threadId}`}>
+                    <div className="flex-1">
+                        <span className="text-2xl text-left">{name}</span>
                     </div>
-                    <div className="shrink-0 ">
-                        {unreadCount ? <NotificationBadge count={unreadCount} /> : null}
+                    <div className={`flex-1 w-1/2 flex gap-1 app-alt-text`}>
+                        <div className={`truncate `}>
+                            <span className="text-left">{message}</span>
+                        </div>
+                        <div className="shrink-0 ">
+                            {unreadCount ? <NotificationBadge count={unreadCount} /> : null}
+                        </div>
                     </div>
-                </div>
+                </Link>
             </td>
         </tr>
     )
