@@ -27,15 +27,15 @@ export default function AttachmentItem({ file, onDelete }: AttachmentItemProps) 
   return (
     <div className="govuk-summary-list__row">
       <dt className="govuk-summary-list__key">{fileName}</dt>
-      <dd className="govuk-summary-list__value">
+      <dd className="govuk-summary-list__actions">
+      <button className="govuk-button govuk-button--primary" onClick={downloadFile}>
+        Download
+      </button>
       <button className="govuk-button govuk-button--secondary" onClick={renameFile}>
         Rename
       </button>
       <button className="govuk-button govuk-button--warning" onClick={() => onDelete(file.name)}>
         Delete
-      </button>
-      <button className="govuk-button govuk-button--primary" onClick={downloadFile}>
-        Download
       </button>
       </dd>
     </div>

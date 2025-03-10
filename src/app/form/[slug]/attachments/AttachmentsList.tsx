@@ -19,7 +19,7 @@ export default function AttachmentsList({ files, onDelete, onUpload }: Attachmen
 
       <div className="govuk-form-group">
         <label className="govuk-label" htmlFor="file-upload">
-        Upload receipts
+        Upload receipts (last receipt uploaded shown below)
         </label>
         <div className="govuk-drop-zone" data-module="govuk-file-upload">
           <input className="govuk-file-upload" id="file-upload" type="file" multiple onChange={onUpload}/>
