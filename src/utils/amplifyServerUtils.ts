@@ -26,8 +26,8 @@ export async function isAuthenticated() {
 			},
 		});
 		return session;
-	} catch (error) {
-		console.error("[Auth] Session check error:", error);
+	} catch (error: unknown) {
+		console.error("Error checking authentication:", error);
 		return false;
 	}
 }
@@ -44,8 +44,8 @@ export async function AuthGetCurrentUserServer() {
 			operation: (contextSpec) => getCurrentUser(contextSpec),
 		});
 		return currentUser;
-	} catch (error) {
-		console.error("[Auth] Get current user error:", error);
+	} catch (error: unknown) {
+		console.error("Error getting current user:", error);
 		return null;
 	}
 }
@@ -62,8 +62,8 @@ export async function AuthGetUserAttributesServer() {
 			operation: (contextSpec) => fetchUserAttributes(contextSpec),
 		});
 		return currentUser;
-	} catch (error) {
-		console.error("[Auth] Get current user error:", error);
+	} catch (error: unknown) {
+		console.error("Error getting user attributes:", error);
 		return null;
 	}
 }
