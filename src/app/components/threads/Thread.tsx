@@ -67,7 +67,9 @@ const Thread = ({ threadId, className, isMobile, sidebarToggle }: ThreadProps) =
                                                 text={getInitials(user.firstName + user.lastName)} 
                                                 style={{ zIndex: thread.users.length - i }} 
                                                 colour={colour} 
-                                                className={`w-10 h-10 text-[0.6em] outline-3 order-first outline-(--color-background-light) ${zindex}`} 
+                                                className={`w-10 h-10 text-[0.6em] 
+                                                    outline-3 order-first outline-(--color-background-light) cursor-pointer 
+                                                    transition delay-150 duration-300 ease-in-out hover:-translate-y-1 hover:scale-110 hover:opacity-90 ${zindex}`} 
                                                 key={user.id}
                                                 tooltipText={getName(user)}
                                             />
@@ -81,7 +83,7 @@ const Thread = ({ threadId, className, isMobile, sidebarToggle }: ThreadProps) =
                         </div>
                     </div>
                     :
-                    <h1 className="self-center flex-1 text-center !mb-0">Select a thread to view</h1>
+                    <p className="self-center text-center text-3xl font-bold text-(--hounslow-primary)">Select a thread to view</p>
                 }
                 {isMobile ?
                     <Toggle
