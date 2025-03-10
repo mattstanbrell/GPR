@@ -5,7 +5,7 @@ import { FORM } from "@/app/constants/urls"
 import MessagesContainer from "./MessagesContainer"
 import { useAuth, getName } from "@/utils/authHelpers"
 import Link from "next/link"
-import MessageInput from "../util/MessageInput"
+import MessageInput from "./MessageInput"
 
 
 const thread = {
