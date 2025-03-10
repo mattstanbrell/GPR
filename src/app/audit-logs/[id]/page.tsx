@@ -1,40 +1,53 @@
 // import { notFound } from "next/navigation";
 
-async function getAuditLogDetails(auditLogId: string) {
-  // REPLACE with call to DB to fetch the single audit log by id
-  console.log(auditLogId)
-  return [
-    { allocationId: "8765C", workerId: "W1111", caseId: "C123", activity: "submit form" },
-  ];
-}
+'use client'
 
-type AuditLogDetailProps = Promise<{id: string}>
+import { useState, useEffect } from "react";
+import { getAuditLogById } from "@/utils/apis"
 
-export default async function AuditLogDetail(props: { params: AuditLogDetailProps }) {
-  const params = await props.params;
-  console.log(params)
-  /**  Without this there is a warning `params` should be awaited before using its properties.
-  Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis */
+import { type Schema } from "../../../../amplify/data/resource";
 
-  const auditLogId = params.id;  // Extract the ID from params
+type AuditLog = Schema["AuditLog"]["type"]; 
 
-  console.log(auditLogId)
+const AuditLogDetail = ({ params, }: { params: Promise<{ id: string }> }) => {
+  const [auditLog, setAuditLog] = useState<AuditLog | null>();
+  const [isLoading, setIsLoading] = useState(true); 
+  const [auditLogId, setAuditLogId] = useState<string>("");
+  const [isIDLoaded, setIsIDLoaded] = useState(false)
 
-  // Fetch the audit log details based on the ID.
-  const auditLog = await getAuditLogDetails(auditLogId);
+  useEffect(() => {
+    const fetchLogId = async () => {
+      const { id } = await params
+      setAuditLogId(id)
+      setIsIDLoaded(true)
+    };
+    fetchLogId();
+  }, [])
 
-  // if (!auditLog || auditLog.length === 0) {
-  //   return notFound(); // If no data found, show a 404 page
-  // }
+  useEffect(() => {
+    const fetchAuditLog = async () => {
+      const data = await getAuditLogById(auditLogId)
+      setAuditLog(data)
+      setIsLoading(false)
+    }
+    fetchAuditLog();
+  }, [isIDLoaded])
 
   return (
-    <main className="govuk-main-wrapper">
-      <h1 className="govuk-heading-xl">Event Details</h1>
-      <p className="govuk-body"><strong>Audit Log ID:</strong> {auditLogId}</p>
-      <p className="govuk-body"><strong>Allocation ID:</strong> {auditLog[0].allocationId}</p>
-      <p className="govuk-body"><strong>Worker ID:</strong> {auditLog[0].workerId}</p>
-      <p className="govuk-body"><strong>Case ID:</strong> {auditLog[0].caseId}</p>
-      <p className="govuk-body"><strong>Activity:</strong> {auditLog[0].activity}</p>
-    </main>
-  );
+    <>
+      {
+        isLoading ? (
+          <h3>loading</h3>
+        ) : (
+          <main className="govuk-main-wrapper">
+            <h1 className="govuk-heading-xl">Event Details</h1>
+            <p className="govuk-body"><strong>Audit Log ID:</strong> {auditLog?.id}</p>
+          </main>
+        )
+      }
+    </>
+  )
+
 }
+
+export default AuditLogDetail; 

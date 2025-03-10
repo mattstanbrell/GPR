@@ -108,7 +108,7 @@ const schema = a
 		AuditLog: a
 			.model({
 				action: a.string().required(),
-				date: a.date().required(),
+				date: a.datetime().required(),
 				userID: a.id(),
 				user: a.belongsTo("User", "userID"),
 				formID: a.id(),

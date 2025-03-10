@@ -1,34 +1,11 @@
 'use client'
+
 import { useRouter } from "next/navigation";
+import { type Schema } from "../../../../amplify/data/resource";
 
-interface AuditLogEntry {
-  id: string;
-  action: string;
-  date: string;
-  userId: string;
-  formId: string;
-}
-interface AuditLogsClientProps {
-  logs: AuditLogEntry[];
-}
+type AuditLog = Schema["AuditLog"]["type"]; 
 
-// Function to display date&time in custom format
-// function formatDate(date: Date): string {
-//   const options: Intl.DateTimeFormatOptions = {
-//     day: "2-digit",
-//     month: "2-digit",
-//     year: "2-digit",
-//     hour: "2-digit",
-//     minute: "2-digit",
-//     hour12: false, // 24-hour time
-//   };
-  
-//   return new Intl.DateTimeFormat("en-GB", options)
-//     .format(date)
-//     .replace(",", "");
-// }
-
-export default function AuditLogsClient({ logs }: AuditLogsClientProps) {
+const AuditLogsClient = ({logs} : {logs:AuditLog[]}) => {
   const router = useRouter();
 
   const viewLogDetails = (id: string) => {
@@ -46,9 +23,9 @@ export default function AuditLogsClient({ logs }: AuditLogsClientProps) {
       </thead>
       <tbody className="govuk-table__body">
         {logs.length > 0 ? (
-          logs.map((log) => (
+          logs.map((log, index) => (
             <tr 
-            key={log.id} 
+            key={ index } 
             className="govuk-table__row"
             onClick={() => viewLogDetails(log.id)} // Navigate to a new page
             style={{ cursor: "pointer" }} // Make it clear it's clickable
@@ -67,3 +44,5 @@ export default function AuditLogsClient({ logs }: AuditLogsClientProps) {
     </table>
   );
 }
+
+export default AuditLogsClient;
