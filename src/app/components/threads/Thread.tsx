@@ -5,6 +5,7 @@ import { FORM } from "@/app/constants/urls"
 import MessagesContainer from "./MessagesContainer"
 import { useAuth, getName } from "@/utils/authHelpers"
 import Link from "next/link"
+import MessageInput from "../util/MessageInput"
 
 
 const thread = {
@@ -20,8 +21,8 @@ const thread = {
                 firstName: "Alice",
                 lastName: "Smith"
             },
-            content: "Hello",
-            timeSent: "12:00"
+            content: "Hello, how have you been? It's been a while since we last spoke.",
+            timeSent: "2025-02-01T12:00:00Z"
         },
         {
             id: "2", 
@@ -30,10 +31,29 @@ const thread = {
                 firstName: "Bob",
                 lastName: "Jones"
             },
-            content: "Hi",
-            timeSent: "12:01"
+            content: "Hi Alice! I've been good, thanks for asking. How about you?",
+            timeSent: "2025-03-10T12:01:00Z"
+        },
+        {
+            id: "3", 
+            user: {
+                id: "121313",
+                firstName: "Alice",
+                lastName: "Smith"
+            },
+            content: "I'm doing well too, just been busy with work and other things. What have you been up to?",
+            timeSent: "2025-03-10T12:02:00Z"
+        },
+        {
+            id: "4", 
+            user: {
+                id: "121314",
+                firstName: "Bob",
+                lastName: "Jones"
+            },
+            content: "I've been working on some new projects at work. It's been quite exciting!",
+            timeSent: "2025-03-10T12:03:00Z"
         }
-        
     ]
 }
 
@@ -93,9 +113,7 @@ const Thread = ({ threadId, className, isMobile, sidebarToggle }: ThreadProps) =
                 }
             </div>
             <MessagesContainer messages={thread.messages} />
-            <div>
-                Input
-            </div>
+            <MessageInput />
         </div>
     )
 }
