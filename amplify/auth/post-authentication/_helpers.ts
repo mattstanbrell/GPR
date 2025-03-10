@@ -10,6 +10,6 @@ export const getPermissionGroup = (OIDCGroupIds: string[]) => {
     } else if (OIDCGroupIds.includes(SOCIAL_WORKER_GROUP_ID)) {
         return SOCIAL_WORKER_GROUP
     } else {
-        return SOCIAL_WORKER_GROUP	// assign the least permission group
+        return null;
     }
 }
