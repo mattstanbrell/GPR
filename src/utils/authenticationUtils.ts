@@ -14,7 +14,6 @@ export const useUserModel = () => {
 			const userAttributes = await fetchUserAttributes();
 			const data = await getUserByEmail(userAttributes ? userAttributes.email : ""); 
 			setUserModel(data)
-			console.log(userModel)
 		}
 		fetchUserModel();
 	}, [])
