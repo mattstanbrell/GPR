@@ -2,6 +2,9 @@
 import { useEffect, useState } from "react";
 import ThreadsSidebar from "./ThreadsSidebar";
 import Thread from "./Thread";
+import { getThreadsWithUser } from "@/utils/apis";
+import { useAuth } from "@/utils/authHelpers";
+import { ThreadType } from "./types";
 
 
 const threads = [
@@ -30,16 +33,27 @@ interface ThreadsContainerProps {
     startWithSidebar ?: boolean
 }
 
+
+
 const ThreadsContainer = ({threadId, startWithSidebar = true} : ThreadsContainerProps) => {
     const [isMobile, setIsMobile] = useState(false);
+    const [threads, setThreads] = useState<ThreadType[] | null>(null);
     const [viewSidebar, setViewSidebar] = useState(startWithSidebar); //When the screen is mobile, the sidebar is hidden by default
 
+    const currentUser = useAuth()
+    
     useEffect(() => {
+        async function getThreads(userId: string) {
+            setThreads(await getThreadsWithUser(userId));
+        }
         const mediumWindowSize = 768;
         const handleResize = () => {
             setIsMobile(window.innerWidth < mediumWindowSize);
         };
 
+        if (currentUser) {
+            getThreads(currentUser.id);
+        }
         handleResize();
         window.addEventListener("resize", handleResize);
         return () => window.removeEventListener("resize", handleResize);
