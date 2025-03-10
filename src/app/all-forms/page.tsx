@@ -2,26 +2,19 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 
-import {
-	AuthGetCurrentUserServer,
-	runWithAmplifyServerContext,
-	cookiesClient,
-} from "@/utils/amplifyServerUtils";
+import { AuthGetCurrentUserServer, runWithAmplifyServerContext, cookiesClient } from "@/utils/amplifyServerUtils";
 import type { Schema } from "../../../amplify/data/resource";
 import DeleteButton from "./DeleteButton";
 
-// Add dynamic route segment config
-export const dynamic = "force-dynamic";
-
 // Define a type for the form data
-type FormData = Pick<
-	Schema["Form"]["type"],
-	"status" | "caseNumber" | "reason" | "amount" | "title"
-> & {
+type FormData = Pick<Schema["Form"]["type"], "status" | "caseNumber" | "reason" | "amount" | "title"> & {
 	id: string;
 	createdAt: string;
 	updatedAt: string;
 };
+
+// Add dynamic route segment config
+export const dynamic = "force-dynamic";
 
 // Function to format date in a smart way
 function formatSmartDate(dateString: string) {
@@ -67,28 +60,38 @@ export default async function AllFormsPage() {
 	}
 
 	try {
-		// Fetch all forms for this user
-		const { data: userForms, errors } = await runWithAmplifyServerContext({
-			nextServerContext: { cookies },
-			operation: async () => {
-				const client = cookiesClient;
-				return await client.models.Form.list({
-					filter: { creatorID: { eq: user.userId } },
-				});
-			},
-		});
+		// Fetch all forms using pagination
+		let allForms: FormData[] = [];
+		let paginationToken: string | undefined;
 
-		if (errors) {
-			throw new Error(`Failed to fetch forms: ${JSON.stringify(errors)}`);
-		}
+		do {
+			// Fetch all forms for this user
+			const { data: userForms, errors } = await runWithAmplifyServerContext({
+				nextServerContext: { cookies },
+				operation: async () => {
+					const client = cookiesClient;
+					// Now get the filtered forms with pagination
+					const result = await client.models.Form.list({
+						limit: 1000, // Increase limit to get more forms
+						nextToken: paginationToken,
+					});
+					return result;
+				},
+			});
+
+			if (errors) {
+				throw new Error(`Failed to fetch forms: ${JSON.stringify(errors)}`);
+			}
+
+			if (userForms) {
+				allForms = [...allForms, ...userForms];
+				// The response includes a nextToken property for pagination
+				paginationToken = (userForms as { nextToken?: string }[])[0]?.nextToken;
+			}
+		} while (paginationToken);
 
 		// Sort forms by updatedAt date (most recent first)
-		const forms = userForms
-			? ([...userForms].sort(
-					(a, b) =>
-						new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
-				) as FormData[])
-			: [];
+		const sortedForms = allForms.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
 
 		return (
 			<div className="govuk-width-container">
@@ -96,7 +99,7 @@ export default async function AllFormsPage() {
 					<div className="govuk-grid-column-full">
 						<h1 className="govuk-heading-xl">All Forms</h1>
 
-						{forms.length === 0 ? (
+						{sortedForms.length === 0 ? (
 							<p className="govuk-body">You don&apos;t have any forms yet.</p>
 						) : (
 							<table className="govuk-table">
@@ -126,20 +129,14 @@ export default async function AllFormsPage() {
 									</tr>
 								</thead>
 								<tbody className="govuk-table__body">
-									{forms.map((form) => (
+									{sortedForms.map((form: FormData) => (
 										<tr key={form.id} className="govuk-table__row">
 											<td className="govuk-table__cell">
-												<Link
-													href={`/form?id=${form.id}`}
-													className="govuk-link"
-													style={{ cursor: "pointer" }}
-												>
+												<Link href={`/form?id=${form.id}`} className="govuk-link" style={{ cursor: "pointer" }}>
 													{form.title || "Untitled Form"}
 												</Link>
 											</td>
-											<td className="govuk-table__cell">
-												{form.caseNumber || ""}
-											</td>
+											<td className="govuk-table__cell">{form.caseNumber || ""}</td>
 											<td className="govuk-table__cell">
 												<strong
 													className={`govuk-tag govuk-tag--${form.status === "DRAFT" ? "blue" : form.status === "SUBMITTED" ? "yellow" : form.status === "AUTHORISED" ? "green" : form.status === "VALIDATED" ? "purple" : "pink"}`}
@@ -148,12 +145,8 @@ export default async function AllFormsPage() {
 												</strong>
 											</td>
 											<td className="govuk-table__cell">£{form.amount}</td>
-											<td className="govuk-table__cell">
-												{formatSmartDate(form.createdAt)}
-											</td>
-											<td className="govuk-table__cell">
-												{formatSmartDate(form.updatedAt)}
-											</td>
+											<td className="govuk-table__cell">{formatSmartDate(form.createdAt)}</td>
+											<td className="govuk-table__cell">{formatSmartDate(form.updatedAt)}</td>
 											<td className="govuk-table__cell">
 												<DeleteButton formId={form.id} />
 											</td>
@@ -172,18 +165,11 @@ export default async function AllFormsPage() {
 			<div className="govuk-width-container">
 				<div className="govuk-grid-row">
 					<div className="govuk-grid-column-two-thirds">
-						<div
-							className="govuk-error-summary"
-							data-module="govuk-error-summary"
-						>
+						<div className="govuk-error-summary" data-module="govuk-error-summary">
 							<div role="alert">
-								<h2 className="govuk-error-summary__title">
-									There is a problem
-								</h2>
+								<h2 className="govuk-error-summary__title">There is a problem</h2>
 								<div className="govuk-error-summary__body">
-									<p>
-										{error instanceof Error ? error.message : String(error)}
-									</p>
+									<p>{error instanceof Error ? error.message : String(error)}</p>
 								</div>
 							</div>
 						</div>

@@ -69,8 +69,7 @@ export function FormContent() {
 						setMessages(processedMessages);
 					}
 				}
-			} catch (error: unknown) {
-				console.error("Failed to load conversation:", error);
+			} catch {
 				if (conversationId) {
 					setErrorMessage(
 						"Failed to load chat history. You can continue filling the form, but the chat may be incomplete.",
@@ -93,8 +92,8 @@ export function FormContent() {
 				setForm(existingForm as Partial<Schema["Form"]["type"]>);
 				setFormCreated(true);
 				await loadConversation(formId);
-			} catch (error: unknown) {
-				setErrorMessage(error instanceof Error ? error.message : String(error));
+			} catch (_error: unknown) {
+				setErrorMessage(_error instanceof Error ? _error.message : String(_error));
 			}
 		},
 		[loadConversation],
@@ -105,7 +104,9 @@ export function FormContent() {
 	const createFormSilently = useCallback(
 		async (userIdParam?: string) => {
 			const effectiveUserId = userIdParam || userId;
-			if (!effectiveUserId || formCreated) return;
+			if (!effectiveUserId || formCreated) {
+				return;
+			}
 
 			try {
 				const newForm = await createForm({
@@ -118,17 +119,18 @@ export function FormContent() {
 					throw new Error("Failed to create form: No form data returned");
 				}
 
+				// First update the URL, then update the form state
+				const newUrl = `/form?id=${newForm.id}`;
+				await router.replace(newUrl);
+
 				setForm({
 					...form,
 					id: newForm.id,
 					status: newForm.status as "DRAFT" | "SUBMITTED" | "AUTHORISED" | "VALIDATED" | "COMPLETED",
 				});
 				setFormCreated(true);
-
-				const newUrl = `/form?id=${newForm.id}`;
-				router.replace(newUrl);
-			} catch (error) {
-				setErrorMessage(error instanceof Error ? error.message : String(error));
+			} catch (_error: unknown) {
+				setErrorMessage(_error instanceof Error ? _error.message : String(_error));
 			}
 		},
 		[form, formCreated, router, userId],
@@ -137,7 +139,9 @@ export function FormContent() {
 	// Get the current user when the component mounts and check for existing form ID in URL
 	useEffect(() => {
 		async function getUserIdAndInitializeForm() {
-			if (formCreationAttempted.current) return;
+			if (formCreationAttempted.current) {
+				return;
+			}
 			formCreationAttempted.current = true;
 
 			try {
@@ -145,13 +149,14 @@ export function FormContent() {
 				setUserId(user.userId);
 
 				const formId = searchParams.get("id");
+
 				if (formId) {
 					await loadExistingForm(formId);
 				} else {
 					await createFormSilently(user.userId);
 				}
-			} catch (error) {
-				setErrorMessage(error instanceof Error ? error.message : String(error));
+			} catch (_error: unknown) {
+				setErrorMessage(_error instanceof Error ? _error.message : String(_error));
 			}
 		}
 
@@ -176,15 +181,11 @@ export function FormContent() {
 		if (!formToUpdate.id || !userId) return;
 
 		try {
-			const updatedForm = await updateForm(formToUpdate.id, {
+			await updateForm(formToUpdate.id, {
 				...formToUpdate,
 				creatorID: userId,
 			});
-			if (updatedForm) {
-				console.log("✅ Database update successful");
-			}
-		} catch (error: unknown) {
-			console.error("❌ Database update error:", error);
+		} catch {
 			setErrorMessage("Failed to update form. Please try again.");
 		}
 	};
@@ -199,8 +200,8 @@ export function FormContent() {
 			setLoading(true);
 			await updateForm(form.id, { status: "SUBMITTED" });
 			router.push(FORM_BOARD);
-		} catch (error: unknown) {
-			setErrorMessage(error instanceof Error ? error.message : String(error));
+		} catch (_error: unknown) {
+			setErrorMessage(_error instanceof Error ? _error.message : String(_error));
 		} finally {
 			setLoading(false);
 		}

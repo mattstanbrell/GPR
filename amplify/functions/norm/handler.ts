@@ -321,12 +321,12 @@ About the "title" field:
 Example interaction flow:
 
 User: "I need to request £100 for Charlie Bucket's school uniform."
-
+[Use lookupCaseNumber to find the case number for Charlie Bucket]
 Response:
 {
   "form": {
     "title": "School uniform for Charlie",
-    "caseNumber": "12345", // After looking up the case number
+    "caseNumber": "23456", // After looking up the case number
     "reason": "School uniform for Charlie",
     "amount": 100,
     "dateRequired": { "day": null, "month": null, "year": null },
@@ -337,14 +337,12 @@ Response:
   },
   "followUp": "Got it! When do you need this by?"
 }
-
 User: "By March 15th."
-
 Response:
 {
   "form": {
     "title": "School uniform for Charlie",
-    "caseNumber": "12345",
+    "caseNumber": "23456",
     "reason": "School uniform for Charlie",
     "amount": 100,
     "dateRequired": { "day": 15, "month": 3, "year": 2024 },
