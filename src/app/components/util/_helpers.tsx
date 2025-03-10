@@ -26,9 +26,4 @@ export function formatTimestamp(timestamp: Date) {
         });
         return `${dateFormatter.format(date)} ${timeFormatter.format(date)}`;
     }
-}
-
-// Example usage
-console.log(formatTimestamp(new Date())); // Today 12:30 PM
-console.log(formatTimestamp(new Date((new Date().getTime() - 86400000)))); // Yesterday 12:30 PM
-console.log(formatTimestamp(new Date('2024-01-01T15:30:00'))); // January 1 3:30 PM    
+}  
