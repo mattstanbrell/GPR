@@ -23,6 +23,7 @@ const Thread = ({ thread, className, isMobile, sidebarToggle }: ThreadProps) => 
     const [allUsers, setAllUsers] = useState<UserType[] | null>(null);
     const [form, setForm] = useState<FormType | null>(null);
     const [messages, setMessages] = useState<MessageType[] | null>(null);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         // Fetches the users, form and messages for the thread
@@ -31,6 +32,7 @@ const Thread = ({ thread, className, isMobile, sidebarToggle }: ThreadProps) => 
             if(!thread) return;
             
             try{
+                setLoading(true);
                 const [users, form, messages] = await Promise.all([
                     getUsersInThread(thread.id),
                     thread.form(),
@@ -40,11 +42,14 @@ const Thread = ({ thread, className, isMobile, sidebarToggle }: ThreadProps) => 
                 setAllUsers(users);
                 setForm(form.data);
                 setMessages(messages.data);
+                setLoading(false);
 
                 if(!currentUser) return;
                 await setThreadMessagesToRead(thread.id, currentUser.id);
+                
             } catch (error) {
                 console.error(error);
+                setLoading(false);
             }
         }
         fetchThreadData();
@@ -109,7 +114,7 @@ const Thread = ({ thread, className, isMobile, sidebarToggle }: ThreadProps) => 
                     />
                 }
             </div>
-            <MessagesContainer messages={messages} />
+            <MessagesContainer messages={messages} loading={loading} />
             {thread && 
                 <MessageInput className={isMobile ? "!mb-0" : "!mx-4 !mb-4 !mt-0"} onSubmit={onMessageSend}/>
             }

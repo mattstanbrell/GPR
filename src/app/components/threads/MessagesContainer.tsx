@@ -8,9 +8,10 @@ import { useLayoutEffect, useRef } from "react";
 
 interface MessagesContainerProps {
     messages?: MessageType[] | null
+    loading?: boolean
 }
 
-const MessagesContainer = ({ messages }: MessagesContainerProps) => {
+const MessagesContainer = ({ messages, loading }: MessagesContainerProps) => {
     const currentUser = useAuth();
     const containerRef = useRef<HTMLDivElement>(null);
 
@@ -19,6 +20,17 @@ const MessagesContainer = ({ messages }: MessagesContainerProps) => {
             containerRef.current.scrollTop = containerRef.current.scrollHeight;
         }
     }, [messages]);
+
+    if (loading) {
+        console.log("loading");
+        return (
+            <div className="flex flex-col flex-1 gap-5 max-h-100 p-4 overflow-y-auto">
+                <Message loading={loading} className="bg-(--color-background-medium) self-end"/>
+                <Message loading={loading} className="bg-(--color-background-medium)" />
+                <Message loading={loading} className="bg-(--color-background-medium) self-end"/>
+            </div>
+        )
+    }
 
     return (
         <div ref={containerRef} className="flex flex-col flex-1 gap-5 max-h-100 p-4 overflow-y-auto">
