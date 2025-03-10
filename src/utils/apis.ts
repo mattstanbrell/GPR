@@ -725,7 +725,7 @@ export async function getThreadsWithUser(userID: string) {
 
     return thread;
   }));
-  return threads;
+  return threads.filter((thread) => thread !== null);
 }
 
 
