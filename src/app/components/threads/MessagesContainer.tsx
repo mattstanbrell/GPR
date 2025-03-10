@@ -3,6 +3,7 @@
 import Message from "./Message"
 import { MessageType } from "./types"
 import { useAuth } from "@/utils/authHelpers";
+import { useLayoutEffect, useRef } from "react";
 
 interface MessagesContainerProps {
     messages?: MessageType[]
@@ -12,9 +13,16 @@ interface MessagesContainerProps {
 
 const MessagesContainer = ({ messages }: MessagesContainerProps) => {
     const currentUser = useAuth();
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    useLayoutEffect(() => {
+        if (containerRef.current) {
+            containerRef.current.scrollTop = containerRef.current.scrollHeight;
+        }
+    }, [messages]);
 
     return (
-        <div className="flex flex-col flex-1 gap-5 max-h-100 p-4 overflow-y-auto">
+        <div ref={containerRef} className="flex flex-col flex-1 gap-5 max-h-100 p-4 overflow-y-auto">
             {messages?.map((message, i) => {
                 return (
                     <Message
