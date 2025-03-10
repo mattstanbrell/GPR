@@ -1,4 +1,3 @@
-
 export interface ThreadType {
     name: string
     threadId: string
