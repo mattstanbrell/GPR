@@ -11,6 +11,7 @@ interface RequestEvent {
   };
 }
 
+
 export const handler: Handler = async (event: RequestEvent) => {
   try {
     const base64Data = event.body;
@@ -18,7 +19,7 @@ export const handler: Handler = async (event: RequestEvent) => {
     const startTime = Date.now();
 
     const openai = new OpenAI({
-      apiKey: "API_KEY_GOES_HERE"
+      apiKey: env.OPENAI_API_KEY
     });
 
     const response = await openai.chat.completions.create({

@@ -5,7 +5,7 @@ const client = generateClient<Schema>();
 
 /*
 To correctly get type hints and to not upset the typescript
-typer checker, you must include:
+type checker, you must include:
 
 type User = Schema['User']['type'];
 
