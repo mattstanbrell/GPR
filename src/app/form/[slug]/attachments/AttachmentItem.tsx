@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import * as React from 'react';
 
 interface AttachmentItemProps {
   file: File;
@@ -6,7 +6,7 @@ interface AttachmentItemProps {
 }
 
 export default function AttachmentItem({ file, onDelete }: AttachmentItemProps) {
-  const [fileName, setFileName] = useState(file.name);
+  const [fileName, setFileName] = React.useState(file.name);
 
   const renameFile = () => {
     const newName = prompt("Enter new file name:", fileName);
@@ -25,8 +25,9 @@ export default function AttachmentItem({ file, onDelete }: AttachmentItemProps) 
   };
 
   return (
-    <li className="govuk-body">
-      <span>{fileName}</span>
+    <div className="govuk-summary-list__row">
+      <dt className="govuk-summary-list__key">{fileName}</dt>
+      <dd className="govuk-summary-list__value">
       <button className="govuk-button govuk-button--secondary" onClick={renameFile}>
         Rename
       </button>
@@ -36,6 +37,7 @@ export default function AttachmentItem({ file, onDelete }: AttachmentItemProps) 
       <button className="govuk-button govuk-button--primary" onClick={downloadFile}>
         Download
       </button>
-    </li>
+      </dd>
+    </div>
   );
 }

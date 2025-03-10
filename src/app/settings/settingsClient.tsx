@@ -98,7 +98,7 @@ export default function SettingsClient( props: {userSettings : UserSettingsProps
   
   return (
     <div>
-      <h2 className="govuk-heading-l" style={{ backgroundColor: '#e5f2eb' }} >Settings</h2>
+      <h1 className="govuk-heading-xl" style={{ backgroundColor: '#e5f2eb' }} >Settings</h1>
       <div>
         <p className="summary"
           style={{

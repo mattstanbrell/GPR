@@ -1,9 +1,9 @@
 "use client";
-import React, { useState } from "react";
+import * as React from 'react';
 import AttachmentsList from "./AttachmentsList";
 
 export default function FormAttachmentsPage() {
-  const [files, setFiles] = useState<File[]>([]);
+  const [files, setFiles] = React.useState<File[]>([]);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!event.target.files) return;
@@ -19,21 +19,18 @@ export default function FormAttachmentsPage() {
     <div className="govuk-width-container">
       <div className="govuk-grid-row">
         <div className="govuk-grid-column-two-thirds">
-          
-          <AttachmentsList files={files} onDelete={deleteFile} />
+          <h1 className="govuk-heading-xl" style={{marginBottom: '0'}}>(Form Name)</h1>
+          <span className="govuk-caption-m">Attachments</span>
+          <div style={{ width: "100%", height: ".25rem", backgroundColor: "#AA8CAE", marginTop: "25px", marginBottom: "15px" }}></div>
 
-          <div className="govuk-form-group">
-            <label className="govuk-label" htmlFor="file-upload">
-              Upload Files
-            </label>
-            <input
-              className="govuk-file-upload"
-              id="file-upload"
-              type="file"
-              multiple
-              onChange={handleFileUpload}
-            />
-          </div>
+          <AttachmentsList files={files} onDelete={deleteFile} onUpload={handleFileUpload}/>
+
+          <button className="govuk-button" data-module="govuk-button">
+            Save
+          </button>
+          <button className="govuk-button govuk-button--warning" data-module="govuk-button">
+            Cancel
+          </button>
         </div>
       </div>
     </div>
