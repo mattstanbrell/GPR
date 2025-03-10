@@ -33,7 +33,7 @@ const MessagesContainer = ({ messages }: MessagesContainerProps) => {
                             ${currentUser?.id == message.id ? 
                                 "bg-(--color-background-medium) self-end" : 
                                 "bg-(--color-background-dark)"} 
-                            ${i == messages.length - 1 ? "mb-4" : null}`}
+                            ${i == messages.length - 1 ? "mb-2" : null}`}
                         key={message.id}
                     />
                 )
