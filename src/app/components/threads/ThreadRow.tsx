@@ -17,28 +17,26 @@ const ThreadRow = ({ name, threadId, message, unreadCount, className, selected }
         <tr
             key={threadId}
             className={`
-                w-full font-bold cursor-pointer
+                flex
+                font-bold cursor-pointer
                 ${selected?"preset-light" : "preset-secondary"}
                 ${className}`}
         >
             <td 
                 tabIndex={0}
-                className="flex 
-                        items-center 
+                className="
+                        w-full
+                        flex-1
                         app-hoverable p-2 px-7  
-                        gap-2 app-keep 
+                        app-keep 
                         app-background
                         app-hoverable
             ">
-                <Link href={`${THREAD}${threadId}`}>
-                    <div className="flex-1">
-                        <span className="text-2xl text-left">{name}</span>
-                    </div>
-                    <div className={`flex-1 w-1/2 flex gap-1 app-alt-text`}>
-                        <div className={`truncate `}>
-                            <span className="text-left">{message}</span>
-                        </div>
-                        <div className="shrink-0 ">
+                <Link href={`${THREAD}${threadId}`}  className={`gap-3 flex ${selected?"preset-light" : "preset-secondary"} shrink items-center`}>
+                    <p className="text-2xl flex-1 truncate text-left" title={name}>{name}</p>
+                    <div className={` w-1/2 flex-1 flex gap-1 app-alt-text`}>
+                        <div className="flex-1 text-left truncate" title={message}>{message}</div>
+                        <div className="">
                             {unreadCount ? <NotificationBadge count={unreadCount} /> : null}
                         </div>
                     </div>
