@@ -4,6 +4,7 @@
 // Import GOV.UK Frontend with custom configuration
 @use "node_modules/govuk-frontend/dist/govuk" with (
   $govuk-brand-colour: $hounslow-primary,
+  $govuk-focus-colour: $color-accent,
   // Use Atkinson Hyperlegible instead of GDS Transport
   // Because we are not an official GOV.UK service, we can't use GDS Transport
   $govuk-font-family: var(--font-lexend),
