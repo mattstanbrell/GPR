@@ -40,13 +40,13 @@ const Thread = ({ threadId, className, isMobile, sidebarToggle }: ThreadProps) =
     return (
         <div className={`flex flex-col bg-(--color-background-darkest) ${className}`}>
 
-            <div className="relative bg-(--color-background-light)  pt-3 ">
-                {threadId && isMobile ? <p className="app-alt-text ps-7 text-(--hounslow-primary)">Messages</p> : null}
+            <div className="relative bg-(--color-background-light) flex justify-center flex-col min-h-28 ">
                 {threadId ?
-                    <>
+                    <div className="py-2">
+                        {isMobile ? <p className="app-alt-text ps-7 text-(--hounslow-primary)">Messages</p> : null}
                         <p className="text-3xl font-bold text-(--hounslow-primary) ps-7">{thread.name}</p>
-                        <div className="flex pt-2 px-6">
-                            <div className="flex flex-1 -space-x-2  pb-4 ">
+                        <div className="flex pt-1 ps-6">
+                            <div className="flex flex-1 -space-x-2">
                                 {
                                     thread.users.map((user, i) => {
                                         const zindex = `z-${thread.users.length - i}`;
@@ -64,11 +64,11 @@ const Thread = ({ threadId, className, isMobile, sidebarToggle }: ThreadProps) =
                                     })
                                 }
                             </div>
-                            <PrimaryButton className="px-1 h-10 text-xl" onClick={() => redirect(`${FORM}`)}>View Form</PrimaryButton>
+                            <PrimaryButton className="me-4 h-10 text-xl" onClick={() => redirect(`${FORM}`)}>View Form</PrimaryButton>
                         </div>
-                    </>
+                    </div>
                     :
-                    <h1>No thread selected</h1>
+                    <h1 className="self-center flex-1 text-center !mb-0">Select a thread to view</h1>
                 }
                 {isMobile ?
                     <Toggle
