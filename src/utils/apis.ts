@@ -705,7 +705,7 @@ export async function getUsersInThread(threadID: string) {
 
     return user;
   }));
-  return people;
+  return people.filter((person) => person !== null);
 }
 
 // Returns all threads a user is a member of.
