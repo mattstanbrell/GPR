@@ -14,15 +14,26 @@ const thread = {
     formId: "1",
     messages: [
         {
-            sender: "Bob",
-            message: "I'm unsure why that didn't work",
-            timestamp: "2021-09-01T12:00:00Z"
+            id: "1", 
+            user: {
+                id: "121313",
+                firstName: "Alice",
+                lastName: "Smith"
+            },
+            content: "Hello",
+            timeSent: "12:00"
         },
         {
-            sender: "Alice",
-            message: "I think you need to add more detail to the requirements",
-            timestamp: "2021-09-01T12:01:00Z"
+            id: "2", 
+            user: {
+                id: "121314",
+                firstName: "Bob",
+                lastName: "Jones"
+            },
+            content: "Hi",
+            timeSent: "12:01"
         }
+        
     ]
 }
 
@@ -77,7 +88,7 @@ const Thread = ({ threadId, className, isMobile, sidebarToggle }: ThreadProps) =
                     /> : null
                 }
             </div>
-            <MessagesContainer />
+            <MessagesContainer messages={thread.messages} />
             <div>
                 Input
             </div>
