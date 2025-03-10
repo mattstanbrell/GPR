@@ -38,7 +38,7 @@ export const handler: PostAuthenticationTriggerHandler = async (event) => {
 
 		if (existingUser) {
 			// update existing User model. 
-			const { data: updatedUser, errors: updateErrors } = await client.models.User.update({
+			const { errors: updateErrors } = await client.models.User.update({
 				id: existingUser.id,
 				firstName: userAttributes.given_name,
 				lastName: userAttributes.family_name,
@@ -52,7 +52,7 @@ export const handler: PostAuthenticationTriggerHandler = async (event) => {
 			}
 		} else {
 			// create new User model. 
-			const { data: newUser, errors: createErrors } = await client.models.User.create({
+			const { errors: createErrors } = await client.models.User.create({
 				email: userAttributes.email,
 				firstName: userAttributes.given_name,
 				lastName: userAttributes.family_name,
