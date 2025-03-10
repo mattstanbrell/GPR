@@ -6,7 +6,7 @@ import { fetchUserAttributes } from "aws-amplify/auth"
 import { getUserByEmail } from "@/utils/apis";
 import { type Schema } from "../../amplify/data/resource";
 
-export const getUserModel = () => {
+export const useUserModel = () => {
     const [userModel, setUserModel] = useState<Schema["User"]["type"] | null>();
 
 	useEffect(() => {
@@ -17,7 +17,7 @@ export const getUserModel = () => {
 			console.log(userModel)
 		}
 		fetchUserModel();
-	}, [!(userModel) ? userModel : null])
+	}, [])
 
-    return userModel ? userModel : null
+    return userModel
 }
