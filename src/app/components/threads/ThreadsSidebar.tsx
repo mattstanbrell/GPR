@@ -15,8 +15,8 @@ interface ThreadsSidebarProps {
 const ThreadsSidebar = ({className, sidebarToggle, threads, selectedId, isMobile} : ThreadsSidebarProps) => {
     return (
         <div className={`flex flex-col ${className}`}>
-            <div className="relative font-bold flex-1 min-h-28 text-3xl w-full app-keep app-background justify-self-center content-center">
-                <p className="justify-self-center app-background">All Threads</p>
+            <div className="relative font-bold  min-h-28 text-3xl w-full app-background justify-self-center content-center">
+                <p className="justify-self-center">All Threads</p>
                 {isMobile ? 
                     <Toggle
                         sidebarToggle={sidebarToggle}
@@ -24,7 +24,7 @@ const ThreadsSidebar = ({className, sidebarToggle, threads, selectedId, isMobile
                     /> : null
                 }
             </div>
-            <table className="flex flex-col border-0">
+            <table className="flex flex-1 bg-(--color-background-medium) flex-col">
                 <tbody className="flex flex-col">
                     {threads.map((thread) => (
                                 <ThreadRow 
