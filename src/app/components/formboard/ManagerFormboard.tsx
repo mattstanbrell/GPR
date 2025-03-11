@@ -14,7 +14,6 @@ const ManagerFormboard = ({userModel} : {userModel: User}) => {
     const userId = userModel.id
     const [assignedForms, setAssignedForms] = useState<Form[]>([]);
     const [authorisedForms, setAuthorisedForms] = useState<Form[]>([]); 
-    const [boards, setBoards] = useState<React.ReactElement[]>([]);
     const [index, setIndex] = useState<number>(0);
 
     useEffect(() => {
@@ -29,26 +28,23 @@ const ManagerFormboard = ({userModel} : {userModel: User}) => {
         fetchAssignedForms(userId);
         fetchAuthorisedForms(userId);
     }, [])
-
-    useEffect(() => {
-        const boardDetails = [
-            { title: "Assigned", forms: assignedForms },
-            { title: "Authorised", forms: authorisedForms },
-        ];
-
-        const renderedBoards = boardDetails.map(({title, forms}, index) => (
-            <div key={ index } className='h-full md:w-1/4 xs:sm:w-full m-2'>
-                <Formboard boardTitle={ title } boardForms={ forms } handleIndex={ updateIndex } />
-            </div>
-        ));
-        setBoards(renderedBoards);
-    }, [assignedForms, authorisedForms])
     
     const updateIndex = (isIncrement: boolean) => {
         const newIndex = getNewIndex(isIncrement, index, boards.length);
         setIndex(newIndex); 
     }
 
+    const boardDetails = [
+        { title: "Assigned", forms: assignedForms },
+        { title: "Authorised", forms: authorisedForms },
+    ];
+
+    const boards = boardDetails.map(({title, forms}, index) => (
+        <div key={ index } className='h-full md:w-1/4 xs:sm:w-full m-2'>
+            <Formboard boardTitle={ title } boardForms={ forms } handleIndex={ updateIndex } />
+        </div>
+    ));
+    
     return useIsMobileWindowSize() ? boards[index] : boards;
 }
 
