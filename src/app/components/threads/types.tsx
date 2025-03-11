@@ -3,9 +3,12 @@ import { Schema } from "../../../../amplify/data/resource";
 export type ThreadType = {
     id: string
     messages: Schema["Thread"]["type"]["messages"]
-    name?: string
+    name?: string 
     lastMessage?: Schema["Message"]["type"]
     unreadCount?: number | null
+    allUsers?: UserType[]
+    formId?: string
+    allMessages?: MessageType[]
     users: Schema["Thread"]["type"]["users"]
     form: Schema["Thread"]["type"]["form"]
 }
