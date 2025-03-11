@@ -35,7 +35,7 @@ const SocialWorkerFormboard = ({userModel} : {userModel: User}) => {
         fetchSubmittedForms();
         fetchAuthorisedForms();
         fetchValidatedForms(); 
-    }, [])
+    }, [userId])
 
     const boardDetails = [
         { title: "Draft", forms: draftForms },

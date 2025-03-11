@@ -25,7 +25,7 @@ const ManagerFormboard = ({userModel} : {userModel: User}) => {
         }
         fetchAssignedForms();
         fetchAuthorisedForms();
-    }, [])
+    }, [userId])
     
     const updateIndex = (isIncrement: boolean) => {
         const newIndex = getNewIndex(isIncrement, index, boards.length);
