@@ -67,3 +67,36 @@ export async function AuthGetUserAttributesServer() {
 		return null;
 	}
 }
+
+export const getUserDetailsFromCookiesClient = async () => {
+	const authenticatedUser = await AuthGetCurrentUserServer();
+	if (!authenticatedUser) {
+		return null;
+	}
+
+	// Get user attributes
+	const userAttributes = await AuthGetUserAttributesServer();
+	if (!userAttributes?.sub) {
+		throw new Error("User sub not found in attributes");
+	}
+
+	// Construct the profileOwner in the same format as the post-authentication handler
+	const profileOwner = `${userAttributes.sub}::${authenticatedUser.username}`;
+
+	// Get user details from the database
+	const { data, errors } = await runWithAmplifyServerContext({
+		nextServerContext: { cookies },
+		operation: async () => {
+			return await cookiesClient.models.User.list({
+				filter: { profileOwner: { eq: profileOwner } },
+			});
+		},
+	});
+
+	if (errors) {
+		console.error("Error fetching user:", errors);
+		throw new Error("Failed to fetch user details");
+	}
+
+	return data[0]
+}
