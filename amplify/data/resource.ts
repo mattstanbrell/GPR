@@ -1,5 +1,6 @@
 import { a, defineData, type ClientSchema } from "@aws-amplify/backend";
 import { norm } from "../functions/norm/resource";
+import { postAuthentication } from "../auth/post-authentication/resource";
 
 const schema = a
 	.schema({
@@ -14,6 +15,7 @@ const schema = a
 				assignments: a.hasMany("FormAssignee", "userID"),
 				children: a.hasMany("UserChild", "userID"),
 				audits: a.hasMany("AuditLog", "userID"),
+				profileOwner: a.string(),
 				address: a.customType({
 					lineOne: a.string(),
 					lineTwo: a.string(),
@@ -28,7 +30,7 @@ const schema = a
 					spacing: a.integer(),
 				}),
 			})
-			.authorization((allow) => [allow.authenticated()]),
+			.authorization((allow) => [allow.publicApiKey(), allow.authenticated()]),
 
 		Form: a
 			.model({
@@ -155,7 +157,10 @@ const schema = a
 			.authorization((allow) => [allow.authenticated()]),
 	})
 	// Add schema-level authorization to grant the norm function access to all models
-	.authorization((allow) => [allow.resource(norm)]);
+	.authorization((allow) => [
+		allow.resource(norm),
+		allow.resource(postAuthentication),
+	]);
 
 export type Schema = ClientSchema<typeof schema>;
 

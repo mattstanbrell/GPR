@@ -1,37 +1,41 @@
-import { redirect } from "next/navigation";
+
+'use client'
+
 import SocialWorkerButtons from "../components/dashboard/SocialWorkerButtons";
 import ManagerButtons from "../components/dashboard/ManagerButtons";
 import AdminButtons from "../components/dashboard/AdminButtons";
+import { useUserModel } from "@/utils/authenticationUtils";
 
-const exampleUser = {
-	firstName: "John",
-	permissionGroup: "socialworker",
-};
-
-function renderButtons(permissionGroup: string) {
+const renderButtons = (permissionGroup: "ADMIN" | "MANAGER" | "SOCIAL_WORKER" | null | undefined) => {
 	switch (permissionGroup) {
-		case "socialworker":
+		case "SOCIAL_WORKER":
 			return <SocialWorkerButtons />;
-		case "manager":
+		case "MANAGER":
 			return <ManagerButtons />;
-		case "admin":
+		case "ADMIN":
 			return <AdminButtons />;
 		default:
-			return <div>This is the default home page, you should not be here</div>;
+			return <h3>Error: User's permission group is not found.</h3>;
 	}
 }
 
-const Home = async () => {
-	const user = exampleUser;
-	if (!user) {
-		redirect("/");
-	}
+const Home = () => {
+	const userModel = useUserModel()
+
 	return (
-		<div>
-			<h1 className="text-center pb-7">Welcome {user.firstName}!</h1>
-			{renderButtons(user.permissionGroup)}
-		</div>
-	);
+		<>
+			{ userModel ? (
+				<div>
+					<h1 className="text-center pb-7">Welcome {userModel.firstName}!</h1>
+					{ renderButtons(userModel.permissionGroup) }
+				</div>
+			) : (
+				<div>
+					<h3>Loading...</h3>
+				</div>
+			)}
+		</>
+	)
 };
 
 export default Home;

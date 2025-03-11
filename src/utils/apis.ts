@@ -102,14 +102,14 @@ export async function createUser(
 	return data;
 }
 
-export async function getUserByEmail(email: string) {
+export async function getUserByEmail(email: string | undefined) {
 	const { data, errors } = await client.models.User.list({
 		filter: { email: { eq: email } },
 	});
 	if (errors) {
 		throw new Error(errors[0].message);
 	}
-	return data;
+	return data[0];
 }
 
 export async function getUserIdByEmail(email: string): Promise<string> {
