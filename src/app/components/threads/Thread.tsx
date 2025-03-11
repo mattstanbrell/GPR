@@ -3,7 +3,7 @@ import { PrimaryButton } from "../util/Button"
 import Toggle from "./Toggle"
 import { FORM } from "@/app/constants/urls"
 import MessagesContainer from "./MessagesContainer"
-import { useAuth, getName } from "@/utils/authHelpers"
+import { useUserModel, getName } from "@/utils/authenticationUtils";
 import Link from "next/link"
 import MessageInput from "./MessageInput"
 import { FormType, MessageType, ThreadType, UserType } from "./types"
@@ -19,7 +19,7 @@ interface ThreadProps {
 }
 
 const Thread = ({ thread, className, isMobile, sidebarToggle }: ThreadProps) => {
-    const currentUser = useAuth();
+    const currentUser = useUserModel();
     const [allUsers, setAllUsers] = useState<UserType[] | null>(null);
     const [form, setForm] = useState<FormType | null>(null);
     const [messages, setMessages] = useState<MessageType[] | null>(null);

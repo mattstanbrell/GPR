@@ -2,7 +2,7 @@
 
 import Message from "./Message"
 import { MessageType } from "./types"
-import { useAuth } from "@/utils/authHelpers";
+import { useUserModel } from "@/utils/authenticationUtils";
 import { useLayoutEffect, useRef } from "react";
 
 
@@ -12,7 +12,7 @@ interface MessagesContainerProps {
 }
 
 const MessagesContainer = ({ messages, loading }: MessagesContainerProps) => {
-    const currentUser = useAuth();
+    const currentUser = useUserModel();
     const containerRef = useRef<HTMLDivElement>(null);
 
     useLayoutEffect(() => {

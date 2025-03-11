@@ -37,7 +37,9 @@ const ThreadRow = ({ name, threadId, message, unreadCount, className, selected }
                     <div className={` w-1/2 flex-1 flex gap-1 app-alt-text`}>
                         <div className="flex-1 text-left truncate" title={message}>{message}</div>
                         <div className="">
-                            {unreadCount ? <NotificationBadge count={unreadCount} /> : null}
+                            {unreadCount &&
+                                <NotificationBadge count={unreadCount} />
+                            }
                         </div>
                     </div>
                 </Link>

@@ -3,9 +3,9 @@ import { useEffect, useState } from "react";
 import ThreadsSidebar from "./ThreadsSidebar";
 import Thread from "./Thread";
 import { getThreadbyID, getThreadsWithUser } from "@/utils/apis";
-import { useAuth } from "@/utils/authHelpers";
 import { ThreadType } from "./types";
 import useIsMobileWindowSize from "@/utils/responsivenessHelpers";
+import { useUserModel } from "@/utils/authenticationUtils";
 
 
 interface ThreadsContainerProps {
@@ -18,7 +18,7 @@ const ThreadsContainer = ({threadId, startWithSidebar = true} : ThreadsContainer
     const [threads, setThreads] = useState<ThreadType[] | null>(null);
     const [currentThread, setCurrentThread] = useState<ThreadType | null>(null);
     const [viewSidebar, setViewSidebar] = useState(startWithSidebar); //When the screen is mobile, the sidebar is hidden by default
-    const currentUser = useAuth()
+    const currentUser = useUserModel();
     
     useEffect(() => {
         async function fetchThreads() {

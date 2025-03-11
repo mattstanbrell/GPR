@@ -1,4 +1,4 @@
-import { getName } from "@/utils/authHelpers"
+import { getName } from "@/utils/authenticationUtils";
 import { MessageType, UserType } from "./types"
 import { formatTimestamp } from "../util/_helpers"
 import { useEffect, useState } from "react"

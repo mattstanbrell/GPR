@@ -5,7 +5,7 @@ import ThreadRow from "./ThreadRow"
 import Toggle from "./Toggle"
 import { ThreadType } from "./types"
 import { getUnreadMessageNumber } from "@/utils/apis"
-import { useAuth } from "@/utils/authHelpers"
+import { useUserModel } from "@/utils/authenticationUtils";
 
 
 interface ThreadsSidebarProps {
@@ -17,7 +17,7 @@ interface ThreadsSidebarProps {
 }
 
 const ThreadsSidebar = ({ className, sidebarToggle, threads, selectedId, isMobile }: ThreadsSidebarProps) => {
-    const currentUser = useAuth();
+    const currentUser = useUserModel();
 
     useEffect(() => {
         async function fetchUnreadData() {
