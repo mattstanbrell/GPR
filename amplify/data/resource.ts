@@ -34,7 +34,7 @@ const schema = a
 
 		Form: a
 			.model({
-				name: a.string(), 
+				title: a.string(),
 				caseNumber: a.string(),
 				reason: a.string(),
 				amount: a.float(),
@@ -153,6 +153,15 @@ const schema = a
 				messages: a.string().required(),
 				formID: a.id().required(),
 				form: a.belongsTo("Form", "formID"),
+			})
+			.authorization((allow) => [allow.authenticated()]),
+
+		FinanceCode: a
+			.model({
+				accountCode: a.string().required(),
+				typeDescription: a.string().required(),
+				accountCodeDescriptions: a.string().required(),
+				areasCovered: a.string().required(),
 			})
 			.authorization((allow) => [allow.authenticated()]),
 	})
