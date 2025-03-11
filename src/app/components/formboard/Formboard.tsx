@@ -25,7 +25,7 @@ const NavigationButton = ({src, alt} : {src: string, alt: string}) => {
     )
 }
 
-const Table = ({boardTitle, boardForms} : {boardTitle: string, boardForms: Array<Form>}) => {
+const Table = ({boardTitle, boardForms} : {boardTitle: string, boardForms: Form[]}) => {
     return (
         <div className="h-[90%] p-3 bg-[var(--color-background-light)] drop-shadow-[0_4px_4px__rgba(0,0,0,0.75)] rounded-[16px]"> 
             <FormboardTable boardTitle={ boardTitle } boardForms={ boardForms }/>
@@ -33,7 +33,7 @@ const Table = ({boardTitle, boardForms} : {boardTitle: string, boardForms: Array
     )
 }
 
-const Formboard = ({ boardTitle, boardForms, handleIndex }: { boardTitle: string, boardForms: Array<any>, handleIndex: (isIncrement: boolean) => void }) => {
+const Formboard = ({ boardTitle, boardForms, handleIndex }: { boardTitle: string, boardForms: Form[], handleIndex: (isIncrement: boolean) => void }) => {
     return (
         <>
             <Header boardTitle={ boardTitle } handleIndex={ handleIndex } />

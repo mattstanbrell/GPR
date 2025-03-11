@@ -6,7 +6,7 @@ import Formboard from "@/app/components/formboard/Formboard";
 import { getNewIndex } from "@/app/components/formboard/_helpers"
 import { useIsMobileWindowSize } from "@/utils/responsivenessHelpers";
 import { type Form } from "@/app/types/models";
-import { getFormsCreatedByUser, getUserIdByEmail } from "@/utils/apis"
+import { getFormsCreatedByUser } from "@/utils/apis"
 import { FORM_STATUS } from "@/app/constants/models";
 import { User } from "@/app/types/models"
 

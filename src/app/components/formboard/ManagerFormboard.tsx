@@ -17,16 +17,14 @@ const ManagerFormboard = ({userModel} : {userModel: User}) => {
     const [index, setIndex] = useState<number>(0);
 
     useEffect(() => {
-        const fetchAssignedForms = async (userId: string) => {
-            const status = FORM_STATUS.SUBMITTED;
-            setAssignedForms(await getFormsAssignedToUser(userId, status))
+        const fetchAssignedForms = async () => {
+            setAssignedForms(await getFormsAssignedToUser(userId, FORM_STATUS.SUBMITTED))
         }
-        const fetchAuthorisedForms = async (userId: string) => {
-            const status = FORM_STATUS.AUTHORISED;
-            setAuthorisedForms(await getFormsAssignedToUser(userId, status))
+        const fetchAuthorisedForms = async () => {
+            setAuthorisedForms(await getFormsAssignedToUser(userId, FORM_STATUS.AUTHORISED))
         }
-        fetchAssignedForms(userId);
-        fetchAuthorisedForms(userId);
+        fetchAssignedForms();
+        fetchAuthorisedForms();
     }, [])
     
     const updateIndex = (isIncrement: boolean) => {
