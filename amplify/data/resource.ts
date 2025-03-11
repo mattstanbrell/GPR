@@ -37,6 +37,7 @@ const schema = a
 
 		Form: a
 			.model({
+				title: a.string(),
 				caseNumber: a.string(),
 				reason: a.string(),
 				amount: a.float(),
