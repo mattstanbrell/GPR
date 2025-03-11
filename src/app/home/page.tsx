@@ -1,5 +1,4 @@
-
-'use client'
+"use client";
 
 import SocialWorkerButtons from "../components/dashboard/SocialWorkerButtons";
 import ManagerButtons from "../components/dashboard/ManagerButtons";
@@ -17,17 +16,17 @@ const renderButtons = (permissionGroup: "ADMIN" | "MANAGER" | "SOCIAL_WORKER" | 
 		default:
 			return <h3>Error: Permission group not found. Please contact your IT to check you are in the correct group in Microsoft Entra.</h3>;
 	}
-}
+};
 
 const Home = () => {
-	const userModel = useUserModel()
+	const userModel = useUserModel();
 
 	return (
 		<>
-			{ userModel ? (
+			{userModel ? (
 				<div>
 					<h1 className="text-center pb-7">Welcome {userModel.firstName}!</h1>
-					{ renderButtons(userModel.permissionGroup) }
+					{renderButtons(userModel.permissionGroup)}
 				</div>
 			) : (
 				<div>
@@ -35,7 +34,7 @@ const Home = () => {
 				</div>
 			)}
 		</>
-	)
+	);
 };
 
 export default Home;
