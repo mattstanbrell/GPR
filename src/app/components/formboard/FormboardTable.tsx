@@ -19,16 +19,16 @@ const FormTable = ({forms} : {forms: Array<Form>}) => {
         <tbody>
             {forms.map((form, index) => {
                 const id = form.id; 
-                const name = form.name;
+                const title = form.title;
                 const status = form.status;
                 const createdDate = form.createdAt;
                 const redirectURI = `/${ id }`;
                 
                 return (
-                    <tr key={ index } title={ name || "" } onClick={() => redirect(redirectURI)} className="h-8 border-2 border-dotted border-transparent border-b-black cursor-pointer hover:bg-[var(--color-background-light)]">
+                    <tr key={ index } title={ title || "" } onClick={() => redirect(redirectURI)} className="h-8 border-2 border-dotted border-transparent border-b-black cursor-pointer hover:bg-[var(--color-background-light)]">
                         <td className='flex p-2 text-clip text-nowrap overflow-hidden'>
                             <StatusIcon status={ status } />
-                            <p className='pl-1'>{ name }</p>
+                            <p className='pl-1'>{ title }</p>
                         </td>
                         <td className='p-2 text-right'>{ createdDate }</td>
                     </tr>
