@@ -176,6 +176,7 @@ export async function createForm(
 	},
 	status: "DRAFT" | "SUBMITTED" | "AUTHORISED" | "VALIDATED" | "COMPLETED",
 	creatorID: string,
+	title?: string,
 	childID?: string,
 	feedback?: string,
 ) {
@@ -189,11 +190,57 @@ export async function createForm(
 		creatorID,
 		childID,
 		feedback,
+		title
 	});
 	if (errors) {
 		throw new Error(errors[0].message);
 	}
 	return data;
+}
+
+export async function createFormWithThread(
+	caseNumber: string,
+	reason: string,
+	amount: number,
+	dateRequired: { day: number; month: number; year: number },
+	recipientDetails: {
+		name: { firstName: string; lastName: string };
+		address: {
+			lineOne: string;
+			lineTwo: string;
+			townOrCity: string;
+			postcode: string;
+		};
+	},
+	status: "DRAFT" | "SUBMITTED" | "AUTHORISED" | "VALIDATED" | "COMPLETED",
+	creatorID: string,
+	childID?: string,
+	feedback?: string,
+	title?: string,
+) {
+	const { data, errors } = await client.models.Form.create({
+		caseNumber,
+		reason,
+		amount,
+		dateRequired,
+		recipientDetails,
+		status,
+		creatorID,
+		childID,
+		feedback,
+		title
+	});
+	if (errors) {
+		throw new Error(errors[0].message);
+	}
+	if (!data) {
+		throw new Error("Form could not be created.");
+	}
+	const thread = await createThread(data.id);
+	if (!thread) {
+		throw new Error("Thread could not be created.");
+	}
+	return {form: data, thread};
 }
 
 // Get a form by ID
@@ -269,6 +316,24 @@ export async function assignUserToForm(formId: string, userId: string) {
 	}
 	return data;
 }
+
+export async function assignUserToFormWithThread(formId: string, userId: string) {
+	const formAssignee = await assignUserToForm(formId, userId);
+
+	// find thread by formID
+	const { data: threads, errors: threadErrors } = await client.models.Thread.list({
+		filter: { formID: { eq: formId } },
+	});
+	if (threadErrors) {
+		throw new Error(threadErrors[0].message);
+	}
+	if (threads.length === 0) {
+		throw new Error("No thread found for the form.");
+	}
+	const userThread = await assignUserToThread(threads[0].id, userId);
+	return {formAssignee, userThread};
+}
+
 
 // unassign a user from a form
 export async function unassignUserFromForm(formId: string, userId: string) {
@@ -708,12 +773,23 @@ export async function getUsersInThread(threadID: string) {
   return people.filter((person) => person !== null);
 }
 
+// Assign user to thread
+export async function assignUserToThread(threadID: string, userID: string) {
+  const { data, errors } = await client.models.UserThread.create({
+	threadID,
+	userID,
+  });
+  if (errors) {
+	throw new Error(errors[0].message);
+  }
+  return data;
+}
+
 // Returns all threads a user is a member of.
 export async function getThreadsWithUser(userID: string) {
   const { data: userThreads, errors } = await client.models.UserThread.list({
-    filter: { userID: { eq: userID} },
+    filter: { userID: { eq: userID} }
   });
-
   if (errors) {
     throw new Error(errors[0].message);
   }
@@ -752,16 +828,16 @@ export async function getUnreadMessageNumber(threadID: string, userID: string) {
 
 // Mark all unread messages in a certain thread as read.
 export async function setThreadMessagesToRead(threadID: string, userID: string) {
-  const { data: unreadMessages, errors } = await client.models.Message.list({
+  const { data: unreadMessages, errors } = await client.models.UserMessage.list({
     filter: { and: [
         {threadID: { eq: threadID}},
-        {readStatus: {eq: 'false'}}]}, //set back to boolean.
+        {isRead: {eq: false}}]}, 
   });
   if (errors) {
     throw new Error(errors[0].message);
   }
-  return await Promise.all(unreadMessages.map(async (message) => {
-    const {data: thread, errors: messageErrors} = await setMessageReadStatus(message.id, userID);
+  return await Promise.all(unreadMessages.map(async (userMessage) => {
+    const {data: thread, errors: messageErrors} = await setMessageReadStatus(userMessage.messageID, userID);
     if (messageErrors) {
       throw new Error(messageErrors[0].message);
     }
@@ -799,6 +875,15 @@ export async function createMessage(
 
   const messageID = data.id;
   await createUserMessage(userID, messageID, threadID);
+
+  // Mark as read for user who sent the message.
+  await setMessageReadStatus(messageID, userID);
+
+  // Get all users in the thread and create a UserMessage record for each user.
+  const users = await getUsersInThread(threadID);
+  await Promise.all(users.map(async (user) => {
+	await createUserMessage(user.id, messageID, threadID);
+  }));
   return data;
 }
 
