@@ -7,6 +7,7 @@ interface AvatarProps {
     style?: React.CSSProperties
     onClick?: () => void
     tooltipText?: string
+    tooltipStyles?: string
 }
 
 // Grab Initials from name
@@ -15,9 +16,9 @@ export function getInitials(name: string){
     return name.split(" ").map((word) => word[0]).join("").slice(0, 2).toUpperCase()
 }
 
-export const Avatar = ({ text, colour, className, style, onClick, tooltipText }: AvatarProps) => {
+export const Avatar = ({ text, colour, className, style, onClick, tooltipText, tooltipStyles }: AvatarProps) => {
     return (
-        <Tooltip content={tooltipText}>
+        <Tooltip content={tooltipText} className={tooltipStyles}>
             <div 
                 style={style} 
                 className={`rounded-[50%] flex items-center justify-center font-bold ${colour} ${className}`}

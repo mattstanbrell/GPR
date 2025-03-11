@@ -5,7 +5,7 @@ import { SVGProps, forwardRef, useEffect, useRef, useState, type ReactNode } fro
  * content: use `<br/>` to break lines so that tooltip is not too wide
  * @returns
  */
-export const Tooltip = ({ content, children }: { content: ReactNode; children: ReactNode }) => {
+export const Tooltip = ({ content, children, className }: { content: ReactNode; children: ReactNode, className?:string }) => {
     const [hover, setHover] = useState(false);
     const hoverTimeout = useRef<NodeJS.Timeout | null>(null);
     const tooltipContentRef = useRef<HTMLDivElement>(null);
@@ -79,7 +79,7 @@ export const Tooltip = ({ content, children }: { content: ReactNode; children: R
         <div
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
-            className="relative inline-flex flex-col items-center ">
+            className={`relative inline-flex flex-col items-center  ${className}`}>
             {hover && (
                 <div
                     ref={tooltipRef}
