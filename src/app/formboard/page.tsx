@@ -1,26 +1,33 @@
+
+'use client'
+
 import { redirect } from "next/navigation";
 import SocialeWorkerFormboard from "@/app/components/formboard/SocialWorkerFormboard";
 import ManagerFormboard from "@/app/components/formboard/ManagerFormboard";
 import { PERMISSIONS } from "@/app/constants/models";
 import { HOME } from "@/app/constants/urls";
+import { useUserModel } from "@/utils/authenticationUtils"
+import { PermissionsGroup, User } from "@/app/types/models";
+import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 
-function renderFormboard(permissionGroup: string) {
+function renderFormboard(permissionGroup: PermissionsGroup, userModel: User) {
 	switch (permissionGroup) {
 		case PERMISSIONS.SOCIAL_WORKER_GROUP:
 			return <SocialeWorkerFormboard />;
 		case PERMISSIONS.MANAGER_GROUP:
-			return <ManagerFormboard />;
+			return <ManagerFormboard userModel={ userModel } />;
 		default:
-			redirect(HOME);         // maybe redirect with a message to be displayed on home page
+			redirect(HOME)
 	}
 }
 
-const Formboard = async () => {
-    const dummy = PERMISSIONS.SOCIAL_WORKER_GROUP;
-
+const Formboard = () => {
+    const userModel = useUserModel();
+	const permissionGroup = userModel?.permissionGroup
+	
 	return (
 		<div className="h-120 xs:sm:h-40 md:flex justify-center">
-			{ renderFormboard(dummy) }
+			{ permissionGroup ? renderFormboard(permissionGroup, userModel) : <h3>Loading...</h3> }
 		</div>
 	)
 }

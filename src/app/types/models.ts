@@ -11,4 +11,4 @@ export type UserChild = Schema["UserChild"]["type"];
 export type Norm = Schema["Norm"]["type"]; 
 export type NormConversation = Schema["NormConversation"]["type"]; 
 export type FormStatus = "DRAFT" | "SUBMITTED" | "AUTHORISED" | "VALIDATED" | "COMPLETED" | null | undefined;
-export type PermissionsGroup = "ADMINISTRATOR" | "MANAGER" | "SOCIAL_WORKER" | null | undefined; 
+export type PermissionsGroup = "ADMIN" | "MANAGER" | "SOCIAL_WORKER" | null | undefined; 
