@@ -22,7 +22,6 @@ const MessagesContainer = ({ messages, loading }: MessagesContainerProps) => {
     }, [messages]);
 
     if (loading) {
-        console.log("loading");
         return (
             <div className="flex flex-col flex-1 gap-5 max-h-100 p-4 overflow-y-auto">
                 <Message loading={loading} className="bg-(--color-background-medium) self-end"/>

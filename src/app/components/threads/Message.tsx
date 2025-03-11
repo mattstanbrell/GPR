@@ -36,7 +36,6 @@ const Message = ({ message, className, loading }: MessageProps) => {
     }, [message])
 
     if (loading) {
-        console.log(loading);
         return (
             <div 
                 className={`w-2/5 h-20 rounded-xl animate-pulse ${className}`}>
