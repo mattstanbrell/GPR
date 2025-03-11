@@ -1,7 +1,7 @@
 import { NewFormButton, FormBoardButton, AllFormsButton, UpdatesButton } from "./Buttons"
 import ButtonsContainer from "./ButtonsContainer"
 
-const SocialWorkerButtons = async () => {
+const SocialWorkerButtons = () => {
   return (
     <ButtonsContainer>
       <NewFormButton/>
