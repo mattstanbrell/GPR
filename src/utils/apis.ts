@@ -1,6 +1,5 @@
 import { generateClient } from "@aws-amplify/api";
 import type { Schema } from "../../amplify/data/resource";
-import { Form } from "@/app/types/models";
 
 const client = generateClient<Schema>();
 
