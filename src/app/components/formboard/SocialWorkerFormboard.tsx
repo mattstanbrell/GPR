@@ -8,45 +8,33 @@ import { useIsMobileWindowSize } from "@/utils/responsivenessHelpers";
 import { type Form } from "@/app/types/models";
 import { getFormsCreatedByUser, getUserIdByEmail } from "@/utils/apis"
 import { FORM_STATUS } from "@/app/constants/models";
+import { User } from "@/app/types/models"
 
-const SocialWorkerFormboard = () => {
-    const [index, setIndex] = useState(0);
-    const [userId, setUserId] = useState(""); 
-    const [draftForms, setDraftForms] = useState(Array<Form>);
-    const [submittedForms, setSubmittedForms] = useState(Array<Form>);
-    const [authorisedForms, setAuthorisedForms] = useState(Array<Form>);
-    const [validatedForms, setValidatedForms] = useState(Array<Form>);
-
-    useEffect(() => {
-            const fetchUserId = async () => {
-                setUserId(await getUserIdByEmail(""));
-            }
-            fetchUserId();
-        }, [])
-    
+const SocialWorkerFormboard = ({userModel} : {userModel: User}) => {
+    const userId = userModel.id; 
+    const [draftForms, setDraftForms] = useState<Form[]>([]);
+    const [submittedForms, setSubmittedForms] = useState<Form[]>([]);
+    const [authorisedForms, setAuthorisedForms] = useState<Form[]>([]);
+    const [validatedForms, setValidatedForms] = useState<Form[]>([]);
+    const [index, setIndex] = useState<number>(0);    
 
     useEffect(() => {
-        const fetchDraftForms = async (userId: string) => {
-            const status = FORM_STATUS.DRAFT;
-            setDraftForms(await getFormsCreatedByUser(userId, status));
+        const fetchDraftForms = async () => {
+            setDraftForms(await getFormsCreatedByUser(userId, FORM_STATUS.DRAFT));
         }
-        const fetchSubmittedForms = async (userId: string) => {
-            const status = FORM_STATUS.SUBMITTED;
-            setSubmittedForms(await getFormsCreatedByUser(userId, status));
+        const fetchSubmittedForms = async () => {
+            setSubmittedForms(await getFormsCreatedByUser(userId, FORM_STATUS.SUBMITTED));
         }
-        const fetchAuthorisedForms = async (userId: string) => {
-            const status = FORM_STATUS.AUTHORISED;
-            setAuthorisedForms(await getFormsCreatedByUser(userId, status));
+        const fetchAuthorisedForms = async () => {
+            setAuthorisedForms(await getFormsCreatedByUser(userId, FORM_STATUS.AUTHORISED));
         }
-        const fetchValidatedForms = async (userId: string) => {
-            const status = FORM_STATUS.VALIDATED;
-            setValidatedForms(await getFormsCreatedByUser(userId, status));
+        const fetchValidatedForms = async () => {
+            setValidatedForms(await getFormsCreatedByUser(userId, FORM_STATUS.VALIDATED));
         }
-        const userId = "12345";
-        fetchDraftForms(userId);
-        fetchSubmittedForms(userId);
-        fetchAuthorisedForms(userId);
-        fetchValidatedForms(userId); 
+        fetchDraftForms();
+        fetchSubmittedForms();
+        fetchAuthorisedForms();
+        fetchValidatedForms(); 
     }, [])
 
     const boardDetails = [

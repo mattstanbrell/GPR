@@ -8,12 +8,11 @@ import { PERMISSIONS } from "@/app/constants/models";
 import { HOME } from "@/app/constants/urls";
 import { useUserModel } from "@/utils/authenticationUtils"
 import { PermissionsGroup, User } from "@/app/types/models";
-import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 
 function renderFormboard(permissionGroup: PermissionsGroup, userModel: User) {
 	switch (permissionGroup) {
 		case PERMISSIONS.SOCIAL_WORKER_GROUP:
-			return <SocialeWorkerFormboard />;
+			return <SocialeWorkerFormboard userModel={ userModel }/>;
 		case PERMISSIONS.MANAGER_GROUP:
 			return <ManagerFormboard userModel={ userModel } />;
 		default:
