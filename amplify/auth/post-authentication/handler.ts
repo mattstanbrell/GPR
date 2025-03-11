@@ -1,7 +1,7 @@
 import type { PostAuthenticationTriggerHandler } from "aws-lambda";
 import { Amplify } from "aws-amplify";
 import { generateClient } from "aws-amplify/data";
-import { env } from "$amplify/env/norm";
+import { env } from "$amplify/env/post-authentication";
 import { getAmplifyDataClientConfig } from "@aws-amplify/backend/function/runtime";
 import type { Schema } from "../../data/resource";
 import { getPermissionGroup } from "./_helpers";
