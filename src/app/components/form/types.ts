@@ -1,21 +1,13 @@
-import type { Schema } from "../../../../amplify/data/resource";
+export type FormChanges = Record<
+	string,
+	{
+		from: unknown;
+		to: unknown;
+	}
+>;
 
-// Use the Schema type but only include the fields we need for the form UI
-export type FormData = Pick<
-	Schema["Form"]["type"],
-	| "status"
-	| "caseNumber"
-	| "reason"
-	| "amount"
-	| "dateRequired"
-	| "recipientDetails"
-> & {
-	id?: string;
-};
-
-// Message type for our UI
-export type UIMessage = {
+export interface UIMessage {
 	id: number;
 	role: "user" | "assistant";
 	content: string;
-};
+}

@@ -1,11 +1,13 @@
-import type { FormData } from "./types";
+import type { Schema } from "../../../../amplify/data/resource";
 
 interface FormLayoutProps {
-	form: FormData;
+	form: Partial<Schema["Form"]["type"]>;
 	loading: boolean;
 	handleFormChange: (field: string, value: unknown, updateDb?: boolean) => void;
 	handleSubmit: (e: React.FormEvent) => void;
-	isFormValid: (form: FormData | null) => boolean;
+	isFormValid: (form: Partial<Schema["Form"]["type"]> | null) => boolean;
+	disabled: boolean;
+	updatedFields: Set<string>;
 }
 
 export function FormLayout({
@@ -14,6 +16,8 @@ export function FormLayout({
 	handleFormChange,
 	handleSubmit,
 	isFormValid,
+	disabled,
+	updatedFields,
 }: FormLayoutProps) {
 	return (
 		<>
@@ -48,6 +52,38 @@ export function FormLayout({
 					z-index: -1;
 					border-top: 1px solid rgba(177, 180, 182, 0.3);
 				}
+
+				.form-title {
+					cursor: text;
+					outline: none;
+					width: fit-content;
+					padding: 0 2px;
+					margin-right: 10px;
+				}
+
+				.form-title:hover, .form-title:focus {
+					background: transparent;
+				}
+
+				@keyframes flash-update {
+					0% {
+						background-color: transparent;
+					}
+					50% {
+						background-color: var(--color-background-light);
+					}
+					100% {
+						background-color: transparent;
+					}
+				}
+
+				.field-updated {
+					animation: flash-update 0.8s ease;
+				}
+
+				.form-title.field-updated {
+					animation: flash-update 0.8s ease;
+				}
 			`}</style>
 			<div
 				style={{
@@ -62,56 +98,76 @@ export function FormLayout({
 					boxSizing: "border-box",
 				}}
 			>
-				<h1 className="govuk-heading-l" style={{ marginLeft: "3px" }}>
-					Form
+				<h1
+					className={`govuk-heading-l form-title ${updatedFields.has("title") ? "field-updated" : ""}`}
+					style={{ marginLeft: "3px" }}
+					contentEditable
+					suppressContentEditableWarning
+					onBlur={(e) => {
+						const newTitle = e.currentTarget.textContent?.trim();
+						if (newTitle && newTitle !== form.title) {
+							handleFormChange("title", newTitle, true);
+						} else {
+							// Reset to current title if empty or unchanged
+							e.currentTarget.textContent = form.title || "Form";
+						}
+					}}
+					onKeyDown={(e) => {
+						if (e.key === "Enter") {
+							e.preventDefault();
+							e.currentTarget.blur();
+						}
+						if (e.key === "Escape") {
+							e.preventDefault();
+							e.currentTarget.textContent = form.title || "Form";
+							e.currentTarget.blur();
+						}
+					}}
+				>
+					{form.title || "Form"}
 				</h1>
 				<div style={{ flexGrow: 1, overflowY: "auto", paddingRight: "0" }}>
-					<form
-						onSubmit={handleSubmit}
-						style={{ paddingRight: "20px", paddingLeft: "3px" }}
-					>
+					<form onSubmit={handleSubmit} style={{ paddingRight: "20px", paddingLeft: "3px" }}>
 						<fieldset className="govuk-fieldset">
 							<legend className="govuk-fieldset__legend govuk-fieldset__legend--m">
 								<h2 className="govuk-fieldset__heading">Expense details</h2>
 							</legend>
 
-							<div className="govuk-form-group">
+							<div className={`govuk-form-group ${updatedFields.has("caseNumber") ? "form-group-updated" : ""}`}>
 								<label className="govuk-label" htmlFor="caseNumber">
 									Case number
 								</label>
 								<input
-									className="govuk-input govuk-input--width-20"
+									className={`govuk-input govuk-input--width-20 ${
+										updatedFields.has("caseNumber") ? "field-updated" : ""
+									}`}
 									id="caseNumber"
 									name="caseNumber"
 									type="text"
-									value={form.caseNumber || ""}
-									onChange={(e) =>
-										handleFormChange("caseNumber", e.target.value)
-									}
-									onBlur={() =>
-										handleFormChange("caseNumber", form.caseNumber || "", true)
-									}
+									defaultValue={form.caseNumber || ""}
+									onChange={(e) => handleFormChange("caseNumber", e.target.value)}
+									onBlur={(e) => handleFormChange("caseNumber", e.target.value, true)}
+									disabled={disabled}
 								/>
 							</div>
 
-							<div className="govuk-form-group">
+							<div className={`govuk-form-group ${updatedFields.has("reason") ? "form-group-updated" : ""}`}>
 								<label className="govuk-label" htmlFor="reason">
 									Reason for expense
 								</label>
 								<textarea
-									className="govuk-textarea"
+									className={`govuk-textarea ${updatedFields.has("reason") ? "field-updated" : ""}`}
 									id="reason"
 									name="reason"
 									rows={3}
-									value={form.reason || ""}
+									defaultValue={form.reason || ""}
 									onChange={(e) => handleFormChange("reason", e.target.value)}
-									onBlur={() =>
-										handleFormChange("reason", form.reason || "", true)
-									}
+									onBlur={(e) => handleFormChange("reason", e.target.value, true)}
+									disabled={disabled}
 								/>
 							</div>
 
-							<div className="govuk-form-group">
+							<div className={`govuk-form-group ${updatedFields.has("amount") ? "form-group-updated" : ""}`}>
 								<label className="govuk-label" htmlFor="amount">
 									Amount
 								</label>
@@ -120,147 +176,138 @@ export function FormLayout({
 										£
 									</div>
 									<input
-										className="govuk-input govuk-input--width-5"
+										className={`govuk-input govuk-input--width-5 ${updatedFields.has("amount") ? "field-updated" : ""}`}
 										id="amount"
 										name="amount"
 										type="text"
 										spellCheck="false"
-										value={form.amount?.toString() || ""}
-										onChange={(e) => {
-											const value = e.target.value;
-											const numericValue = value ? Number.parseFloat(value) : 0;
-											handleFormChange("amount", numericValue);
-										}}
-										onBlur={() =>
-											handleFormChange("amount", form.amount || "", true)
+										defaultValue={form.amount?.toString() ?? ""}
+										onChange={(e) =>
+											handleFormChange("amount", e.target.value ? Number.parseFloat(e.target.value) : null)
 										}
+										onBlur={(e) =>
+											handleFormChange("amount", e.target.value ? Number.parseFloat(e.target.value) : null, true)
+										}
+										disabled={disabled}
 									/>
 								</div>
 							</div>
 
-							<div className="govuk-form-group">
-								<fieldset
-									className="govuk-fieldset"
-									aria-describedby="date-required-hint"
-								>
-									<legend className="govuk-fieldset__legend">
-										Date prepaid card is needed by
-									</legend>
+							<div className={`govuk-form-group ${updatedFields.has("dateRequired") ? "form-group-updated" : ""}`}>
+								<fieldset className="govuk-fieldset" aria-describedby="date-required-hint">
+									<legend className="govuk-fieldset__legend">Date prepaid card is needed by</legend>
 									<div className="govuk-date-input" id="date-required">
 										<div className="govuk-date-input__item">
 											<div className="govuk-form-group">
-												<label
-													className="govuk-label govuk-date-input__label"
-													htmlFor="date-required-day"
-												>
+												<label className="govuk-label govuk-date-input__label" htmlFor="date-required-day">
 													Day
 												</label>
 												<input
-													className="govuk-input govuk-date-input__input govuk-input--width-2"
+													className={`govuk-input govuk-date-input__input govuk-input--width-2 ${
+														updatedFields.has("dateRequired") ? "field-updated" : ""
+													}`}
 													id="date-required-day"
 													name="date-required-day"
 													type="text"
 													inputMode="numeric"
-													value={
-														form.dateRequired?.day
-															? form.dateRequired.day.toString()
-															: ""
-													}
+													defaultValue={form.dateRequired?.day ? form.dateRequired.day.toString() : ""}
 													onChange={(e) => {
 														const value = e.target.value.trim();
-														const day = value
-															? Number.parseInt(value, 10)
-															: null;
+														const day = value ? Number.parseInt(value, 10) : null;
 														handleFormChange("dateRequired", {
 															...form.dateRequired,
 															day,
 														});
 													}}
-													onBlur={() =>
+													onBlur={(e) => {
+														const value = e.target.value.trim();
+														const day = value ? Number.parseInt(value, 10) : null;
 														handleFormChange(
 															"dateRequired",
-															form.dateRequired || {},
+															{
+																...form.dateRequired,
+																day,
+															},
 															true,
-														)
-													}
+														);
+													}}
+													disabled={disabled}
 												/>
 											</div>
 										</div>
 										<div className="govuk-date-input__item">
 											<div className="govuk-form-group">
-												<label
-													className="govuk-label govuk-date-input__label"
-													htmlFor="date-required-month"
-												>
+												<label className="govuk-label govuk-date-input__label" htmlFor="date-required-month">
 													Month
 												</label>
 												<input
-													className="govuk-input govuk-date-input__input govuk-input--width-2"
+													className={`govuk-input govuk-date-input__input govuk-input--width-2 ${
+														updatedFields.has("dateRequired") ? "field-updated" : ""
+													}`}
 													id="date-required-month"
 													name="date-required-month"
 													type="text"
 													inputMode="numeric"
-													value={
-														form.dateRequired?.month
-															? form.dateRequired.month.toString()
-															: ""
-													}
+													defaultValue={form.dateRequired?.month ? form.dateRequired.month.toString() : ""}
 													onChange={(e) => {
 														const value = e.target.value.trim();
-														const month = value
-															? Number.parseInt(value, 10)
-															: null;
+														const month = value ? Number.parseInt(value, 10) : null;
 														handleFormChange("dateRequired", {
 															...form.dateRequired,
 															month,
 														});
 													}}
-													onBlur={() =>
+													onBlur={(e) => {
+														const value = e.target.value.trim();
+														const month = value ? Number.parseInt(value, 10) : null;
 														handleFormChange(
 															"dateRequired",
-															form.dateRequired || {},
+															{
+																...form.dateRequired,
+																month,
+															},
 															true,
-														)
-													}
+														);
+													}}
+													disabled={disabled}
 												/>
 											</div>
 										</div>
 										<div className="govuk-date-input__item">
 											<div className="govuk-form-group">
-												<label
-													className="govuk-label govuk-date-input__label"
-													htmlFor="date-required-year"
-												>
+												<label className="govuk-label govuk-date-input__label" htmlFor="date-required-year">
 													Year
 												</label>
 												<input
-													className="govuk-input govuk-date-input__input govuk-input--width-4"
+													className={`govuk-input govuk-date-input__input govuk-input--width-4 ${
+														updatedFields.has("dateRequired") ? "field-updated" : ""
+													}`}
 													id="date-required-year"
 													name="date-required-year"
 													type="text"
 													inputMode="numeric"
-													value={
-														form.dateRequired?.year
-															? form.dateRequired.year.toString()
-															: ""
-													}
+													defaultValue={form.dateRequired?.year ? form.dateRequired.year.toString() : ""}
 													onChange={(e) => {
 														const value = e.target.value.trim();
-														const year = value
-															? Number.parseInt(value, 10)
-															: null;
+														const year = value ? Number.parseInt(value, 10) : null;
 														handleFormChange("dateRequired", {
 															...form.dateRequired,
 															year,
 														});
 													}}
-													onBlur={() =>
+													onBlur={(e) => {
+														const value = e.target.value.trim();
+														const year = value ? Number.parseInt(value, 10) : null;
 														handleFormChange(
 															"dateRequired",
-															form.dateRequired || {},
+															{
+																...form.dateRequired,
+																year,
+															},
 															true,
-														)
-													}
+														);
+													}}
+													disabled={disabled}
 												/>
 											</div>
 										</div>
@@ -271,24 +318,20 @@ export function FormLayout({
 
 						<fieldset className="govuk-fieldset">
 							<legend className="govuk-fieldset__legend govuk-fieldset__legend--m">
-								<h2 className="govuk-fieldset__heading">
-									Card recipient details
-								</h2>
+								<h2 className="govuk-fieldset__heading">Card recipient details</h2>
 							</legend>
-							<div className="govuk-hint">
-								Details of the person receiving the prepaid card.
-							</div>
+							<div className="govuk-hint">Details of the person receiving the prepaid card.</div>
 
-							<div className="govuk-form-group">
+							<div className={`govuk-form-group ${updatedFields.has("recipientDetails") ? "form-group-updated" : ""}`}>
 								<label className="govuk-label" htmlFor="firstName">
 									First name
 								</label>
 								<input
-									className="govuk-input"
+									className={`govuk-input ${updatedFields.has("recipientDetails") ? "field-updated" : ""}`}
 									id="firstName"
 									name="firstName"
 									type="text"
-									value={form.recipientDetails?.name?.firstName || ""}
+									defaultValue={form.recipientDetails?.name?.firstName || ""}
 									onChange={(e) =>
 										handleFormChange("recipientDetails", {
 											...form.recipientDetails,
@@ -298,26 +341,33 @@ export function FormLayout({
 											},
 										})
 									}
-									onBlur={() =>
+									onBlur={(e) =>
 										handleFormChange(
 											"recipientDetails",
-											form.recipientDetails || {},
+											{
+												...form.recipientDetails,
+												name: {
+													...form.recipientDetails?.name,
+													firstName: e.target.value,
+												},
+											},
 											true,
 										)
 									}
+									disabled={disabled}
 								/>
 							</div>
 
-							<div className="govuk-form-group">
+							<div className={`govuk-form-group ${updatedFields.has("recipientDetails") ? "form-group-updated" : ""}`}>
 								<label className="govuk-label" htmlFor="lastName">
 									Last name
 								</label>
 								<input
-									className="govuk-input"
+									className={`govuk-input ${updatedFields.has("recipientDetails") ? "field-updated" : ""}`}
 									id="lastName"
 									name="lastName"
 									type="text"
-									value={form.recipientDetails?.name?.lastName || ""}
+									defaultValue={form.recipientDetails?.name?.lastName || ""}
 									onChange={(e) =>
 										handleFormChange("recipientDetails", {
 											...form.recipientDetails,
@@ -327,26 +377,33 @@ export function FormLayout({
 											},
 										})
 									}
-									onBlur={() =>
+									onBlur={(e) =>
 										handleFormChange(
 											"recipientDetails",
-											form.recipientDetails || {},
+											{
+												...form.recipientDetails,
+												name: {
+													...form.recipientDetails?.name,
+													lastName: e.target.value,
+												},
+											},
 											true,
 										)
 									}
+									disabled={disabled}
 								/>
 							</div>
 
-							<div className="govuk-form-group">
+							<div className={`govuk-form-group ${updatedFields.has("recipientDetails") ? "form-group-updated" : ""}`}>
 								<label className="govuk-label" htmlFor="address-line-1">
 									Address line 1
 								</label>
 								<input
-									className="govuk-input"
+									className={`govuk-input ${updatedFields.has("recipientDetails") ? "field-updated" : ""}`}
 									id="address-line-1"
 									name="address-line-1"
 									type="text"
-									value={form.recipientDetails?.address?.lineOne || ""}
+									defaultValue={form.recipientDetails?.address?.lineOne || ""}
 									onChange={(e) =>
 										handleFormChange("recipientDetails", {
 											...form.recipientDetails,
@@ -356,27 +413,34 @@ export function FormLayout({
 											},
 										})
 									}
-									onBlur={() =>
+									onBlur={(e) =>
 										handleFormChange(
 											"recipientDetails",
-											form.recipientDetails || {},
+											{
+												...form.recipientDetails,
+												address: {
+													...form.recipientDetails?.address,
+													lineOne: e.target.value,
+												},
+											},
 											true,
 										)
 									}
+									disabled={disabled}
 									autoComplete="address-line1"
 								/>
 							</div>
 
-							<div className="govuk-form-group">
+							<div className={`govuk-form-group ${updatedFields.has("recipientDetails") ? "form-group-updated" : ""}`}>
 								<label className="govuk-label" htmlFor="address-line-2">
 									Address line 2 (optional)
 								</label>
 								<input
-									className="govuk-input"
+									className={`govuk-input ${updatedFields.has("recipientDetails") ? "field-updated" : ""}`}
 									id="address-line-2"
 									name="address-line-2"
 									type="text"
-									value={form.recipientDetails?.address?.lineTwo || ""}
+									defaultValue={form.recipientDetails?.address?.lineTwo || ""}
 									onChange={(e) =>
 										handleFormChange("recipientDetails", {
 											...form.recipientDetails,
@@ -386,27 +450,36 @@ export function FormLayout({
 											},
 										})
 									}
-									onBlur={() =>
+									onBlur={(e) =>
 										handleFormChange(
 											"recipientDetails",
-											form.recipientDetails || {},
+											{
+												...form.recipientDetails,
+												address: {
+													...form.recipientDetails?.address,
+													lineTwo: e.target.value,
+												},
+											},
 											true,
 										)
 									}
+									disabled={disabled}
 									autoComplete="address-line2"
 								/>
 							</div>
 
-							<div className="govuk-form-group">
+							<div className={`govuk-form-group ${updatedFields.has("recipientDetails") ? "form-group-updated" : ""}`}>
 								<label className="govuk-label" htmlFor="address-town">
 									Town or city
 								</label>
 								<input
-									className="govuk-input govuk-input--width-20"
+									className={`govuk-input govuk-input--width-20 ${
+										updatedFields.has("recipientDetails") ? "field-updated" : ""
+									}`}
 									id="address-town"
 									name="address-town"
 									type="text"
-									value={form.recipientDetails?.address?.townOrCity || ""}
+									defaultValue={form.recipientDetails?.address?.townOrCity || ""}
 									onChange={(e) =>
 										handleFormChange("recipientDetails", {
 											...form.recipientDetails,
@@ -416,27 +489,36 @@ export function FormLayout({
 											},
 										})
 									}
-									onBlur={() =>
+									onBlur={(e) =>
 										handleFormChange(
 											"recipientDetails",
-											form.recipientDetails || {},
+											{
+												...form.recipientDetails,
+												address: {
+													...form.recipientDetails?.address,
+													townOrCity: e.target.value,
+												},
+											},
 											true,
 										)
 									}
+									disabled={disabled}
 									autoComplete="address-level2"
 								/>
 							</div>
 
-							<div className="govuk-form-group">
+							<div className={`govuk-form-group ${updatedFields.has("recipientDetails") ? "form-group-updated" : ""}`}>
 								<label className="govuk-label" htmlFor="address-postcode">
 									Postcode
 								</label>
 								<input
-									className="govuk-input govuk-input--width-10"
+									className={`govuk-input govuk-input--width-10 ${
+										updatedFields.has("recipientDetails") ? "field-updated" : ""
+									}`}
 									id="address-postcode"
 									name="address-postcode"
 									type="text"
-									value={form.recipientDetails?.address?.postcode || ""}
+									defaultValue={form.recipientDetails?.address?.postcode || ""}
 									onChange={(e) =>
 										handleFormChange("recipientDetails", {
 											...form.recipientDetails,
@@ -446,13 +528,20 @@ export function FormLayout({
 											},
 										})
 									}
-									onBlur={() =>
+									onBlur={(e) =>
 										handleFormChange(
 											"recipientDetails",
-											form.recipientDetails || {},
+											{
+												...form.recipientDetails,
+												address: {
+													...form.recipientDetails?.address,
+													postcode: e.target.value,
+												},
+											},
 											true,
 										)
 									}
+									disabled={disabled}
 									autoComplete="postal-code"
 								/>
 							</div>
