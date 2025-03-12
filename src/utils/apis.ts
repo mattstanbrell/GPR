@@ -342,6 +342,8 @@ export async function getAssigneesForForm(formId: string) {
 	return users;
 }
 
+//Add an algorithm which assigns forms to the manager with the fewest forms.
+
 // ------------------ UserChild link APISs --------------
 
 export async function linkUserToChild(userId: string, childId: string) {
@@ -692,20 +694,6 @@ export async function getThreadbyID(
 ) {
   const { data, errors } = await client.models.Thread.get({
     id: threadID,
-  });
-  if (errors) {
-    throw new Error(errors[0].message);
-  }
-  return data;
-}
-
-export async function createUserThread(
-    threadID: string,
-    userID: string,
-) {
-  const { data, errors } = await client.models.UserThread.create({
-    threadID: threadID,
-    userID: userID
   });
   if (errors) {
     throw new Error(errors[0].message);
