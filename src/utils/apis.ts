@@ -179,15 +179,23 @@ export async function deleteForm(formId: string) {
 }
 
 // Returns all forms created by a specific user by filtering on creatorID
-export async function getFormsCreatedByUser(userId: string) {
-	const { data, errors } = await client.models.Form.list({
-		filter: { creatorID: { eq: userId } },
-	});
-	if (errors) {
-		throw new Error(errors[0].message);
+export async function getFormsCreatedByUser(userId: string, status?: string) {
+	const filter: { creatorID: {eq: string}, status?: {eq: string} } = { creatorID: { eq: userId } };
+	
+	if (status) {
+	  filter.status = { eq: status };
 	}
+  
+	const { data, errors } = await client.models.Form.list({
+	  filter: filter,
+	});
+  
+	if (errors) {
+	  throw new Error(errors[0].message);
+	}
+  
 	return data;
-}
+  }
 
 // fetch all forms associated with a specific child
 export async function getFormsForChild(childId: string) {
@@ -237,25 +245,35 @@ export async function unassignUserFromForm(formId: string, userId: string) {
 }
 
 // Returns all forms assigned to a specific user
-export async function getFormsAssignedToUser(userId: string) {
+export async function getFormsAssignedToUser(userId: string,status?: string) {
+
 	const { data: assignments, errors } = await client.models.FormAssignee.list({
-		filter: { userID: { eq: userId } },
+	  filter: { userID: { eq: userId } },
 	});
+  
 	if (errors) {
-		throw new Error(errors[0].message);
+	  throw new Error(errors[0].message);
 	}
+  
 	const forms = await Promise.all(
-		assignments.map(async (assignment) => {
-			const { data: form, errors: formErrors } = await client.models.Form.get({
-				id: assignment.formID,
-			});
-			if (formErrors) {
-				throw new Error(formErrors[0].message);
-			}
-			return form;
-		}),
+	  assignments.map(async (assignment) => {
+		const { data: form, errors: formErrors } = await client.models.Form.get({
+		  id: assignment.formID,
+		});
+		if (formErrors) {
+		  throw new Error(formErrors[0].message);
+		}
+		return form; 
+	  }),
 	);
-	return forms;
+  
+	const filteredForms = forms.filter((form) => form !== null); 
+  
+	if (status) {
+	  return filteredForms.filter((form) => form.status === status);
+	}
+  
+	return filteredForms;
 }
 
 // fetch all users assigned to a specific form
