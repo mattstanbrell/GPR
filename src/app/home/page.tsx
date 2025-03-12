@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react" 
 import SocialWorkerButtons from "../components/dashboard/SocialWorkerButtons";
 import ManagerButtons from "../components/dashboard/ManagerButtons";
 import AdminButtons from "../components/dashboard/AdminButtons";
@@ -20,18 +21,22 @@ const renderButtons = (permissionGroup: "ADMIN" | "MANAGER" | "SOCIAL_WORKER" | 
 
 const Home = () => {
 	const userModel = useUserModel();
+	const [isLoading, setIsLoading] = useState<boolean>(true);
+	
+	useEffect(() => {
+		setIsLoading(false)
+	}, [userModel])
 
 	return (
 		<>
-			{userModel ? (
-				<div>
-					<h1 className="text-center pb-7">Welcome {userModel.firstName}!</h1>
-					{renderButtons(userModel.permissionGroup)}
-				</div>
+			
+			{ isLoading ? (
+				<h3 className="text-center">Loading...</h3>
 			) : (
-				<div>
-					<h3>Loading...</h3>
-				</div>
+				<>
+					<h1 className="text-center pb-7">Welcome{` ${userModel?.firstName}`}!</h1>
+					{renderButtons(userModel?.permissionGroup)}
+				</>
 			)}
 		</>
 	);
