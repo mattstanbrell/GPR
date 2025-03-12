@@ -3,7 +3,7 @@
 
 import Image from 'next/image';
 import FormboardTable from "@/app/components/formboard/FormboardTable";
-import { type Form } from '@/app/types/models';
+import type { Form } from '@/app/types/models';
 
 const Header = ({boardTitle, handleIndex} : {boardTitle: string, handleIndex: (isIncrement: boolean) => void}) => {
     return (

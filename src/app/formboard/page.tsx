@@ -7,7 +7,7 @@ import ManagerFormboard from "@/app/components/formboard/ManagerFormboard";
 import { PERMISSIONS } from "@/app/constants/models";
 import { HOME } from "@/app/constants/urls";
 import { useUserModel } from "@/utils/authenticationUtils"
-import { PermissionsGroup, User } from "@/app/types/models";
+import type { PermissionsGroup, User } from "@/app/types/models";
 
 function renderFormboard(permissionGroup: PermissionsGroup, userModel: User) {
 	switch (permissionGroup) {

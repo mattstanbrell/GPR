@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 import Formboard from "@/app/components/formboard/Formboard";
 import { getNewIndex } from "@/app/components/formboard/_helpers"
 import { useIsMobileWindowSize } from "@/utils/responsivenessHelpers";
-import { User, type Form } from "@/app/types/models";
+import type { User, Form } from "@/app/types/models";
 import { FORM_STATUS } from "@/app/constants/models";
 import { getFormsAssignedToUser } from "@/utils/apis"
 

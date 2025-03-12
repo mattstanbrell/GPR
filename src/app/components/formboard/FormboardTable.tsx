@@ -3,7 +3,7 @@
 
 import { redirect } from 'next/navigation';
 import StatusIcon from '@/app/components/form/Icons'
-import { type Form } from '@/app/types/models';
+import type { Form } from '@/app/types/models';
 
 const TableHeader = ({title} : {title: string}) => {
     return (

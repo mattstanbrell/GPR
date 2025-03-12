@@ -1,6 +1,6 @@
 
 import Image from 'next/image';
-import { type FormStatus } from '@/app/types/models';
+import type { FormStatus } from '@/app/types/models';
 import { FORM_STATUS } from '@/app/constants/models';
 
 const StatusIcon = ({ status }: { status: FormStatus }) => {

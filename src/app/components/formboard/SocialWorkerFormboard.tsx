@@ -5,10 +5,9 @@ import { useState, useEffect } from "react";
 import Formboard from "@/app/components/formboard/Formboard";
 import { getNewIndex } from "@/app/components/formboard/_helpers"
 import { useIsMobileWindowSize } from "@/utils/responsivenessHelpers";
-import { type Form } from "@/app/types/models";
+import type { User, Form } from "@/app/types/models";
 import { getFormsCreatedByUser } from "@/utils/apis"
 import { FORM_STATUS } from "@/app/constants/models";
-import { User } from "@/app/types/models"
 
 const SocialWorkerFormboard = ({userModel} : {userModel: User}) => {
     const userId = userModel.id; 
