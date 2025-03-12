@@ -1,5 +1,3 @@
-// import { notFound } from "next/navigation";
-
 'use client'
 
 import { useState, useEffect } from "react";
