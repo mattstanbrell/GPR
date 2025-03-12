@@ -1,5 +1,4 @@
-
-'use client'
+"use client";
 
 import SocialWorkerButtons from "../components/dashboard/SocialWorkerButtons";
 import ManagerButtons from "../components/dashboard/ManagerButtons";
@@ -15,19 +14,19 @@ const renderButtons = (permissionGroup: "ADMIN" | "MANAGER" | "SOCIAL_WORKER" | 
 		case "ADMIN":
 			return <AdminButtons />;
 		default:
-			return <h3>Error: User's permission group is not found.</h3>;
+			return <h3>Error: User&apos;s permission group is not found.</h3>;
 	}
-}
+};
 
 const Home = () => {
-	const userModel = useUserModel()
+	const userModel = useUserModel();
 
 	return (
 		<>
-			{ userModel ? (
+			{userModel ? (
 				<div>
 					<h1 className="text-center pb-7">Welcome {userModel.firstName}!</h1>
-					{ renderButtons(userModel.permissionGroup) }
+					{renderButtons(userModel.permissionGroup)}
 				</div>
 			) : (
 				<div>
@@ -35,7 +34,7 @@ const Home = () => {
 				</div>
 			)}
 		</>
-	)
+	);
 };
 
 export default Home;
