@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Form from '@/app/components/receipts/form/Form';
 import { useSearchParams } from "next/navigation";
-import type { AnalysisResult } from "@/app/types/receipts";
+
 
 const Title = ({ text }: { text: string }) => {
   return (
@@ -18,17 +18,27 @@ const Upload = ({ params }: { params: { slug: string } }) => {
   const resultParam = searchParams.get("result");
 
   // Parse the result from the query parameter
-  const result: AnalysisResult | null = resultParam
-    ? JSON.parse(decodeURIComponent(resultParam))
-    : null;
+  let result: any = null;
+  if (resultParam) {
+    try {
+      const parsedWrapper = JSON.parse(decodeURIComponent(resultParam));
+      // If the response has a "data" field, parse its JSON string.
+      result = parsedWrapper.data ? JSON.parse(parsedWrapper.data) : parsedWrapper;
+    } catch (e) {
+      console.error("Error parsing result:", e);
+    }
+  }
 
   // Convert total from string to number
   const parsedResult = result
-    ? {
-        ...result,
-        total: parseFloat(result.total.replace(/[^0-9.-]+/g, "")), // Convert total to number
-      }
-    : null;
+  ? {
+      ...result,
+      total: result.total
+        ? parseFloat(String(result.total).replace(/[^0-9.-]+/g, ""))
+        : 0,
+    }
+  : null;
+
 
   // Use the parsed result or fallback to default data
   const [receiptData, setReceiptData] = useState(
@@ -44,14 +54,14 @@ const Upload = ({ params }: { params: { slug: string } }) => {
 
   const handleAddItem = () => {
     const newRow = { name: "", quantity: 0, cost: 0.0 };
-    setReceiptData((prevData) => ({
+    setReceiptData((prevData: ReceiptData) => ({
       ...prevData,
       items: [...prevData.items, newRow],
     }));
   };
 
   const handleDeleteItem = (index: number) => {
-    setReceiptData((prevData) => ({
+    setReceiptData((prevData: ReceiptData) => ({
       ...prevData,
       items: prevData.items.filter((_, i) => i !== index), // Remove item at the given index
     }));
@@ -68,6 +78,7 @@ const Upload = ({ params }: { params: { slug: string } }) => {
         receiptData={receiptData}
         handleAddItem={handleAddItem}
         handleDeleteItem={handleDeleteItem}
+        
       />
     </div>
   );
