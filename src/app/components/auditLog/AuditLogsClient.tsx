@@ -2,7 +2,6 @@
 
 import { useRouter } from "next/navigation";
 import { type Schema } from "../../../../amplify/data/resource";
-import AuditLogEntry from "./AuditLogEntry";
 
 type AuditLog = Schema["AuditLog"]["type"];
 
@@ -37,7 +36,17 @@ const AuditLogsClient = ({logs} : {logs:AuditLog[]}) => {
       </thead>
       <tbody className="govuk-table__body">
         {sortedLogs.length > 0 ? (
-          sortedLogs.map((log) => <AuditLogEntry key={log.id} log={log} />)
+          sortedLogs.map((log, index) => (
+            <tr 
+            key={ index } 
+            className="govuk-table__row"
+            onClick={() => viewLogDetails(log.id)}
+            style={{ cursor: "pointer" }}
+            >
+              <th scope="row" className="govuk-table__header">{log.action}</th>
+              <td className="govuk-table__cell">{formatDate(log.date)}</td>
+            </tr>
+          ))
         ) : (
           <tr className="govuk-table__row">
             <td className="govuk-table__header" colSpan={2}>No audit log entries found.</td>
