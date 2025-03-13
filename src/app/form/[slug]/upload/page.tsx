@@ -1,23 +1,22 @@
-'use client';
-
-import { useState } from "react";
+"use client";
+import { useState, use } from "react";
 import Form from '@/app/components/receipts/form/Form';
 import { useSearchParams } from "next/navigation";
 
+const Title = ({ text }: { text: string }) => (
+  <div className="h-[5vh] border-b-1 border-b-[#a9a9a9]">
+    <h2 className="text-[var(--hounslow-primary)] text-xl md:text-2xl font-bold">{text}</h2>
+  </div>
+);
 
-const Title = ({ text }: { text: string }) => {
-  return (
-    <div className="h-[5vh] border-b-1 border-b-[#a9a9a9]">
-      <h2 className="text-[var(--hounslow-primary)] text-xl md:text-2xl font-bold">{text}</h2>
-    </div>
-  );
-};
+// Notice that params is now a promise. We use React's experimental use() hook to unwrap it.
+const Upload = ({ params }: { params: Promise<{ slug: string }> }) => {
+  const resolvedParams = use(params);
+  const { slug } = resolvedParams;
 
-const Upload = ({ params }: { params: { slug: string } }) => {
   const searchParams = useSearchParams();
   const resultParam = searchParams.get("result");
 
-  // Parse the result from the query parameter
   let result: any = null;
   if (resultParam) {
     try {
@@ -29,21 +28,18 @@ const Upload = ({ params }: { params: { slug: string } }) => {
     }
   }
 
-  // Convert total from string to number
   const parsedResult = result
-  ? {
-      ...result,
-      total: result.total
-        ? parseFloat(String(result.total).replace(/[^0-9.-]+/g, ""))
-        : 0,
-    }
-  : null;
+    ? {
+        ...result,
+        total: result.total
+          ? parseFloat(String(result.total).replace(/[^0-9.-]+/g, ""))
+          : 0,
+      }
+    : null;
 
-
-  // Use the parsed result or fallback to default data
   const [receiptData, setReceiptData] = useState(
     parsedResult || {
-      total: 0.0, // Default total is now a number
+      total: 0.0,
       items: [],
       timeTaken: 0,
       cost: 0,
@@ -63,7 +59,7 @@ const Upload = ({ params }: { params: { slug: string } }) => {
   const handleDeleteItem = (index: number) => {
     setReceiptData((prevData: ReceiptData) => ({
       ...prevData,
-      items: prevData.items.filter((_, i) => i !== index), // Remove item at the given index
+      items: prevData.items.filter((_, i) => i !== index),
     }));
   };
 
@@ -78,7 +74,7 @@ const Upload = ({ params }: { params: { slug: string } }) => {
         receiptData={receiptData}
         handleAddItem={handleAddItem}
         handleDeleteItem={handleDeleteItem}
-        
+        slug={slug}
       />
     </div>
   );
