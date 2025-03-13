@@ -58,6 +58,14 @@ type AuditLogUpdates = {
 	formID?: string;
 };
 
+type UserSettingsUpdates = {
+	fontSize?: number;
+	font?: string;
+	fontColour?: string;
+	bgColour?: string;
+	spacing?: number;
+};
+
 // ----------User APIs-----------
 export async function createUser(email: string, firstName: string, lastName: string) {
 	const { data, errors } = await client.models.User.create({
@@ -621,6 +629,27 @@ export async function updateNormConversation(conversationId: string, messages: s
 	const { data, errors } = await client.models.NormConversation.update({
 		id: conversationId,
 		messages,
+	});
+	if (errors) {
+		throw new Error(errors[0].message);
+	}
+	return data;
+}
+
+// ------------------ UserSettings APIs --------------
+// Get UserSettings by user ID
+export async function getUserSettingsByUserId(userId: string) {
+	const { data, errors } = await client.models.User.get({ id: userId });
+	if (errors) {
+		throw new Error(errors[0].message);
+	}
+	return data?.userSettings;
+}
+
+export async function updateUserSettings(userId: string, settingsUpdates: UserSettingsUpdates) {
+	const { data, errors } = await client.models.User.update({
+		id: userId,
+		userSettings: settingsUpdates,
 	});
 	if (errors) {
 		throw new Error(errors[0].message);

@@ -1,6 +1,10 @@
-"use client"
+'use client'
 import * as React from 'react';
 import Preview from './Preview';
+
+import { useState, useEffect } from 'react';
+import { updateUserSettings, getUserSettingsByUserId } from '@/utils/apis';
+import { useUserModel } from '@/utils/authenticationUtils';
 
 const DEFAULT_FONT_SIZE = 1;
 const DEFAULT_FONT = 'lexend';
@@ -10,22 +14,48 @@ const DEFAULT_SPACING = 0;
 
 //add crumbs!!!
 
-type UserSettingsProps = {fontSize: number, font: string, fontColour: string, bgColour: string, spacing: number}
 // type UserSettingsProps = Promise<{userSettings: {fontSize: number, fontColour: string}}>
+type UserSettings = {
+  fontSize: number | null;
+  font: string | null;
+  fontColour: string | null;
+  bgColour: string | null;
+  spacing: number | null;
+};
 
-export default function SettingsClient( props: {userSettings : UserSettingsProps }) {
+export default function SettingsClient() {
+  const [loaded, setLoaded] = useState(false);
+  const [currentUserSettings, setCurrentUserSettings] = useState<UserSettings | null>();
 
-  const [fontSize, setFontSize] = React.useState(props.userSettings.fontSize);
-  const [font, setFont] = React.useState(props.userSettings.font)
-  const [spacing, setSpacing] = React.useState(props.userSettings.spacing);
-  const [fontColour, setFontColour] = React.useState(props.userSettings.fontColour);
-  const [bgColour, setBgColour] = React.useState(props.userSettings.bgColour);
+  const userModel = useUserModel();
 
-  const [tempFontSize, setTempFontSize] = React.useState(props.userSettings.fontSize);
-  const [tempFont, setTempFont] = React.useState(props.userSettings.font)
-  const [tempSpacing, setTempSpacing] = React.useState(props.userSettings.spacing);
-  const [tempFontColour, setTempFontColour] = React.useState(props.userSettings.fontColour);
-  const [tempBgColour, setTempBgColour] = React.useState(props.userSettings.bgColour);
+  useEffect(() => {
+    const fetchUserSettings = async () => {
+      try {
+        if (userModel?.id) {
+          const userSettings = await getUserSettingsByUserId(userModel.id);
+          setCurrentUserSettings(userSettings);
+        }
+      } catch (error) {
+        console.error("Failed to fetch user settings:", error);
+      } finally {
+        setLoaded(true);
+      }
+    };
+    fetchUserSettings();
+  }, []);
+
+  const [fontSize, setFontSize] = React.useState(currentUserSettings?.fontSize ?? DEFAULT_FONT_SIZE);
+  const [font, setFont] = React.useState(currentUserSettings?.font ?? DEFAULT_FONT)
+  const [spacing, setSpacing] = React.useState(currentUserSettings?.spacing ?? DEFAULT_SPACING);
+  const [fontColour, setFontColour] = React.useState(currentUserSettings?.fontColour ?? DEFAULT_FONT_COLOUR);
+  const [bgColour, setBgColour] = React.useState(currentUserSettings?.bgColour ?? DEFAULT_BG_COLOUR);
+
+  const [tempFontSize, setTempFontSize] = React.useState(currentUserSettings?.fontSize ?? DEFAULT_FONT_SIZE);
+  const [tempFont, setTempFont] = React.useState(currentUserSettings?.font ?? DEFAULT_FONT);
+  const [tempSpacing, setTempSpacing] = React.useState(currentUserSettings?.spacing ?? DEFAULT_SPACING);
+  const [tempFontColour, setTempFontColour] = React.useState(currentUserSettings?.fontColour ?? DEFAULT_FONT_COLOUR);
+  const [tempBgColour, setTempBgColour] = React.useState(currentUserSettings?.bgColour ?? DEFAULT_BG_COLOUR);
 
   const handleFontSizeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedFontSize = parseFloat(event.target.value);
@@ -60,6 +90,11 @@ export default function SettingsClient( props: {userSettings : UserSettingsProps
     setSpacing(spacing);
     setFontColour(fontColour);
     setBgColour(bgColour);
+    if (userModel?.id) {
+      updateUserSettings(userModel.id, { fontSize, font, spacing, fontColour, bgColour });
+    } else {
+      console.error("User ID is undefined. Cannot update settings.");
+    }
   }
 
   const handleSettingsChange = (e: React.FormEvent) => {

@@ -4,7 +4,7 @@ import AuditLogsClient from "@/app/components/auditLog/AuditLogsClient";
 import { listAuditLogs } from "@/utils/apis";
 import { useState, useEffect } from "react";
 
-import seedDummyData from "@/seeder";
+// import seedDummyData from "@/seeder";
 
 import { type Schema } from "../../../amplify/data/resource";
 
@@ -12,14 +12,14 @@ type AuditLog = Schema["AuditLog"]["type"];
 
 const AuditLogsPage = () => {
 
-  const [isComplete, setIsComplete] = useState(false); 
-  useEffect(() => {
-    const fetchCreateUser = async () => {
-      seedDummyData();
-    setIsComplete(true);
-  }
-    fetchCreateUser();
-  }, [])
+  // const [isComplete, setIsComplete] = useState(false); 
+  // useEffect(() => {
+  //   const fetchCreateUser = async () => {
+  //     seedDummyData();
+  //   setIsComplete(true);
+  // }
+  //   fetchCreateUser();
+  // }, [])
 
   const [auditLogs, setAuditLogs] = useState<AuditLog[] | null>(null)
   const [loaded, setLoaded] = useState(false);

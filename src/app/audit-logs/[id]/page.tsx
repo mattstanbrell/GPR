@@ -14,25 +14,25 @@ const AuditLogDetail = ({ params }: { params: Promise<{ id: string }> }) => {
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-  const fetchData = async () => {
-    try {
-      const { id } = await params;
-      const log = await getAuditLogById(id);
-      console.log(log);
-      setAuditLog(log);
+    const fetchData = async () => {
+      try {
+        const { id } = await params;
+        const log = await getAuditLogById(id);
+        console.log(log);
+        setAuditLog(log);
 
-      if (log?.userID) {
-        const user = await getUserById(log.userID);
-        console.log(user);
-        setUser(user);
+        if (log?.userID) {
+          const user = await getUserById(log.userID);
+          console.log(user);
+          setUser(user);
+        }
+      } catch (error) {
+        console.error("Failed to fetch audit log or user:", error);
+      } finally {
+        setLoaded(true);
       }
-    } catch (error) {
-      console.error("Failed to fetch audit log or user:", error);
-    } finally {
-      setLoaded(true);
-    }
-  };
-    fetchData();
+    };
+      fetchData();
   }, [params]);
 
   return (
