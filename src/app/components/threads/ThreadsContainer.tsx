@@ -4,7 +4,6 @@ import { useContext, useState } from "react";
 import ThreadsSidebar from "./ThreadsSidebar";
 import Thread from "./Thread";
 import { ThreadType } from "./types";
-import Seeder from "./Seeder";
 import { AppContext } from "@/app/layout";
 
 
@@ -44,7 +43,6 @@ const ThreadsContainer = ({thread, threads, loadingThread, loadingThreads, start
                         className="flex-1 grow" />
                 }
             </div>
-            <Seeder />
         </div>
     )
 }
