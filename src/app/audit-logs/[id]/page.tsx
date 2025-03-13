@@ -1,51 +1,57 @@
 'use client'
 
 import { useState, useEffect } from "react";
-import { getAuditLogById } from "@/utils/apis"
+import { getAuditLogById, getUserById } from "@/utils/apis"
 
 import { type Schema } from "../../../../amplify/data/resource";
 
-type AuditLog = Schema["AuditLog"]["type"]; 
+type AuditLog = Schema["AuditLog"]["type"];
+type User = Schema['User']['type'];
 
-const AuditLogDetail = ({ params, }: { params: Promise<{ id: string }> }) => {
+const AuditLogDetail = ({ params }: { params: Promise<{ id: string }> }) => {
   const [auditLog, setAuditLog] = useState<AuditLog | null>();
-  const [isLoading, setIsLoading] = useState(true); 
-  const [auditLogId, setAuditLogId] = useState<string>("");
-  const [isIDLoaded, setIsIDLoaded] = useState(false)
+  const [user, setUser] = useState<User | null>();
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    const fetchLogId = async () => {
-      const { id } = await params
-      setAuditLogId(id)
-      setIsIDLoaded(true)
-    };
-    fetchLogId();
-  }, [])
+  const fetchData = async () => {
+    try {
+      const { id } = await params;
+      const log = await getAuditLogById(id);
+      console.log(log);
+      setAuditLog(log);
 
-  useEffect(() => {
-    const fetchAuditLog = async () => {
-      const data = await getAuditLogById(auditLogId)
-      setAuditLog(data)
-      setIsLoading(false)
+      if (log?.userID) {
+        const user = await getUserById(log.userID);
+        console.log(user);
+        setUser(user);
+      }
+    } catch (error) {
+      console.error("Failed to fetch audit log or user:", error);
+    } finally {
+      setLoaded(true);
     }
-    fetchAuditLog();
-  }, [isIDLoaded])
+  };
+    fetchData();
+  }, [params]);
 
   return (
     <>
-      {
-        isLoading ? (
-          <h3>loading</h3>
-        ) : (
-          <main className="govuk-main-wrapper">
-            <h1 className="govuk-heading-xl">Event Details</h1>
-            <p className="govuk-body"><strong>Audit Log ID:</strong> {auditLog?.id}</p>
-          </main>
-        )
-      }
+      {loaded ? (
+        <main className="govuk-main-wrapper">
+          <h1 className="govuk-heading-xl">Event Details</h1>
+          <p className="govuk-body"><strong>Audit Log ID:</strong> {auditLog?.id}</p>
+          <p className="govuk-body">Date & Time of Audit: {auditLog?.date}</p>
+          <p className="govuk-body">Audit action: {auditLog?.action}</p>
+          <p className="govuk-body">Action performed by: {user?.firstName} {user?.lastName}</p>
+          <p className="govuk-body">User id: {auditLog?.userID}</p>
+          <p className="govuk-body">ID of Form affected: {auditLog?.formID}</p>
+        </main>
+      ) : (
+        <h3>loading audit log</h3>
+      )}
     </>
   )
-
 }
 
-export default AuditLogDetail; 
+export default AuditLogDetail;
