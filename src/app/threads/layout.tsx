@@ -46,20 +46,32 @@ export default function ThreadsLayout({ children } : ThreadsLayoutProps) {
                 if (allThreads){
                     // Fetch the thread details
                     const newThreads = await Promise.all(allThreads.map(async (thread) => {
-                        const [{data: messages}, name, unreadCount] = await Promise.all([
+                        const [{data: messages}, name, unreadCount, lastMessageTime] = await Promise.all([
                             thread.messages(),
                             thread.form().then((form) => form?.data?.title),
-                            getUnreadMessageNumber(thread.id, currentUser.id)
+                            getUnreadMessageNumber(thread.id, currentUser.id),
+                            thread.lastMessageTime
                         ]);
                         
+                        messages.sort((a, b) => {
+                            if (!a.timeSent || !b.timeSent) return 0;
+                            return new Date(a.timeSent).getTime() - new Date(b.timeSent).getTime();
+                        });
+
                         return {
                             ...thread,
                             lastMessage: messages[messages.length - 1],
                             unreadCount,
+                            lastMessageTime,
                             name: name || "No Title"
                         }
                     }));
-
+                    newThreads.sort((a, b) => {
+                        if (!a?.lastMessageTime && !b?.lastMessageTime) return 0;
+                        if (!a?.lastMessageTime) return 1;
+                        if (!b?.lastMessageTime) return -1;
+                        return new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime(); 
+                    });
                     setThreads(newThreads);
                 }
                 setLoading(false);
