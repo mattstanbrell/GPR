@@ -78,6 +78,8 @@ export const thread = {
 
 // seed database
 export const seed = async (currentUser?: UserType) => {
+    console.log("Seeding database");
+    
     if (!currentUser) return;
     // create users
 
@@ -185,6 +187,8 @@ export const displayBackend = async () => {
 }
 
 export const deleteModels = async (currentUser: UserType) => {
+    console.log("Deleting all models");
+
     const {data: users} = await client.models.User.list();
     const {data: forms} = await client.models.Form.list();
     const {data: formAssignees} = await client.models.FormAssignee.list();
