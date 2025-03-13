@@ -190,7 +190,7 @@ export function FormContent() {
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 
-		if (!form || !form.id || !userModel?.id) return;
+		if (!form || !form.id || !userModel?.id || !form.amount || !userModel?.managerUserId || !userModel?.assistantManagerUserId) return;
 
 		try {
 			setLoading(true);
@@ -199,11 +199,13 @@ export function FormContent() {
 				status: "SUBMITTED",
 				creatorID: userModel.id,
 			});
+			let assigneeId;
 			if (form.amount > 5000) {
-				await assignUserToForm(form.id, userModel?.managerUserId);
+				assigneeId = userModel.managerUserId;
 			} else {
-				await assignUserToForm(form.id, userModel?.assistantManagerUserId);
+				assigneeId = userModel?.assistantManagerUserId;
 			}
+			await assignUserToForm(form.id, assigneeId);
 			
 			router.push(FORM_BOARD);
 		} catch (_error: unknown) {
