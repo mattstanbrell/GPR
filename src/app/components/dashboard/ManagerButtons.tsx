@@ -1,4 +1,4 @@
-import { AllFormsButton, FormBoardButton, AdminButton, UpdatesButton } from "./Buttons"
+import { AllFormsButton, FormBoardButton, AdminButton, UpdatesButton, ThreadsButton } from "./Buttons"
 import ButtonsContainer from "./ButtonsContainer"
 
 const ManagerButtons = () => {
@@ -8,6 +8,7 @@ const ManagerButtons = () => {
       <FormBoardButton />
       <UpdatesButton />
       <AllFormsButton />
+      <ThreadsButton />
     </ButtonsContainer>
   )
 }
