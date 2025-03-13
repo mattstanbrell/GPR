@@ -2,15 +2,17 @@ import React from "react";
 import { useRouter } from "next/navigation";
 import Table from "@/app/components/receipts/form/Table";
 import { Submit } from "@/app/components/receipts/form/Buttons";
+import { createReceipt } from '@/utils/apis'
 
 interface FormProps {
   receiptData: ReceiptData;
   handleAddItem: () => void;
   handleDeleteItem: (index: number) => void;
   slug: string;
+  uploadPath: string;
 }
 
-const Form = ({ receiptData, handleAddItem, handleDeleteItem, slug }: FormProps) => {
+const Form = ({ receiptData, handleAddItem, handleDeleteItem, slug, uploadPath }: FormProps) => {
   const router = useRouter();
   const receiptHasItems = receiptData && receiptData.items.length;
 
@@ -27,6 +29,14 @@ const Form = ({ receiptData, handleAddItem, handleDeleteItem, slug }: FormProps)
     };
 
     console.log(data);
+
+    try {
+      const newReceipt = await createReceipt(slug, data.total, uploadPath);
+      console.log("Receipt created:", newReceipt);
+      router.push(`/form/${slug}/attachments`);
+    } catch (error) {
+      console.error("Error creating receipt:", error);
+    }
     router.push(`/form/${slug}/attachments`);
   };
 

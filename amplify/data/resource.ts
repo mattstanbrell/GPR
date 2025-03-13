@@ -101,11 +101,8 @@ const schema = a
 			.model({
 				formID: a.id(),
 				form: a.belongsTo("Form", "formID"),
-				transactionDate: a.date(),
-				merchantName: a.string(),
-				paymentMethod: a.string(),
 				subtotal: a.float(),
-				itemDesc: a.string(),
+				s3Key: a.string()
 			})
 			.authorization((allow) => [allow.authenticated()]),
 

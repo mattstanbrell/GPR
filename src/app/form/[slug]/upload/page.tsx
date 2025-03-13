@@ -16,6 +16,7 @@ const Upload = ({ params }: { params: Promise<{ slug: string }> }) => {
 
   const searchParams = useSearchParams();
   const resultParam = searchParams.get("result");
+  const uploadPathParam = searchParams.get("uploadPath");
 
   let result: any = null;
   if (resultParam) {
@@ -75,6 +76,7 @@ const Upload = ({ params }: { params: Promise<{ slug: string }> }) => {
         handleAddItem={handleAddItem}
         handleDeleteItem={handleDeleteItem}
         slug={slug}
+        uploadPath={uploadPathParam || ""}
       />
     </div>
   );

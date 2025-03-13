@@ -3,12 +3,14 @@ import * as React from 'react';
 import AttachmentsList from "./AttachmentsList";
 import { useRouter, usePathname, useParams } from "next/navigation";
 import Link from 'next/link';
+import { listReceiptsByFormId } from '@/utils/apis'
 
 const Attachments = () => {
   const router = useRouter();
-  const params = useParams();
-  const { slug } = params; // assuming the page route is form/[slug]/attachments
+  const params = useParams<{slug: string}>();
+  const { slug } = params; 
   console.log("Current slug:", slug);
+  // const receipts = listReceiptsByFormId(slug).then(receipts=>console.log(receipts));
 
   return (
     <div className="govuk-width-container">

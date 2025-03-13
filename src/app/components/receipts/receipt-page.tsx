@@ -110,8 +110,9 @@ const ReceiptPage = () => {
       }).result;
       console.log("S3 upload result:", uploadResult);
 
-      // Instead of hardcoding '3', use the dynamic slug
-      router.push(`/form/${slug}/upload?result=${encodeURIComponent(JSON.stringify(result))}`);
+      router.push(
+        `/form/${slug}/upload?result=${encodeURIComponent(JSON.stringify(result))}&uploadPath=${encodeURIComponent(uploadPath)}`
+      );
     } catch (error) {
       console.error("Error analyzing receipt:", error);
       setError(
