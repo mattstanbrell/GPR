@@ -1,5 +1,9 @@
+import { useState } from "react";
 import { FORM_STATUS } from "@/app/constants/models";
 import type { Schema } from "../../../../amplify/data/resource";
+import { updateForm } from "@/utils/apis"
+import { redirect } from "next/navigation";
+import { FORM_BOARD } from "@/app/constants/urls";
 
 interface FormLayoutProps {
 	form: Partial<Schema["Form"]["type"]>;
@@ -11,6 +15,19 @@ interface FormLayoutProps {
 	updatedFields: Set<string>;
 }
 
+const handleSubmitFeedback = async (formId: string, event: React.FormEvent<HTMLFormElement>) => {
+	event.preventDefault();
+	const formData = new FormData(event.currentTarget);
+	const data = { feedback: formData.get("reject-feedback") as string };
+	await updateForm(formId, data);
+	redirect(FORM_BOARD);
+}
+
+const handleApproveForm = (formId: string) => {
+	
+}
+
+
 export function FormLayout({
 	form,
 	loading,
@@ -20,6 +37,9 @@ export function FormLayout({
 	disabled,
 	updatedFields,
 }: FormLayoutProps) {
+
+	const [isReject, setIsReject] = useState<boolean>(false);
+	
 	return (
 		<>
 			<style jsx>{`
@@ -127,6 +147,27 @@ export function FormLayout({
 				>
 					{form.title || "Form"}
 				</h1>
+
+				<div className="flex justify-center">
+					<div className="flex justify-evenly w-1/2">
+						<button className="govuk-button" onClick={() => handleApproveForm(form.id ? form.id : "") }>Approve</button>
+						<button className="govuk-button govuk-button--warning" onClick={() => setIsReject(!(isReject))}>{ !(isReject) ? "Reject" : "Cancel" }</button>
+					</div>
+				</div>
+				{ isReject &&
+					<form onSubmit={(event) => handleSubmitFeedback(form.id ? form.id : "", event) }>
+					
+					<div className="w-full govuk-form-group pr-[20px]">
+						<textarea name="reject-feedback" className="h-[10vh] w-full govuk-textarea" defaultValue={ `${form && form.feedback}`} placeholder="Reason for rejection." required />
+						<div className="flex justify-center">
+							<div className="flex justify-evenly w-1/2">
+								<button type="submit" className="govuk-button">Submit Feedback</button>
+							</div>
+						</div>
+					</div>
+					</form>
+				}
+
 				<div style={{ flexGrow: 1, overflowY: "auto", paddingRight: "0" }}>
 					<form onSubmit={handleSubmit} style={{ paddingRight: "20px", paddingLeft: "3px" }}>
 						<fieldset className="govuk-fieldset">
