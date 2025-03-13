@@ -3,7 +3,7 @@
 import ThreadsContainer from "@/app/components/threads/ThreadsContainer";
 import { useContext, useEffect, useState, useRef } from "react";
 import { ThreadsContext } from "../layout";
-import { ThreadType } from "@/app/components/threads/types";
+import { ThreadType } from "@/app/types/threads";
 import { getThreadbyID, getUsersInThread, setThreadMessagesToRead, subscribeToThreadMessages } from "@/utils/apis";
 import { Subscription } from "rxjs/internal/Subscription"
 import { AppContext } from "@/app/layout";

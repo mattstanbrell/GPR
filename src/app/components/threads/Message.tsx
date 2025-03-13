@@ -1,5 +1,5 @@
 import { getName } from "@/utils/authenticationUtils";
-import { MessageType, UserType } from "./types"
+import { MessageType, UserType } from "../../types/threads"
 import { formatTimestamp } from "../util/_helpers"
 import { useEffect, useState } from "react"
 

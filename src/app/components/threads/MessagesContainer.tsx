@@ -1,7 +1,7 @@
 'use client'
 
 import Message from "./Message"
-import { MessageType } from "./types"
+import { MessageType } from "../../types/threads"
 import { AppContext } from "@/app/layout";
 import { useEffect, useRef, useContext } from "react";
 

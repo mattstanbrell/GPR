@@ -1,7 +1,7 @@
 import { generateClient } from "@aws-amplify/api";
 import { Schema } from "../../../../amplify/data/resource";
 import { assignUserToFormWithThread, assignUserToThread, createFormWithThread, createMessage, createUser } from "@/utils/apis";
-import { UserType } from "./types";
+import { UserType } from "../../types/threads";
 
 const client = generateClient<Schema>();
 

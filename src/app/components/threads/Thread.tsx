@@ -5,7 +5,7 @@ import { FORM } from "@/app/constants/urls"
 import MessagesContainer from "./MessagesContainer"
 import Link from "next/link"
 import MessageInput from "./MessageInput"
-import { ThreadType } from "./types"
+import { ThreadType } from "../../types/threads"
 import { createMessage} from "@/utils/apis"
 import { useContext } from "react"
 import { getName } from "@/utils/authenticationUtils";

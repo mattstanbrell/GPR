@@ -3,7 +3,7 @@
 import { useState, useEffect, createContext, useContext } from "react";
 import { getThreadsWithUser, getUnreadMessageNumber } from "@/utils/apis";
 import { AppContext } from "@/app/layout";
-import { ThreadType } from "../components/threads/types";
+import { ThreadType } from "../types/threads";
 
 export const ThreadsContext = createContext<
     { 

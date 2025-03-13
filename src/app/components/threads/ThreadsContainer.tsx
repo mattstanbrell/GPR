@@ -3,7 +3,7 @@
 import { useContext, useState } from "react";
 import ThreadsSidebar from "./ThreadsSidebar";
 import Thread from "./Thread";
-import { ThreadType } from "./types";
+import { ThreadType } from "../../types/threads"
 import { AppContext } from "@/app/layout";
 
 
