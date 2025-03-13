@@ -4,6 +4,7 @@ import type { Schema } from "../../../../amplify/data/resource";
 import { updateForm } from "@/utils/apis"
 import { redirect } from "next/navigation";
 import { FORM_BOARD } from "@/app/constants/urls";
+import { Form } from "@/app/types/models";
 
 interface FormLayoutProps {
 	form: Partial<Schema["Form"]["type"]>;
@@ -20,11 +21,12 @@ const handleSubmitFeedback = async (formId: string, event: React.FormEvent<HTMLF
 	const formData = new FormData(event.currentTarget);
 	const data = { feedback: formData.get("reject-feedback") as string };
 	await updateForm(formId, data);
-	redirect(FORM_BOARD);
+	
 }
 
-const handleApproveForm = (formId: string) => {
-	
+const handleApproveForm = async (form: Partial<Form>) => {
+	await updateForm(form.id ? form.id : "", { ...form, status: "AUTHORISED" });
+	redirect(FORM_BOARD);
 }
 
 
@@ -39,7 +41,7 @@ export function FormLayout({
 }: FormLayoutProps) {
 
 	const [isReject, setIsReject] = useState<boolean>(false);
-	
+
 	return (
 		<>
 			<style jsx>{`
@@ -150,7 +152,7 @@ export function FormLayout({
 
 				<div className="flex justify-center">
 					<div className="flex justify-evenly w-1/2">
-						<button className="govuk-button" onClick={() => handleApproveForm(form.id ? form.id : "") }>Approve</button>
+						<button className="govuk-button" onClick={() => handleApproveForm(form) }>Approve</button>
 						<button className="govuk-button govuk-button--warning" onClick={() => setIsReject(!(isReject))}>{ !(isReject) ? "Reject" : "Cancel" }</button>
 					</div>
 				</div>
