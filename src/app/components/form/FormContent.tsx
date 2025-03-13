@@ -13,7 +13,7 @@ import { NormLayout } from "./NormLayout";
 import { createForm, updateForm, getFormById, getNormConversationByFormId } from "../../../utils/apis";
 import { useUserModel } from "../../../utils/authenticationUtils";
 import type { FormStatus } from "@/app/types/models";
-import { PERMISSIONS } from "@/app/constants/models";
+import { FORM_STATUS, PERMISSIONS } from "@/app/constants/models";
 
 export function FormContent() {
 	const router = useRouter();
@@ -252,24 +252,25 @@ export function FormContent() {
 	}
 
 	const isSocialWorker = userModel?.permissionGroup === PERMISSIONS.SOCIAL_WORKER_GROUP;
+	const isDraft = form.status === FORM_STATUS.DRAFT
 
 	return (
 		<div style={{ height: "calc(100vh - 140px)", overflow: "hidden" }}>
 			<main className="govuk-main-wrapper" style={{ height: "100%", padding: "0" }}>
 				<div className="govuk-width-container" style={{ height: "100%", paddingLeft: "15px", paddingRight: "15px" }}>
 					<div className="govuk-grid-row flex" style={{ height: "100%", margin: 0 }}>
-						<div className={`${ isSocialWorker ? "md:w-6/10" : "md:w-full" }`} >
+						<div className={`${ isSocialWorker && isDraft ? "md:w-6/10" : "md:w-full" }`} >
 							<FormLayout
 								form={form}
 								loading={loading}
 								handleFormChange={handleFormChange}
 								handleSubmit={handleSubmit}
 								isFormValid={isFormValid}
-								disabled={processingMessage}
+								disabled={processingMessage || !(isDraft)}
 								updatedFields={updatedFields}
 							/>
 						</div>
-						{ isSocialWorker &&
+						{ isDraft &&
 							<div className="md:w-4/10">
 								<NormLayout
 									messages={messages}

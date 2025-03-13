@@ -1,3 +1,4 @@
+import { FORM_STATUS } from "@/app/constants/models";
 import type { Schema } from "../../../../amplify/data/resource";
 
 interface FormLayoutProps {
@@ -548,23 +549,25 @@ export function FormLayout({
 						</fieldset>
 					</form>
 				</div>
-				<div className="button-container">
-					<button
-						type="submit"
-						className="govuk-button"
-						onClick={handleSubmit}
-						disabled={!isFormValid(form) || loading}
-						style={{
-							marginBottom: 0,
-							position: "relative",
-							zIndex: 1,
-							opacity: isFormValid(form) ? 1 : 0.5,
-							cursor: isFormValid(form) ? "pointer" : "not-allowed",
-						}}
-					>
-						{loading ? "Submitting..." : "Submit"}
-					</button>
-				</div>
+				{ form?.status === FORM_STATUS.DRAFT && 
+					<div className="button-container">
+						<button
+							type="submit"
+							className="govuk-button"
+							onClick={handleSubmit}
+							disabled={!isFormValid(form) || loading}
+							style={{
+								marginBottom: 0,
+								position: "relative",
+								zIndex: 1,
+								opacity: isFormValid(form) ? 1 : 0.5,
+								cursor: isFormValid(form) ? "pointer" : "not-allowed",
+							}}
+						>
+							{loading ? "Submitting..." : "Submit"}
+						</button>
+					</div>
+				}
 			</div>
 		</>
 	);
