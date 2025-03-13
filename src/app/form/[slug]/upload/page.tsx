@@ -3,23 +3,7 @@
 import { useState } from "react";
 import Form from '@/app/components/receipts/form/Form';
 import { useSearchParams } from "next/navigation";
-
-type Item = {
-  name: string;
-  quantity: number;
-  cost: number;
-};
-
-type AnalysisResult = {
-  total: string;
-  items: Item[];
-  timeTaken: number;
-  cost: number;
-  tokenInfo?: {
-    inputTokens: number;
-    outputTokens: number;
-  };
-};
+import type { AnalysisResult } from "@/app/types/receipts";
 
 const Title = ({ text }: { text: string }) => {
   return (
