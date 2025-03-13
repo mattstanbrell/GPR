@@ -71,15 +71,15 @@ const MessageInput = (
                 onChange={handleInput}
                 onKeyDown={handleKeyDown}
             ></textarea>
-            <button type="submit" className="absolute top-[50%] translate-y-[-50%] right-4 cursor-pointer w-7">
-            <Image
-                src="/send.svg"
-                alt="Send"
-                width={24}
-                height={24}
-                className=""
-                onClick={handleSubmit}
-            />
+            <button type="submit" className="absolute top-[50%] translate-y-[-50%] right-4 cursor-pointer">
+                <Image
+                    src="/send.svg"
+                    alt="Send"
+                    width={24}
+                    height={24}
+                    className="w-7"
+                    onClick={handleSubmit}
+                />
             </button>
         </div>
     );
