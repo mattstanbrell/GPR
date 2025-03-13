@@ -31,6 +31,7 @@ export type ThreadMessages = Message[];
 
 export type MessageType = {
     id: string, 
+    userID: Schema["Message"]["type"]["userID"],
     user: Schema["Message"]["type"]["user"], 
     content: string, 
     timeSent?: Schema["Message"]["type"]["timeSent"]
