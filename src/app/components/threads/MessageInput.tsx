@@ -6,8 +6,7 @@ interface MessageInputProps {
     placeholder?: string;
     onChange?: (event: React.ChangeEvent<HTMLTextAreaElement>) => void;
     onKeyDown?: (event: React.KeyboardEvent<HTMLTextAreaElement>) => void;
-    onSubmit?: (event: React.FormEvent<HTMLTextAreaElement>) => void;
-    onClick?: (event: React.MouseEvent<HTMLImageElement>) => void;
+    onSubmit?: (message: string) => void;
     className?: string;
 }
 
@@ -18,12 +17,14 @@ const MessageInput = (
         onKeyDown,
         onSubmit,
         className,
-        onClick
     } : MessageInputProps) => {
     const [rows, setRows] = useState(1);
     const currentRowsMax = 3;
+    const [message, setMessage] = useState("");
 
     const handleInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+        setMessage(event.target.value);
+
         const textareaLineHeight = 30;
         const previousRows = event.target.rows;
         event.target.rows = 1; // reset number of rows in textarea 
@@ -40,6 +41,24 @@ const MessageInput = (
         }
     };
 
+    const handleSubmit = () => {
+        if (onSubmit) {
+            onSubmit(message);
+        }
+        setMessage("");
+        setRows(1);
+    }
+
+    const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (event.key === "Enter" && !event.shiftKey) {
+            event.preventDefault();
+            handleSubmit();
+        }
+        if (onKeyDown) {
+            onKeyDown(event);
+        }
+    }
+
     return (
         <div className={`relative  justify-items-center bg-(--color-background-light)  ${className}`}>
             <textarea
@@ -47,19 +66,21 @@ const MessageInput = (
                 id="message"
                 name="message"
                 rows={rows}
+                value={message}
                 placeholder={placeholder}
                 onChange={handleInput}
-                onKeyDown={onKeyDown}
-                onSubmit={onSubmit}
+                onKeyDown={handleKeyDown}
             ></textarea>
+            <button type="submit" className="absolute top-[50%] translate-y-[-50%] right-4 cursor-pointer w-7">
             <Image
                 src="/send.svg"
                 alt="Send"
                 width={24}
                 height={24}
-                className="absolute top-[50%] translate-y-[-50%] right-4 cursor-pointer w-7"
-                onClick={onClick}
+                className=""
+                onClick={handleSubmit}
             />
+            </button>
         </div>
     );
 };
