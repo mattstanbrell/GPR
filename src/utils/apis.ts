@@ -26,6 +26,8 @@ type UserUpdates = {
 	email?: string;
 	permissionGroup?: "ADMIN" | "MANAGER" | "SOCIAL_WORKER" | null;
 	lastLogin?: string;
+	managerUserId?: string;
+	assistantManagerUserId?: string;
 	userSettings?: {
 		fontSize: number;
 		font: string;
