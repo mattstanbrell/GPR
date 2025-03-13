@@ -32,6 +32,7 @@ $color-suggestion-filter: "brightness(0) saturate(100%) invert(22%) sepia(9%) sa
 $color-warning-filter: "brightness(0) saturate(100%) invert(22%) sepia(9%) saturate(5876%) hue-rotate(253deg) brightness(93%) contrast(89%)";
 
 $color-text-light: #FFFCFF; //Use for text on dark backgrounds
+$color-text-light-alt: #edddef; //Use as less important text on dark backgrounds
 $color-text-subheading: #797979; //Use for less important text
 
 /* BACKGROUND COLOURS */
@@ -39,6 +40,10 @@ $color-background-darkest: #2A002A;
 $color-background-dark: #540253;
 $color-background-medium: #A080A0;
 $color-background-light: #F1E6F2; // Use for variation in background colours
+$color-background-lightest: #FFFFFF; // Use for main background
+
+/* OTHER FILTERS */
+$color-background-lightest-filter: "brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(0%) hue-rotate(351deg) brightness(102%) contrast(105%);";
 
 
 // Define the public variables that can be used by other modules
@@ -60,9 +65,12 @@ $color-background-light: #F1E6F2; // Use for variation in background colours
   --color-suggestion-filter: #{$color-suggestion-filter};
   --color-warning-filter: #{$color-warning-filter};
   --color-text-light: #{$color-text-light};
+  --color-text-light-alt: #{$color-text-light-alt};
   --color-text-subheading: #{$color-text-subheading};
   --color-background-darkest: #{$color-background-darkest};
   --color-background-dark: #{$color-background-dark};
   --color-background-medium: #{$color-background-medium};
   --color-background-light: #{$color-background-light};
+  --color-background-lightest: #{$color-background-lightest};
+  --color-background-lightest-filter: #{$color-background-lightest-filter};
 }
