@@ -2,7 +2,6 @@
 
 import type React from "react";
 import { useEffect, useState, useCallback, useRef } from "react";
-import { getCurrentUser } from "aws-amplify/auth";
 import type { Schema } from "../../../../amplify/data/resource";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FORM_BOARD } from "../../constants/urls";
@@ -12,6 +11,8 @@ import { FormErrorSummary } from "./FormErrorSummary";
 import { FormLayout } from "./FormLayout";
 import { NormLayout } from "./NormLayout";
 import { createForm, updateForm, getFormById, getNormConversationByFormId } from "../../../utils/apis";
+import { useUserModel } from "../../../utils/authenticationUtils";
+import type { FormStatus } from "@/app/types/models";
 
 export function FormContent() {
 	const router = useRouter();
@@ -42,7 +43,7 @@ export function FormContent() {
 			},
 		},
 	});
-	const [userId, setUserId] = useState<string | null>(null);
+	const userModel = useUserModel();
 	const [message, setMessage] = useState("");
 	const [messages, setMessages] = useState<UIMessage[]>([]);
 	const [conversationId, setConversationId] = useState<string | null>(null);
@@ -101,67 +102,62 @@ export function FormContent() {
 
 	// Create the form silently in the background
 	// Only happens once
-	const createFormSilently = useCallback(
-		async (userIdParam?: string) => {
-			const effectiveUserId = userIdParam || userId;
-			if (!effectiveUserId || formCreated) {
-				return;
+	const createFormSilently = useCallback(async () => {
+		if (!userModel?.id || formCreated) {
+			return;
+		}
+
+		try {
+			const newForm = await createForm({
+				...form,
+				status: "DRAFT",
+				creatorID: userModel.id,
+			});
+
+			if (!newForm) {
+				throw new Error("Failed to create form: No form data returned");
 			}
 
-			try {
-				const newForm = await createForm({
-					...form,
-					status: "DRAFT",
-					creatorID: effectiveUserId,
-				});
+			// First update the URL, then update the form state
+			const newUrl = `/form?id=${newForm.id}`;
+			await router.replace(newUrl);
 
-				if (!newForm) {
-					throw new Error("Failed to create form: No form data returned");
-				}
-
-				// First update the URL, then update the form state
-				const newUrl = `/form?id=${newForm.id}`;
-				await router.replace(newUrl);
-
-				setForm({
-					...form,
-					id: newForm.id,
-					status: newForm.status as "DRAFT" | "SUBMITTED" | "AUTHORISED" | "VALIDATED" | "COMPLETED",
-				});
-				setFormCreated(true);
-			} catch (_error: unknown) {
-				setErrorMessage(_error instanceof Error ? _error.message : String(_error));
-			}
-		},
-		[form, formCreated, router, userId],
-	);
+			setForm({
+				...form,
+				id: newForm.id,
+				status: newForm.status as FormStatus,
+			});
+			setFormCreated(true);
+		} catch (_error: unknown) {
+			setErrorMessage(_error instanceof Error ? _error.message : String(_error));
+		}
+	}, [form, formCreated, router, userModel]);
 
 	// Get the current user when the component mounts and check for existing form ID in URL
 	useEffect(() => {
-		async function getUserIdAndInitializeForm() {
+		async function initializeForm() {
 			if (formCreationAttempted.current) {
 				return;
 			}
 			formCreationAttempted.current = true;
 
 			try {
-				const user = await getCurrentUser();
-				setUserId(user.userId);
-
 				const formId = searchParams.get("id");
 
 				if (formId) {
 					await loadExistingForm(formId);
-				} else {
-					await createFormSilently(user.userId);
+				} else if (userModel?.id) {
+					await createFormSilently();
 				}
 			} catch (_error: unknown) {
 				setErrorMessage(_error instanceof Error ? _error.message : String(_error));
 			}
 		}
 
-		getUserIdAndInitializeForm();
-	}, [searchParams, loadExistingForm, createFormSilently]);
+		if (userModel) {
+			initializeForm();
+		}
+	}, [searchParams, loadExistingForm, createFormSilently, userModel]);
 
 	// Handle form field changes
 	const handleFormChange = (field: string, value: unknown, updateDb = false) => {
@@ -178,12 +174,12 @@ export function FormContent() {
 
 	// Update the form in the database
 	const updateFormInDatabase = async (formToUpdate = form) => {
-		if (!formToUpdate.id || !userId) return;
+		if (!formToUpdate.id || !userModel?.id) return;
 
 		try {
 			await updateForm(formToUpdate.id, {
 				...formToUpdate,
-				creatorID: userId,
+				creatorID: userModel.id,
 			});
 		} catch {
 			setErrorMessage("Failed to update form. Please try again.");
@@ -194,11 +190,15 @@ export function FormContent() {
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 
-		if (!form || !form.id) return;
+		if (!form || !form.id || !userModel?.id) return;
 
 		try {
 			setLoading(true);
-			await updateForm(form.id, { status: "SUBMITTED" });
+			await updateForm(form.id, {
+				...form,
+				status: "SUBMITTED",
+				creatorID: userModel.id,
+			});
 			router.push(FORM_BOARD);
 		} catch (_error: unknown) {
 			setErrorMessage(_error instanceof Error ? _error.message : String(_error));
@@ -294,6 +294,16 @@ export function FormContent() {
 								setUpdatedFields(changedFields);
 								setForm(updatedForm);
 								setLastNormForm(updatedForm);
+
+								// Update the form in the database to ensure creatorID is preserved
+								if (updatedForm.id && userModel?.id) {
+									updateForm(updatedForm.id, {
+										...updatedForm,
+										creatorID: userModel.id,
+									}).catch(() => {
+										// Silently handle error
+									});
+								}
 							}}
 							currentForm={form}
 							processingMessage={processingMessage}
