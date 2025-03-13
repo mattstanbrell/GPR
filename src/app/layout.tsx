@@ -52,9 +52,7 @@ export default function RootLayout({
 		const fetchUserModel = async () => {
 			const userAttributes = await fetchUserAttributes();
 			const data = await getUserByEmail(userAttributes ? userAttributes.email : ""); 
-			setUser(data)
-			console.log("userModel", data)
-			console.log("currently setting user")
+			setUser(data);
 		}
 			
 		Hub.listen("auth", ({ payload }) => {
