@@ -887,6 +887,19 @@ export async function createMessage(
   return data;
 }
 
+export function subscribeToThreadMessages(threadID: string, handler: (messages: Schema["Message"]["type"][]) => void) {
+	const sub = client.models.Message.observeQuery({
+		filter: 
+				{ threadID: { eq: threadID } }
+		}).subscribe({
+			next: async ({items}) => {
+				handler([...items]);
+			},
+		})
+	
+	return sub;
+}
+
 export async function getMessagebyID(
     messageID: string,
 ) {
