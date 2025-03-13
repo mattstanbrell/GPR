@@ -5,8 +5,8 @@ import {
 	UPDATES,
 	ADMIN,
 } from "@/app/constants/urls";
-import Image from "next/image";
 import Link from "next/link";
+import Image from "next/image";
 
 const Button = ({
 	text,
@@ -17,11 +17,13 @@ const Button = ({
 	const textList = text.split(" ");
 	const firstLine = textList[0];
 	let secondLine = null;
+
 	if (textList.length > 1) {
 		secondLine = textList[1];
 	} else {
 		secondLine = null;
 	}
+
 	return (
 		<Link
 			href={link}
@@ -37,6 +39,7 @@ const Button = ({
 					alt={alt}
 					width={24}
 					height={24}
+					priority
 					style={{ filter: "var(--hounslow-primary-filter)" }}
 				/>
 				<div className="flex-1/2 grid self-center place-items-center text-3xl/10 text-(--hounslow-primary)">

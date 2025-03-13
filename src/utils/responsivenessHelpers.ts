@@ -1,21 +1,44 @@
-
 import { useEffect, useState } from "react";
 
-const useIsMobileWindowSize = () => {
-    const [isMobile, setIsMobile] = useState(false);
+const mediumWindowSize = 768;
 
-    useEffect(() => {
-        const mediumWindowSize = 768;
-        const handleResize = () => {
-            setIsMobile(window.innerWidth < mediumWindowSize);
-        };
+export const useIsMobileWindowSize = () => {
+	const [isMobile, setIsMobile] = useState(false);
 
-        handleResize();
-        window.addEventListener("resize", handleResize);
-        return () => window.removeEventListener("resize", handleResize);
-    }, []);
+	useEffect(() => {
+		const handleResize = () => {
+			setIsMobile(window.innerWidth < mediumWindowSize);
+		};
 
-    return isMobile
-}
+		handleResize();
+		window.addEventListener("resize", handleResize);
+		return () => window.removeEventListener("resize", handleResize);
+	}, []);
+
+	return isMobile;
+};
+
+export const useResponsiveMenu = (initialState = false) => {
+	const [isMenuOpen, setIsMenuOpen] = useState(initialState);
+	const isMobile = useIsMobileWindowSize();
+
+	useEffect(() => {
+		if (!isMobile) {
+			setIsMenuOpen(false);
+		}
+	}, [isMobile]);
+
+	const toggleMobileMenu = () => {
+		if (isMobile) {
+			setIsMenuOpen(!isMenuOpen);
+		}
+	};
+
+	return {
+		isMenuOpen,
+		isMobile,
+		toggleMobileMenu,
+	};
+};
 
 export default useIsMobileWindowSize;
