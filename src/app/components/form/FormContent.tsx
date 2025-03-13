@@ -13,6 +13,7 @@ import { NormLayout } from "./NormLayout";
 import { createForm, updateForm, getFormById, getNormConversationByFormId } from "../../../utils/apis";
 import { useUserModel } from "../../../utils/authenticationUtils";
 import type { FormStatus } from "@/app/types/models";
+import { PERMISSIONS } from "@/app/constants/models";
 
 export function FormContent() {
 	const router = useRouter();
@@ -250,66 +251,74 @@ export function FormContent() {
 		return <FormErrorSummary error={errorMessage} />;
 	}
 
+	const isSocialWorker = userModel?.permissionGroup === PERMISSIONS.SOCIAL_WORKER_GROUP;
+
 	return (
 		<div style={{ height: "calc(100vh - 140px)", overflow: "hidden" }}>
 			<main className="govuk-main-wrapper" style={{ height: "100%", padding: "0" }}>
 				<div className="govuk-width-container" style={{ height: "100%", paddingLeft: "15px", paddingRight: "15px" }}>
-					<div className="govuk-grid-row" style={{ height: "100%", margin: 0 }}>
-						<FormLayout
-							form={form}
-							loading={loading}
-							handleFormChange={handleFormChange}
-							handleSubmit={handleSubmit}
-							isFormValid={isFormValid}
-							disabled={processingMessage}
-							updatedFields={updatedFields}
-						/>
-						<NormLayout
-							messages={messages}
-							message={message}
-							setMessage={setMessage}
-							setMessages={setMessages}
-							formId={form.id}
-							conversationId={conversationId}
-							onConversationIdChange={setConversationId}
-							onFormUpdate={(updatedForm: Partial<Schema["Form"]["type"]>) => {
-								// Find which fields changed
-								const changedFields = new Set<string>();
-								if (!form) return;
+					<div className="govuk-grid-row flex" style={{ height: "100%", margin: 0 }}>
+						<div className={`${ isSocialWorker ? "md:w-6/10" : "md:w-full" }`} >
+							<FormLayout
+								form={form}
+								loading={loading}
+								handleFormChange={handleFormChange}
+								handleSubmit={handleSubmit}
+								isFormValid={isFormValid}
+								disabled={processingMessage}
+								updatedFields={updatedFields}
+							/>
+						</div>
+						{ isSocialWorker &&
+							<div className="md:w-4/10">
+								<NormLayout
+									messages={messages}
+									message={message}
+									setMessage={setMessage}
+									setMessages={setMessages}
+									formId={form.id}
+									conversationId={conversationId}
+									onConversationIdChange={setConversationId}
+									onFormUpdate={(updatedForm: Partial<Schema["Form"]["type"]>) => {
+										// Find which fields changed
+										const changedFields = new Set<string>();
+										if (!form) return;
 
-								// Check simple fields
-								for (const field of formFields.simple) {
-									if (form[field] !== updatedForm[field]) {
-										changedFields.add(field);
-									}
-								}
+										// Check simple fields
+										for (const field of formFields.simple) {
+											if (form[field] !== updatedForm[field]) {
+												changedFields.add(field);
+											}
+										}
 
-								// Check nested fields
-								for (const field of formFields.nested) {
-									if (JSON.stringify(form[field]) !== JSON.stringify(updatedForm[field])) {
-										changedFields.add(field);
-									}
-								}
+										// Check nested fields
+										for (const field of formFields.nested) {
+											if (JSON.stringify(form[field]) !== JSON.stringify(updatedForm[field])) {
+												changedFields.add(field);
+											}
+										}
 
-								setUpdatedFields(changedFields);
-								setForm(updatedForm);
-								setLastNormForm(updatedForm);
+										setUpdatedFields(changedFields);
+										setForm(updatedForm);
+										setLastNormForm(updatedForm);
 
-								// Update the form in the database to ensure creatorID is preserved
-								if (updatedForm.id && userModel?.id) {
-									updateForm(updatedForm.id, {
-										...updatedForm,
-										creatorID: userModel.id,
-									}).catch(() => {
-										// Silently handle error
-									});
-								}
-							}}
-							currentForm={form}
-							processingMessage={processingMessage}
-							setProcessingMessage={setProcessingMessage}
-							getFormChanges={getFormChanges}
-						/>
+										// Update the form in the database to ensure creatorID is preserved
+										if (updatedForm.id && userModel?.id) {
+											updateForm(updatedForm.id, {
+												...updatedForm,
+												creatorID: userModel.id,
+											}).catch(() => {
+												// Silently handle error
+											});
+										}
+									}}
+									currentForm={form}
+									processingMessage={processingMessage}
+									setProcessingMessage={setProcessingMessage}
+									getFormChanges={getFormChanges}
+								/>
+							</div>
+						}
 					</div>
 				</div>
 			</main>

@@ -87,7 +87,7 @@ export function FormLayout({
 			`}</style>
 			<div
 				style={{
-					width: "60%",
+					width: "100%",
 					borderRight: "1px solid #b1b4b6",
 					paddingRight: "0",
 					paddingLeft: "15px",
