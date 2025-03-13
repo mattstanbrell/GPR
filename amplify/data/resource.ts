@@ -23,7 +23,7 @@ const schema = a
 					postcode: a.string(),
 				}),
 				userSettings: a.customType({
-					fontSize: a.integer(),
+					fontSize: a.float(),
 					font: a.string(),
 					fontColour: a.string(),
 					bgColour: a.string(),

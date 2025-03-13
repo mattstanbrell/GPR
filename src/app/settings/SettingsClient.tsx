@@ -1,5 +1,4 @@
 'use client'
-import * as React from 'react';
 import Preview from './Preview';
 
 import { useState, useEffect } from 'react';
@@ -28,6 +27,7 @@ export default function SettingsClient() {
   const [currentUserSettings, setCurrentUserSettings] = useState<UserSettings | null>();
 
   const userModel = useUserModel();
+  console.log("user settings",currentUserSettings)
 
   useEffect(() => {
     const fetchUserSettings = async () => {
@@ -43,19 +43,19 @@ export default function SettingsClient() {
       }
     };
     fetchUserSettings();
-  }, []);
+  }, [userModel]);
 
-  const [fontSize, setFontSize] = React.useState(currentUserSettings?.fontSize ?? DEFAULT_FONT_SIZE);
-  const [font, setFont] = React.useState(currentUserSettings?.font ?? DEFAULT_FONT)
-  const [spacing, setSpacing] = React.useState(currentUserSettings?.spacing ?? DEFAULT_SPACING);
-  const [fontColour, setFontColour] = React.useState(currentUserSettings?.fontColour ?? DEFAULT_FONT_COLOUR);
-  const [bgColour, setBgColour] = React.useState(currentUserSettings?.bgColour ?? DEFAULT_BG_COLOUR);
+  const [fontSize, setFontSize] = useState(currentUserSettings?.fontSize ?? DEFAULT_FONT_SIZE);
+  const [font, setFont] = useState(currentUserSettings?.font ?? DEFAULT_FONT)
+  const [spacing, setSpacing] = useState(currentUserSettings?.spacing ?? DEFAULT_SPACING);
+  const [fontColour, setFontColour] = useState(currentUserSettings?.fontColour ?? DEFAULT_FONT_COLOUR);
+  const [bgColour, setBgColour] = useState(currentUserSettings?.bgColour ?? DEFAULT_BG_COLOUR);
 
-  const [tempFontSize, setTempFontSize] = React.useState(currentUserSettings?.fontSize ?? DEFAULT_FONT_SIZE);
-  const [tempFont, setTempFont] = React.useState(currentUserSettings?.font ?? DEFAULT_FONT);
-  const [tempSpacing, setTempSpacing] = React.useState(currentUserSettings?.spacing ?? DEFAULT_SPACING);
-  const [tempFontColour, setTempFontColour] = React.useState(currentUserSettings?.fontColour ?? DEFAULT_FONT_COLOUR);
-  const [tempBgColour, setTempBgColour] = React.useState(currentUserSettings?.bgColour ?? DEFAULT_BG_COLOUR);
+  const [tempFontSize, setTempFontSize] = useState(currentUserSettings?.fontSize ?? DEFAULT_FONT_SIZE);
+  const [tempFont, setTempFont] = useState(currentUserSettings?.font ?? DEFAULT_FONT);
+  const [tempSpacing, setTempSpacing] = useState(currentUserSettings?.spacing ?? DEFAULT_SPACING);
+  const [tempFontColour, setTempFontColour] = useState(currentUserSettings?.fontColour ?? DEFAULT_FONT_COLOUR);
+  const [tempBgColour, setTempBgColour] = useState(currentUserSettings?.bgColour ?? DEFAULT_BG_COLOUR);
 
   const handleFontSizeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedFontSize = parseFloat(event.target.value);
@@ -119,7 +119,6 @@ export default function SettingsClient() {
   }
 
   const saveSettings = () => {
-    // call API to update settings
     updateSettings(tempFontSize, tempFont, tempSpacing, tempFontColour, tempBgColour);
   }
 

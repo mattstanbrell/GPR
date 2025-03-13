@@ -4,7 +4,7 @@ import AuditLogsClient from "@/app/components/auditLog/AuditLogsClient";
 import { listAuditLogs } from "@/utils/apis";
 import { useState, useEffect } from "react";
 
-// import seedDummyData from "@/seeder";
+import seedDummyData from "@/seeder";
 
 import { type Schema } from "../../../amplify/data/resource";
 
@@ -28,7 +28,6 @@ const AuditLogsPage = () => {
     const fetchAuditLogs = async () => {
       try {
         const logs = await listAuditLogs();
-        console.log(logs);
         setAuditLogs(logs);
       } catch (error) {
         console.log("Error when fetching audit logs:", error);
@@ -38,8 +37,6 @@ const AuditLogsPage = () => {
     };
     fetchAuditLogs();
   }, [])
-
-  console.log(auditLogs)
 
   return (
     <>

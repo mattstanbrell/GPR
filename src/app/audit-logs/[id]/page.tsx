@@ -8,6 +8,14 @@ import { type Schema } from "../../../../amplify/data/resource";
 type AuditLog = Schema["AuditLog"]["type"];
 type User = Schema['User']['type'];
 
+// Function to format date & time in custom format
+function formatDate(date: string): string {
+  const [datePart, timePart] = date.split("T");
+  const [year, month, day] = datePart.split("-");
+  const [hour, minute] = timePart.split(":");
+  return `${day}/${month}/${year.substring(2, 4)} ${hour}:${minute}`;
+}
+
 const AuditLogDetail = ({ params }: { params: Promise<{ id: string }> }) => {
   const [auditLog, setAuditLog] = useState<AuditLog | null>();
   const [user, setUser] = useState<User | null>();
@@ -18,12 +26,10 @@ const AuditLogDetail = ({ params }: { params: Promise<{ id: string }> }) => {
       try {
         const { id } = await params;
         const log = await getAuditLogById(id);
-        console.log(log);
         setAuditLog(log);
 
         if (log?.userID) {
           const user = await getUserById(log.userID);
-          console.log(user);
           setUser(user);
         }
       } catch (error) {
@@ -41,7 +47,7 @@ const AuditLogDetail = ({ params }: { params: Promise<{ id: string }> }) => {
         <main className="govuk-main-wrapper">
           <h1 className="govuk-heading-xl">Event Details</h1>
           <p className="govuk-body"><strong>Audit Log ID:</strong> {auditLog?.id}</p>
-          <p className="govuk-body">Date & Time of Audit: {auditLog?.date}</p>
+          <p className="govuk-body">Date & Time of Audit: {formatDate(auditLog?.date ?? "")}</p>
           <p className="govuk-body">Audit action: {auditLog?.action}</p>
           <p className="govuk-body">Action performed by: {user?.firstName} {user?.lastName}</p>
           <p className="govuk-body">User id: {auditLog?.userID}</p>
