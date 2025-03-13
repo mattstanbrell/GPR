@@ -2,7 +2,12 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 
-import { AuthGetCurrentUserServer, runWithAmplifyServerContext, cookiesClient } from "@/utils/amplifyServerUtils";
+import {
+	AuthGetCurrentUserServer,
+	runWithAmplifyServerContext,
+	cookiesClient,
+	getUserDetailsFromCookiesClient,
+} from "@/utils/amplifyServerUtils";
 import type { Schema } from "../../../amplify/data/resource";
 import DeleteButton from "./DeleteButton";
 
@@ -60,6 +65,13 @@ export default async function AllFormsPage() {
 	}
 
 	try {
+		// Get the user model from the database using server utilities
+		const userModel = await getUserDetailsFromCookiesClient();
+
+		if (!userModel || !userModel.id) {
+			throw new Error("User not found in database");
+		}
+
 		// Fetch all forms using pagination
 		let allForms: FormData[] = [];
 		let paginationToken: string | undefined;
@@ -72,6 +84,7 @@ export default async function AllFormsPage() {
 					const client = cookiesClient;
 					// Now get the filtered forms with pagination
 					const result = await client.models.Form.list({
+						filter: { creatorID: { eq: userModel.id } },
 						limit: 1000, // Increase limit to get more forms
 						nextToken: paginationToken,
 					});
