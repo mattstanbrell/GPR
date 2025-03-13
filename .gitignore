@@ -46,6 +46,9 @@ amplify_outputs*
 amplifyconfiguration*
 
 NOTES.md
+TODO.md
+biome.json
+
 # Ignore the entire test directory
 /src/app/test/
 

@@ -26,8 +26,8 @@ export default function DeleteButton({ formId }: DeleteButtonProps) {
 
 			// Refresh the page data
 			router.refresh();
-		} catch (err) {
-			console.error("Error deleting form:", err);
+		} catch (error: unknown) {
+			console.error("Failed to delete form:", error);
 			alert("Failed to delete form. Please try again.");
 		} finally {
 			setIsDeleting(false);

@@ -1,36 +1,44 @@
-import { redirect } from "next/navigation";
+"use client";
+
+import { useState, useEffect } from "react" 
 import SocialWorkerButtons from "../components/dashboard/SocialWorkerButtons";
 import ManagerButtons from "../components/dashboard/ManagerButtons";
 import AdminButtons from "../components/dashboard/AdminButtons";
+import { useUserModel } from "@/utils/authenticationUtils";
 
-const exampleUser = {
-	firstName: "John",
-	permissionGroup: "socialworker",
-};
-
-function renderButtons(permissionGroup: string) {
+const renderButtons = (permissionGroup: "ADMIN" | "MANAGER" | "SOCIAL_WORKER" | null | undefined) => {
 	switch (permissionGroup) {
-		case "socialworker":
+		case "SOCIAL_WORKER":
 			return <SocialWorkerButtons />;
-		case "manager":
+		case "MANAGER":
 			return <ManagerButtons />;
-		case "admin":
+		case "ADMIN":
 			return <AdminButtons />;
 		default:
-			return <div>This is the default home page, you should not be here</div>;
+			return <h3>Error: Permission group not found. Please contact your IT to check you are in the correct group in Microsoft Entra.</h3>;
 	}
-}
+};
 
-const Home = async () => {
-	const user = exampleUser;
-	if (!user) {
-		redirect("/");
-	}
+const Home = () => {
+	const userModel = useUserModel();
+	const [isLoading, setIsLoading] = useState<boolean>(true);
+	
+	useEffect(() => {
+		setIsLoading(false)
+	}, [userModel])
+
 	return (
-		<div>
-			<h1 className="text-center pb-7">Welcome {user.firstName}!</h1>
-			{renderButtons(user.permissionGroup)}
-		</div>
+		<>
+			
+			{ isLoading ? (
+				<h3 className="text-center">Loading...</h3>
+			) : (
+				<>
+					<h1 className="text-center pb-7">Welcome{` ${userModel?.firstName}`}!</h1>
+					{renderButtons(userModel?.permissionGroup)}
+				</>
+			)}
+		</>
 	);
 };
 

@@ -26,8 +26,8 @@ export async function isAuthenticated() {
 			},
 		});
 		return session;
-	} catch (error) {
-		console.error("[Auth] Session check error:", error);
+	} catch (error: unknown) {
+		console.error("Error checking authentication:", error);
 		return false;
 	}
 }
@@ -44,8 +44,8 @@ export async function AuthGetCurrentUserServer() {
 			operation: (contextSpec) => getCurrentUser(contextSpec),
 		});
 		return currentUser;
-	} catch (error) {
-		console.error("[Auth] Get current user error:", error);
+	} catch (error: unknown) {
+		console.error("Error getting current user:", error);
 		return null;
 	}
 }
@@ -62,8 +62,41 @@ export async function AuthGetUserAttributesServer() {
 			operation: (contextSpec) => fetchUserAttributes(contextSpec),
 		});
 		return currentUser;
-	} catch (error) {
-		console.error("[Auth] Get current user error:", error);
+	} catch (error: unknown) {
+		console.error("Error getting user attributes:", error);
 		return null;
 	}
+}
+
+export const getUserDetailsFromCookiesClient = async () => {
+	const authenticatedUser = await AuthGetCurrentUserServer();
+	if (!authenticatedUser) {
+		return null;
+	}
+
+	// Get user attributes
+	const userAttributes = await AuthGetUserAttributesServer();
+	if (!userAttributes?.sub) {
+		throw new Error("User sub not found in attributes");
+	}
+
+	// Construct the profileOwner in the same format as the post-authentication handler
+	const profileOwner = `${userAttributes.sub}::${authenticatedUser.username}`;
+
+	// Get user details from the database
+	const { data, errors } = await runWithAmplifyServerContext({
+		nextServerContext: { cookies },
+		operation: async () => {
+			return await cookiesClient.models.User.list({
+				filter: { profileOwner: { eq: profileOwner } },
+			});
+		},
+	});
+
+	if (errors) {
+		console.error("Error fetching user:", errors);
+		throw new Error("Failed to fetch user details");
+	}
+
+	return data[0]
 }
