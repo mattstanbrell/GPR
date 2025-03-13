@@ -10,7 +10,7 @@ import type { UIMessage, FormChanges } from "./types";
 import { FormErrorSummary } from "./FormErrorSummary";
 import { FormLayout } from "./FormLayout";
 import { NormLayout } from "./NormLayout";
-import { createForm, updateForm, getFormById, getNormConversationByFormId } from "../../../utils/apis";
+import { createForm, updateForm, getFormById, getNormConversationByFormId, assignUserToForm } from "../../../utils/apis";
 import { useUserModel } from "../../../utils/authenticationUtils";
 import type { FormStatus } from "@/app/types/models";
 
@@ -199,6 +199,12 @@ export function FormContent() {
 				status: "SUBMITTED",
 				creatorID: userModel.id,
 			});
+			if (form.amount > 5000) {
+				await assignUserToForm(form.id, userModel?.managerUserId);
+			} else {
+				await assignUserToForm(form.id, userModel?.assistantManagerUserId);
+			}
+			
 			router.push(FORM_BOARD);
 		} catch (_error: unknown) {
 			setErrorMessage(_error instanceof Error ? _error.message : String(_error));
