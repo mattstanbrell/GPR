@@ -18,6 +18,7 @@ export const handler: Handler = async (event: RequestEvent) => {
     console.log("Sending to GPT-4...");
     const startTime = Date.now();
 
+
     const openai = new OpenAI({
       apiKey: env.OPENAI_API_KEY
     });
