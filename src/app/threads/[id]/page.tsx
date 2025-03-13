@@ -1,60 +1,90 @@
 'use client'
 
 import ThreadsContainer from "@/app/components/threads/ThreadsContainer";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState, useRef } from "react";
 import { ThreadsContext } from "../layout";
-import { ThreadType } from "@/app/components/threads/types";
-import { getThreadbyID, getUsersInThread, setThreadMessagesToRead } from "@/utils/apis";
+import { MessageType, ThreadType } from "@/app/components/threads/types";
+import { getThreadbyID, getUsersInThread, setThreadMessagesToRead, subscribeToThreadMessages } from "@/utils/apis";
+import { Subscription } from "rxjs/internal/Subscription"
 
 
 const ThreadPage = ({ params }: { params: Promise<{ id: string }> }) => {
 	const { threads, loading: loadingThreads, currentUser } = useContext(ThreadsContext);
 	const [currentThread, setCurrentThread] = useState<ThreadType | null>(null);
 	const [loading, setLoading] = useState(true);
+	const [_, setMessages] = useState<MessageType[]>([]);
+	const subscriptionRef = useRef<Subscription | null>(null);
 
 	useEffect(() => {
+		let isMounted = true;
+
 		async function fetchThreads() {
+			const {id: threadId} = await params;
+			setLoading(true);
+			if (!currentUser) return;
+			if(!threadId) return;
+
 			try {
-				const {id: threadId} = await params;
-				setLoading(true);
-
-				// If there is no current user, return
-				// But keep loading to true as user probably is being fetched
-				if (!currentUser) return;
-
-				if(!threadId) return;
+				// Cleanup: Unsubscribe and prevent updates if component is unmounted
+				if (subscriptionRef.current) {
+					subscriptionRef.current.unsubscribe();
+				}
 
 				// First fetch the threads
 				const thread = await getThreadbyID(threadId);
 
 				if (!thread) return;
 
+				// set thread to read
+				await setThreadMessagesToRead(thread.id, currentUser.id);
 
 				// Fetch the thread details
-				const [{data: messages}, name, allUsers, formId] = await Promise.all([
-					thread.messages(),
+				const [name, allUsers, formId] = await Promise.all([
 					thread.form().then((form) => form?.data?.title),
 					getUsersInThread(thread.id),
 					thread.form().then((form) => form?.data?.id)
 				]);
+
+				if (!isMounted) return;
+				
+				// Fetch the messages
+				const sub = subscribeToThreadMessages(thread.id, (m) => {
+					if(isMounted){
+						m.sort((a, b) => {
+							if (!a.timeSent || !b.timeSent) return 0;
+							return new Date(a.timeSent).getTime() - new Date(b.timeSent).getTime();
+						});
+						setMessages(m);
+						setCurrentThread((prev) => prev ? { ...prev, allMessages: m } : prev)
+					}
+				});
+
+				subscriptionRef.current = sub;
+
+				console.log("Ping");
+				
 				setCurrentThread({
 					...thread,
-					allMessages: messages,
 					name: name || "No Title",
 					allUsers,
 					formId
 				});
-				// set thread to read
-				await setThreadMessagesToRead(thread.id, currentUser.id);
-				console.log("Thread set to read");
-
 				setLoading(false);
-
 			} catch (error) {
 				console.error(error);
 			}
 		}
 		fetchThreads();
+
+		return () => {
+			// Cleanup: Unsubscribe and prevent updates if component is unmounted
+			isMounted = false;
+			if (subscriptionRef.current) {
+				console.log("Unsubscribing from thread messages");
+				subscriptionRef.current.unsubscribe();
+				subscriptionRef.current = null;
+			}
+		};
 	}, [currentUser, params]);
 
 	return (
