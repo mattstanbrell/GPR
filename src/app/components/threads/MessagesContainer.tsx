@@ -21,37 +21,34 @@ const MessagesContainer = ({ messages, loading }: MessagesContainerProps) => {
         }
     }, [messages]);
 
-    if (loading) {
-        return (
-            <div className="flex flex-col flex-1 gap-5 max-h-100 p-4 overflow-y-auto">
-                <Message loading={loading} className="bg-(--color-background-medium) self-end"/>
-                <Message loading={loading} className="bg-(--color-background-medium)" />
-                <Message loading={loading} className="bg-(--color-background-medium) self-end"/>
-            </div>
-        )
-    }
-
     return (
         <div ref={containerRef} className="flex flex-col flex-1 gap-5 max-h-100 p-4 overflow-y-auto">
-            { !messages ? 
-                <p className="text-center text-white font-bold pt-1">Nothing to see here!</p>
+            {loading ?
+                <div className="flex flex-col flex-1 gap-5 max-h-100 p-4">
+                    <Message loading={loading} className="bg-(--color-background-medium) self-end"/>
+                    <Message loading={loading} className="bg-(--color-background-medium)" />
+                    <Message loading={loading} className="bg-(--color-background-medium) self-end"/>
+                </div>
                 :
-                messages.map((message, i) => {
-                    return (
-                        <Message
-                            message={message}
-                            className={
-                                `flex flex-col
-                                text-white
-                                ${currentUser?.id == message.userID ? 
-                                    "bg-(--color-background-medium) self-end" 
-                                    : 
-                                    "bg-(--color-background-dark)"} 
-                                ${i == messages.length - 1 ? "mb-2" : null}`}
-                            key={message.id}
-                        />
-                    )
-                })
+                !messages ? 
+                    <p className="text-center text-white font-bold pt-1">Nothing to see here!</p>
+                    :
+                    messages.map((message, i) => {
+                        return (
+                            <Message
+                                message={message}
+                                className={
+                                    `flex flex-col
+                                    text-white
+                                    ${currentUser?.id == message.userID ? 
+                                        "bg-(--color-background-medium) self-end" 
+                                        : 
+                                        "bg-(--color-background-dark)"} 
+                                    ${i == messages.length - 1 ? "mb-2" : null}`}
+                                key={message.id}
+                            />
+                        )
+                    })
             }
         </div>
     )

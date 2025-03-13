@@ -3,7 +3,7 @@
 import ThreadsContainer from "@/app/components/threads/ThreadsContainer";
 import { useContext, useEffect, useState, useRef } from "react";
 import { ThreadsContext } from "../layout";
-import { MessageType, ThreadType } from "@/app/components/threads/types";
+import { ThreadType } from "@/app/components/threads/types";
 import { getThreadbyID, getUsersInThread, setThreadMessagesToRead, subscribeToThreadMessages } from "@/utils/apis";
 import { Subscription } from "rxjs/internal/Subscription"
 import { AppContext } from "@/app/layout";
@@ -14,7 +14,6 @@ const ThreadPage = ({ params }: { params: Promise<{ id: string }> }) => {
 	const { currentUser } = useContext(AppContext);
 	const [currentThread, setCurrentThread] = useState<ThreadType | null>(null);
 	const [loading, setLoading] = useState(true);
-	const [_, setMessages] = useState<MessageType[]>([]);
 	const subscriptionRef = useRef<Subscription | null>(null);
 
 	useEffect(() => {
@@ -56,7 +55,6 @@ const ThreadPage = ({ params }: { params: Promise<{ id: string }> }) => {
 							if (!a.timeSent || !b.timeSent) return 0;
 							return new Date(a.timeSent).getTime() - new Date(b.timeSent).getTime();
 						});
-						setMessages(m);
 						setCurrentThread((prev) => prev ? { ...prev, allMessages: m } : prev)
 					}
 				});
