@@ -1,11 +1,12 @@
-import { useUserModel } from "@/utils/authenticationUtils";
+import { AppContext } from "@/app/layout";
+import { useContext } from "react";
 import { PrimaryButton } from "../util/Button";
 import { seed, displayBackend, deleteModels } from "./dummy";
 
 
 
 const Seeder = () => {
-    const currentUser = useUserModel();
+    const { currentUser } = useContext(AppContext);
     return (
         <div>
             { currentUser ?

@@ -8,8 +8,8 @@ import MessageInput from "./MessageInput"
 import { ThreadType } from "./types"
 import { createMessage} from "@/utils/apis"
 import { useContext } from "react"
-import { ThreadsContext } from "@/app/threads/layout"
 import { getName } from "@/utils/authenticationUtils";
+import { AppContext } from "@/app/layout"
 
 
 interface ThreadProps {
@@ -21,7 +21,7 @@ interface ThreadProps {
 }
 
 const Thread = ({ thread, className, isMobile, sidebarToggle, loading }: ThreadProps) => {
-    const {currentUser} = useContext(ThreadsContext);
+    const { currentUser } = useContext(AppContext);
 
     function onMessageSend(message: string) {
         if(!currentUser?.id || !thread?.id || !message ) return;

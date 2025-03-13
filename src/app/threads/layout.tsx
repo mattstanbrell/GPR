@@ -1,22 +1,17 @@
 'use client';
 
-import { useState, useEffect, createContext } from "react";
+import { useState, useEffect, createContext, useContext } from "react";
 import { getThreadsWithUser, getUnreadMessageNumber } from "@/utils/apis";
-import { useUserModel } from "@/utils/authenticationUtils";
-import { ThreadType, UserType } from "../components/threads/types";
-import useIsMobileWindowSize from "@/utils/responsivenessHelpers";
+import { AppContext } from "@/app/layout";
+import { ThreadType } from "../components/threads/types";
 
 export const ThreadsContext = createContext<
     { 
         threads: ThreadType[],
         loading: boolean,
-        currentUser?: UserType | null,
-        isMobile: boolean,
     }>({
         threads: [],
         loading: true, 
-        currentUser: null,
-        isMobile: false
     });
 
 interface ThreadsLayoutProps {
@@ -24,8 +19,7 @@ interface ThreadsLayoutProps {
 }
 
 export default function ThreadsLayout({ children } : ThreadsLayoutProps) {
-    const currentUser = useUserModel();
-    const isMobile = useIsMobileWindowSize();
+    const { currentUser } = useContext(AppContext);
     const [threads, setThreads] = useState<ThreadType[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -84,7 +78,7 @@ export default function ThreadsLayout({ children } : ThreadsLayoutProps) {
     }, [currentUser]);
 
     return (
-        <ThreadsContext.Provider value={{ threads, loading, currentUser, isMobile }}>
+        <ThreadsContext.Provider value={{ threads, loading }}>
             {children}
         </ThreadsContext.Provider>
     );

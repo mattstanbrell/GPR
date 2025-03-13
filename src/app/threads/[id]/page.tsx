@@ -6,10 +6,12 @@ import { ThreadsContext } from "../layout";
 import { MessageType, ThreadType } from "@/app/components/threads/types";
 import { getThreadbyID, getUsersInThread, setThreadMessagesToRead, subscribeToThreadMessages } from "@/utils/apis";
 import { Subscription } from "rxjs/internal/Subscription"
+import { AppContext } from "@/app/layout";
 
 
 const ThreadPage = ({ params }: { params: Promise<{ id: string }> }) => {
-	const { threads, loading: loadingThreads, currentUser } = useContext(ThreadsContext);
+	const { threads, loading: loadingThreads } = useContext(ThreadsContext);
+	const { currentUser } = useContext(AppContext);
 	const [currentThread, setCurrentThread] = useState<ThreadType | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [_, setMessages] = useState<MessageType[]>([]);
@@ -60,8 +62,6 @@ const ThreadPage = ({ params }: { params: Promise<{ id: string }> }) => {
 				});
 
 				subscriptionRef.current = sub;
-
-				console.log("Ping");
 				
 				setCurrentThread({
 					...thread,
@@ -80,7 +80,6 @@ const ThreadPage = ({ params }: { params: Promise<{ id: string }> }) => {
 			// Cleanup: Unsubscribe and prevent updates if component is unmounted
 			isMounted = false;
 			if (subscriptionRef.current) {
-				console.log("Unsubscribing from thread messages");
 				subscriptionRef.current.unsubscribe();
 				subscriptionRef.current = null;
 			}

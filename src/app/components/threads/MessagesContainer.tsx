@@ -2,8 +2,8 @@
 
 import Message from "./Message"
 import { MessageType } from "./types"
-import { useUserModel } from "@/utils/authenticationUtils";
-import { useEffect, useRef } from "react";
+import { AppContext } from "@/app/layout";
+import { useEffect, useRef, useContext } from "react";
 
 
 interface MessagesContainerProps {
@@ -12,7 +12,7 @@ interface MessagesContainerProps {
 }
 
 const MessagesContainer = ({ messages, loading }: MessagesContainerProps) => {
-    const currentUser = useUserModel();
+    const { currentUser } = useContext(AppContext);
     const containerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {

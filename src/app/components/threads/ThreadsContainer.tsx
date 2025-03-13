@@ -4,10 +4,8 @@ import { useContext, useState } from "react";
 import ThreadsSidebar from "./ThreadsSidebar";
 import Thread from "./Thread";
 import { ThreadType } from "./types";
-import { ThreadsContext } from "@/app/threads/layout";
 import Seeder from "./Seeder";
-
-
+import { AppContext } from "@/app/layout";
 
 
 
@@ -20,7 +18,7 @@ interface ThreadsContainerProps {
 }
 
 const ThreadsContainer = ({thread, threads, loadingThread, loadingThreads, startWithSidebar = true} : ThreadsContainerProps) => {
-    const { isMobile } = useContext(ThreadsContext);
+    const { isMobile } = useContext(AppContext);
     const [viewSidebar, setViewSidebar] = useState(startWithSidebar); //When the screen is mobile, the sidebar is hidden by default
 
     return (
