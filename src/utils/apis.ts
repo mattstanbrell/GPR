@@ -252,6 +252,18 @@ export async function getFormsForChild(childId: string) {
 	return data;
 }
 
+// Update a form's submission status specifically
+export async function updateFormStatus(formId: string, status: string) {
+	const { data, errors } = await client.models.Form.update({
+		id: formId,
+		status: status,
+	});
+	if (errors) {
+		throw new Error(errors[0].message);
+	}
+	return data;
+}
+
 // ------------------ FormAssignee APIs --------------
 // assign a user to a form
 export async function assignUserToForm(formId: string, userId: string) {
@@ -361,6 +373,37 @@ export async function getAssigneesForForm(formId: string) {
 }
 
 //Add an algorithm which assigns forms to the manager with the fewest forms.
+// Returns all forms assigned to a specific user sorted by urgency.
+export async function getSortedFormsAssignedToUser(userId: string,status?: string) {
+
+	const {data: assignments, errors} = await client.models.FormAssignee.list({
+		filter: {userID: {eq: userId}},
+	});
+
+	if (errors) {
+		throw new Error(errors[0].message);
+	}
+
+	const forms = await Promise.all(
+		assignments.map(async (assignment) => {
+			const {data: form, errors: formErrors} = await client.models.Form.get({
+				id: assignment.formID,
+			});
+			if (formErrors) {
+				throw new Error(formErrors[0].message);
+			}
+			return form;
+		}),
+	);
+
+	const filteredForms = forms.filter((form) => form !== null);
+
+	if (status) {
+		return filteredForms.filter((form) => form.status === status);
+	}
+
+	return filteredForms.sort((a, b) => b.urgency - a.urgency);
+}
 
 // ------------------ UserChild link APISs --------------
 
