@@ -3,7 +3,7 @@
 import Message from "./Message"
 import { MessageType } from "./types"
 import { useUserModel } from "@/utils/authenticationUtils";
-import { useLayoutEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 
 
 interface MessagesContainerProps {
@@ -15,7 +15,7 @@ const MessagesContainer = ({ messages, loading }: MessagesContainerProps) => {
     const currentUser = useUserModel();
     const containerRef = useRef<HTMLDivElement>(null);
 
-    useLayoutEffect(() => {
+    useEffect(() => {
         if (containerRef.current) {
             containerRef.current.scrollTop = containerRef.current.scrollHeight;
         }
@@ -43,7 +43,7 @@ const MessagesContainer = ({ messages, loading }: MessagesContainerProps) => {
                             className={
                                 `flex flex-col
                                 text-white
-                                ${currentUser?.id == message.id ? 
+                                ${currentUser?.id == message.userID ? 
                                     "bg-(--color-background-medium) self-end" 
                                     : 
                                     "bg-(--color-background-dark)"} 
