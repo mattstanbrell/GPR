@@ -2,33 +2,46 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { MAX_FILE_SIZE_IN_MB, VALID_IMAGE_TYPES } from "@/app/constants/global";
 
-// SLUG WILL NEED TO BE PASSED IN HERE (SLUG SHOULD BE FORM ID)
+const Title = () => {
+  return <h1 className="govuk-heading-l">Upload Receipt</h1>
+}
 
-type Item = {
-  name: string;
-  quantity: number;
-  cost: number;
-};
+const UploadFileBody = () => {
+  return (
+    <>
+      <label className="govuk-label" htmlFor="receipt-upload">
+        Upload a receipt image
+      </label>
+      <div className="govuk-hint">
+        Files must be JPG, PNG, WEBP, HEIC or HEIF, and less than 20MB.
+      </div>
+    </>
+  )
+}
 
-type AnalysisResult = {
-  total: string;
-  items: Item[];
-  timeTaken: number;
-  cost: number;
-  tokenInfo?: {
-    inputTokens: number;
-    outputTokens: number;
-  };
-};
+const PageError = ({error} : {error: string}) => {
+  return (
+    <p id="receipt-upload-error" className="govuk-error-message">
+      <span className="govuk-visually-hidden">Error:</span> 
+      { error }
+    </p>
+  )
+}
 
-type AnalysisError = {
-  error: string;
-};
+const LoadingMessage = () => {
+  return (
+    <div className="govuk-body">
+      <progress className="govuk-progress">
+        <span className="govuk-visually-hidden">Loading...</span>
+      </progress>
+      Analyzing receipt...
+    </div>
+  )
+}
 
-type ModelResult = AnalysisResult | AnalysisError;
-
-export default function ReceiptPage() {
+const ReceiptPage = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -66,20 +79,12 @@ export default function ReceiptPage() {
     setError(null);
 
     // Validate file size (20MB)
-    if (file.size > 20 * 1024 * 1024) {
-      setError("The selected file must be smaller than 20MB");
+    if (file.size > MAX_FILE_SIZE_IN_MB * 1024 * 1024) {
+      setError(`The selected file must be smaller than ${MAX_FILE_SIZE_IN_MB}MB`);
       return;
     }
 
-    // Validate file type
-    const validTypes = [
-      "image/jpeg",
-      "image/png",
-      "image/webp",
-      "image/heic",
-      "image/heif",
-    ];
-    if (!validTypes.includes(file.type)) {
+      if (!(VALID_IMAGE_TYPES.includes(file.type))) {
       setError("The selected file must be a JPG, PNG, WEBP, HEIC or HEIF");
       return;
     }
@@ -104,9 +109,7 @@ export default function ReceiptPage() {
 
       const data = await response.json();
 
-
-      // router.push(`/form/${slug}/upload?result=${encodeURIComponent(JSON.stringify(data))}`);
-      router.push(`/form/3/upload?result=${encodeURIComponent(JSON.stringify(data))}`);
+      router.push(`/form/3/upload?result=${encodeURIComponent(JSON.stringify(data))}`); // hardocded form id
     } catch (error) {
       console.error("Error analyzing receipt:", error);
       setError(
@@ -122,22 +125,11 @@ export default function ReceiptPage() {
   return (
     <div className="govuk-width-container">
       <main className="govuk-main-wrapper">
-        <h1 className="govuk-heading-l">Upload Receipt</h1>
+        <Title />
 
-        <div
-          className={`govuk-form-group${error ? " govuk-form-group--error" : ""}`}
-        >
-          <label className="govuk-label" htmlFor="receipt-upload">
-            Upload a receipt image
-          </label>
-          <div className="govuk-hint">
-            Files must be JPG, PNG, WEBP, HEIC or HEIF, and less than 20MB.
-          </div>
-          {error && (
-            <p id="receipt-upload-error" className="govuk-error-message">
-              <span className="govuk-visually-hidden">Error:</span> {error}
-            </p>
-          )}
+        <div className={`govuk-form-group${error ? " govuk-form-group--error" : ""}`} >
+          <UploadFileBody />
+          { error && <PageError error={ error } /> } 
           <div
             className="govuk-file-drop-zone"
             onDragOver={handleDragOver}
@@ -157,15 +149,10 @@ export default function ReceiptPage() {
           </div>
         </div>
 
-        {isLoading && (
-          <div className="govuk-body">
-            <progress className="govuk-progress">
-              <span className="govuk-visually-hidden">Loading...</span>
-            </progress>
-            Analyzing receipt...
-          </div>
-        )}
+        {isLoading && <LoadingMessage />}
       </main>
     </div>
   );
 }
+
+export default ReceiptPage;
