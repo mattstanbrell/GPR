@@ -3,18 +3,7 @@
 import { useRouter } from "next/navigation";
 import { type Schema } from "../../../../amplify/data/resource";
 
-type AuditLog = Schema["AuditLog"]["type"];
-
-// Function to display date&time in custom format
-function formatDate(date: string): string {
-  // ISO format is YYYY-MM-DD 'T' HH:MM:SS.SSS 'Z'
-  const [datePart, timePart] = date.split("T");
-
-  const [year, month, day] = datePart.split("-");
-  const [hour, minute] = timePart.split(":");
-
-  return `${day}/${month}/${year.substring(2, 4)} ${hour}:${minute}`;
-}
+type AuditLog = Schema["AuditLog"]["type"]; 
 
 const AuditLogsClient = ({logs} : {logs:AuditLog[]}) => {
   const router = useRouter();
@@ -22,8 +11,6 @@ const AuditLogsClient = ({logs} : {logs:AuditLog[]}) => {
   const viewLogDetails = (id: string) => {
     router.push(`/audit-logs/${id}`);
   };
-
-  const sortedLogs = [...logs].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   return (
     <table className="govuk-table">
@@ -35,16 +22,17 @@ const AuditLogsClient = ({logs} : {logs:AuditLog[]}) => {
         </tr>
       </thead>
       <tbody className="govuk-table__body">
-        {sortedLogs.length > 0 ? (
-          sortedLogs.map((log, index) => (
+        {logs.length > 0 ? (
+          logs.map((log, index) => (
             <tr 
             key={ index } 
             className="govuk-table__row"
-            onClick={() => viewLogDetails(log.id)}
-            style={{ cursor: "pointer" }}
+            onClick={() => viewLogDetails(log.id)} // Navigate to a new page
+            style={{ cursor: "pointer" }} // Make it clear it's clickable
             >
               <th scope="row" className="govuk-table__header">{log.action}</th>
-              <td className="govuk-table__cell">{formatDate(log.date)}</td>
+              {/* <td className="govuk-table__cell">{formatDate(log.date)}</td> */}
+              <td className="govuk-table__cell">{log.date}</td>
             </tr>
           ))
         ) : (
