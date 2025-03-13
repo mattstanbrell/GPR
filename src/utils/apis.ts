@@ -35,32 +35,6 @@ type UserUpdates = {
 	};
 };
 
-type FormUpdates = {
-	caseNumber?: string;
-	reason?: string;
-	amount?: number;
-	dateRequired?: { day: number; month: number; year: number };
-	recipientDetails?: {
-		name?: { firstName?: string; lastName?: string };
-		address?: {
-			lineOne?: string;
-			lineTwo?: string;
-			townOrCity?: string;
-			postcode?: string;
-		};
-	};
-	status?:
-		| "DRAFT"
-		| "SUBMITTED"
-		| "AUTHORISED"
-		| "VALIDATED"
-		| "COMPLETED"
-		| null;
-	creatorID?: string;
-	childID?: string;
-	feedback?: string;
-};
-
 type ChildUpdates = {
 	firstName?: string;
 	lastName?: string;
@@ -85,11 +59,7 @@ type AuditLogUpdates = {
 };
 
 // ----------User APIs-----------
-export async function createUser(
-	email: string,
-	firstName: string,
-	lastName: string,
-) {
+export async function createUser(email: string, firstName: string, lastName: string) {
 	const { data, errors } = await client.models.User.create({
 		email,
 		firstName,
@@ -160,38 +130,8 @@ export async function deleteUser(userId: string) {
 }
 
 // ------------Form APIs -------------
-export async function createForm(
-	caseNumber: string,
-	reason: string,
-	amount: number,
-	dateRequired: { day: number; month: number; year: number },
-	recipientDetails: {
-		name: { firstName: string; lastName: string };
-		address: {
-			lineOne: string;
-			lineTwo: string;
-			townOrCity: string;
-			postcode: string;
-		};
-	},
-	status: "DRAFT" | "SUBMITTED" | "AUTHORISED" | "VALIDATED" | "COMPLETED",
-	creatorID: string,
-	title?: string,
-	childID?: string,
-	feedback?: string,
-) {
-	const { data, errors } = await client.models.Form.create({
-		caseNumber,
-		reason,
-		amount,
-		dateRequired,
-		recipientDetails,
-		status,
-		creatorID,
-		childID,
-		feedback,
-		title
-	});
+export async function createForm(formData: Partial<Schema["Form"]["type"]> & { creatorID: string }) {
+	const { data, errors } = await client.models.Form.create(formData);
 	if (errors) {
 		throw new Error(errors[0].message);
 	}
@@ -262,7 +202,7 @@ export async function listForms() {
 }
 
 // Update a form
-export async function updateForm(formId: string, updates: FormUpdates) {
+export async function updateForm(formId: string, updates: Partial<Schema["Form"]["type"]>) {
 	const { data, errors } = await client.models.Form.update({
 		id: formId,
 		...updates,
@@ -283,15 +223,23 @@ export async function deleteForm(formId: string) {
 }
 
 // Returns all forms created by a specific user by filtering on creatorID
-export async function getFormsCreatedByUser(userId: string) {
-	const { data, errors } = await client.models.Form.list({
-		filter: { creatorID: { eq: userId } },
-	});
-	if (errors) {
-		throw new Error(errors[0].message);
+export async function getFormsCreatedByUser(userId: string, status?: string) {
+	const filter: { creatorID: {eq: string}, status?: {eq: string} } = { creatorID: { eq: userId } };
+	
+	if (status) {
+	  filter.status = { eq: status };
 	}
+  
+	const { data, errors } = await client.models.Form.list({
+	  filter: filter,
+	});
+  
+	if (errors) {
+	  throw new Error(errors[0].message);
+	}
+  
 	return data;
-}
+  }
 
 // fetch all forms associated with a specific child
 export async function getFormsForChild(childId: string) {
@@ -337,13 +285,12 @@ export async function assignUserToFormWithThread(formId: string, userId: string)
 
 // unassign a user from a form
 export async function unassignUserFromForm(formId: string, userId: string) {
-	const { data: links, errors: findErrors } =
-		await client.models.FormAssignee.list({
-			filter: {
-				formID: { eq: formId },
-				userID: { eq: userId },
-			},
-		});
+	const { data: links, errors: findErrors } = await client.models.FormAssignee.list({
+		filter: {
+			formID: { eq: formId },
+			userID: { eq: userId },
+		},
+	});
 	if (findErrors) {
 		throw new Error(findErrors[0].message);
 	}
@@ -360,25 +307,35 @@ export async function unassignUserFromForm(formId: string, userId: string) {
 }
 
 // Returns all forms assigned to a specific user
-export async function getFormsAssignedToUser(userId: string) {
+export async function getFormsAssignedToUser(userId: string,status?: string) {
+
 	const { data: assignments, errors } = await client.models.FormAssignee.list({
-		filter: { userID: { eq: userId } },
+	  filter: { userID: { eq: userId } },
 	});
+  
 	if (errors) {
-		throw new Error(errors[0].message);
+	  throw new Error(errors[0].message);
 	}
+  
 	const forms = await Promise.all(
-		assignments.map(async (assignment) => {
-			const { data: form, errors: formErrors } = await client.models.Form.get({
-				id: assignment.formID,
-			});
-			if (formErrors) {
-				throw new Error(formErrors[0].message);
-			}
-			return form;
-		}),
+	  assignments.map(async (assignment) => {
+		const { data: form, errors: formErrors } = await client.models.Form.get({
+		  id: assignment.formID,
+		});
+		if (formErrors) {
+		  throw new Error(formErrors[0].message);
+		}
+		return form; 
+	  }),
 	);
-	return forms;
+  
+	const filteredForms = forms.filter((form) => form !== null); 
+  
+	if (status) {
+	  return filteredForms.filter((form) => form.status === status);
+	}
+  
+	return filteredForms;
 }
 
 // fetch all users assigned to a specific form
@@ -403,6 +360,8 @@ export async function getAssigneesForForm(formId: string) {
 	return users;
 }
 
+//Add an algorithm which assigns forms to the manager with the fewest forms.
+
 // ------------------ UserChild link APISs --------------
 
 export async function linkUserToChild(userId: string, childId: string) {
@@ -417,13 +376,12 @@ export async function linkUserToChild(userId: string, childId: string) {
 }
 
 export async function unlinkUserFromChild(userId: string, childId: string) {
-	const { data: links, errors: findErrors } =
-		await client.models.UserChild.list({
-			filter: {
-				userID: { eq: userId },
-				childID: { eq: childId },
-			},
-		});
+	const { data: links, errors: findErrors } = await client.models.UserChild.list({
+		filter: {
+			userID: { eq: userId },
+			childID: { eq: childId },
+		},
+	});
 	if (findErrors) {
 		throw new Error(findErrors[0].message);
 	}
@@ -442,20 +400,18 @@ export async function unlinkUserFromChild(userId: string, childId: string) {
 }
 
 export async function getChildrenForUser(userId: string) {
-	const { data: links, errors: findErrors } =
-		await client.models.UserChild.list({
-			filter: {
-				userID: { eq: userId },
-			},
-		});
+	const { data: links, errors: findErrors } = await client.models.UserChild.list({
+		filter: {
+			userID: { eq: userId },
+		},
+	});
 	if (findErrors) {
 		throw new Error(findErrors[0].message);
 	}
 
 	const children = await Promise.all(
 		links.map(async (link) => {
-			const { data: child, errors: childErrors } =
-				await client.models.Child.get({ id: link.childID });
+			const { data: child, errors: childErrors } = await client.models.Child.get({ id: link.childID });
 			if (childErrors) {
 				throw new Error(childErrors[0].message);
 			}
@@ -467,12 +423,11 @@ export async function getChildrenForUser(userId: string) {
 }
 
 export async function getUsersForChild(childId: string) {
-	const { data: links, errors: findErrors } =
-		await client.models.UserChild.list({
-			filter: {
-				childID: { eq: childId },
-			},
-		});
+	const { data: links, errors: findErrors } = await client.models.UserChild.list({
+		filter: {
+			childID: { eq: childId },
+		},
+	});
 	if (findErrors) {
 		throw new Error(findErrors[0].message);
 	}
@@ -600,10 +555,7 @@ export async function listReceipts() {
 }
 
 // Update a receipt
-export async function updateReceipt(
-	receiptId: string,
-	updates: ReceiptUpdates,
-) {
+export async function updateReceipt(receiptId: string, updates: ReceiptUpdates) {
 	const { data, errors } = await client.models.Receipt.update({
 		id: receiptId,
 		...updates,
@@ -628,12 +580,7 @@ export async function deleteReceipt(receiptId: string) {
 // -------------- AuditLog APIs --------------
 
 // Create a new audit log
-export async function createAuditLog(
-	action: string,
-	date: string,
-	userID: string,
-	formID: string,
-) {
+export async function createAuditLog(action: string, date: string, userID: string, formID: string) {
 	const { data, errors } = await client.models.AuditLog.create({
 		action,
 		date,
@@ -665,10 +612,7 @@ export async function listAuditLogs() {
 }
 
 // Update an audit log
-export async function updateAuditLog(
-	auditLogId: string,
-	updates: AuditLogUpdates,
-) {
+export async function updateAuditLog(auditLogId: string, updates: AuditLogUpdates) {
 	const { data, errors } = await client.models.AuditLog.update({
 		id: auditLogId,
 		...updates,
@@ -712,6 +656,42 @@ export async function getAuditLogsForForm(formId: string) {
 	return data;
 }
 
+// ------------------ NormConversation APIs --------------
+// Get NormConversation by form ID
+export async function getNormConversationByFormId(formId: string) {
+	const { data, errors } = await client.models.NormConversation.list({
+		filter: { formID: { eq: formId } },
+	});
+	if (errors) {
+		throw new Error(errors[0].message);
+	}
+	return data[0] || null;
+}
+
+// Create a new NormConversation
+export async function createNormConversation(formId: string, messages: string) {
+	const { data, errors } = await client.models.NormConversation.create({
+		formID: formId,
+		messages,
+	});
+	if (errors) {
+		throw new Error(errors[0].message);
+	}
+	return data;
+}
+
+// Update a NormConversation
+export async function updateNormConversation(conversationId: string, messages: string) {
+	const { data, errors } = await client.models.NormConversation.update({
+		id: conversationId,
+		messages,
+	});
+	if (errors) {
+		throw new Error(errors[0].message);
+	}
+	return data;
+}
+
 // -------------- Thread APIs --------------
 
 // Create a new thread
@@ -732,20 +712,6 @@ export async function getThreadbyID(
 ) {
   const { data, errors } = await client.models.Thread.get({
     id: threadID,
-  });
-  if (errors) {
-    throw new Error(errors[0].message);
-  }
-  return data;
-}
-
-export async function createUserThread(
-    threadID: string,
-    userID: string,
-) {
-  const { data, errors } = await client.models.UserThread.create({
-    threadID: threadID,
-    userID: userID
   });
   if (errors) {
     throw new Error(errors[0].message);
@@ -831,7 +797,7 @@ export async function setThreadMessagesToRead(threadID: string, userID: string) 
   const { data: unreadMessages, errors } = await client.models.UserMessage.list({
     filter: { and: [
         {threadID: { eq: threadID}},
-        {isRead: {eq: false}}]}, 
+        {isRead: {eq: false}}]},
   });
   if (errors) {
     throw new Error(errors[0].message);

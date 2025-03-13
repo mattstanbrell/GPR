@@ -205,6 +205,15 @@ const schema = a
 				form: a.belongsTo("Form", "formID"),
 			})
 			.authorization((allow) => [allow.authenticated()]),
+
+		FinanceCode: a
+			.model({
+				accountCode: a.string().required(),
+				typeDescription: a.string().required(),
+				accountCodeDescriptions: a.string().required(),
+				areasCovered: a.string().required(),
+			})
+			.authorization((allow) => [allow.authenticated()]),
 	})
 	// Add schema-level authorization to grant the norm function access to all models
 	.authorization((allow) => [

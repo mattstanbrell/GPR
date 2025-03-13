@@ -1,6 +1,6 @@
 export const HOME = "/home";
 export const FORM = "/form";
-export const FORM_BOARD = "/form-board";
+export const FORM_BOARD = "/formboard";
 export const ALL_FORMS = "/all-forms";
 export const UPDATES = "/updates";
 export const ADMIN = "/admin";
