@@ -69,7 +69,7 @@ const Thread = ({ thread, className, isMobile, sidebarToggle, loading }: ThreadP
                                     }
                                 </div>
                                 { thread.formId && 
-                                    <Link href={`${FORM}/${thread.formId}`}>
+                                    <Link href={`${FORM}?id=${thread.formId}`}>
                                         <PrimaryButton className="me-4 h-10 text-xl">View Form</PrimaryButton>
                                     </Link>
                                 }

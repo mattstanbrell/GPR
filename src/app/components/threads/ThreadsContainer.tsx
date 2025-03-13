@@ -5,10 +5,9 @@ import ThreadsSidebar from "./ThreadsSidebar";
 import Thread from "./Thread";
 import { ThreadType } from "./types";
 import { ThreadsContext } from "@/app/threads/layout";
+import Seeder from "./Seeder";
 
-import { useUserModel } from "@/utils/authenticationUtils";
-import { PrimaryButton } from "../util/Button";
-import { seed, displayBackend, deleteModels } from "./dummy";
+
 
 
 
@@ -23,8 +22,6 @@ interface ThreadsContainerProps {
 const ThreadsContainer = ({thread, threads, loadingThread, loadingThreads, startWithSidebar = true} : ThreadsContainerProps) => {
     const { isMobile } = useContext(ThreadsContext);
     const [viewSidebar, setViewSidebar] = useState(startWithSidebar); //When the screen is mobile, the sidebar is hidden by default
-    const currentUser = useUserModel();
-
 
     return (
         <div className="flex flex-col h-full">
@@ -49,13 +46,7 @@ const ThreadsContainer = ({thread, threads, loadingThread, loadingThreads, start
                         className="flex-1 grow" />
                 }
             </div>
-            { currentUser &&          
-                    <div className="flex flex-row h-10 justify-center">
-                        <PrimaryButton onClick={() => seed(currentUser)} />
-                        <PrimaryButton onClick={() => displayBackend()} />
-                        <PrimaryButton onClick={() => deleteModels(currentUser)} />
-                    </div>
-            }
+            <Seeder />
         </div>
     )
 }
