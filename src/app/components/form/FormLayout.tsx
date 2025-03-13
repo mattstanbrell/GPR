@@ -14,6 +14,7 @@ interface FormLayoutProps {
 	isFormValid: (form: Partial<Schema["Form"]["type"]> | null) => boolean;
 	disabled: boolean;
 	updatedFields: Set<string>;
+	isSocialWorker: boolean;
 }
 
 const handleSubmitFeedback = async (formId: string, event: React.FormEvent<HTMLFormElement>) => {
@@ -38,6 +39,7 @@ export function FormLayout({
 	isFormValid,
 	disabled,
 	updatedFields,
+	isSocialWorker,
 }: FormLayoutProps) {
 
 	const [isReject, setIsReject] = useState<boolean>(false);
@@ -149,13 +151,16 @@ export function FormLayout({
 				>
 					{form.title || "Form"}
 				</h1>
-
-				<div className="flex justify-center">
-					<div className="flex justify-evenly w-1/2">
-						<button className="govuk-button" onClick={() => handleApproveForm(form) }>Approve</button>
-						<button className="govuk-button govuk-button--warning" onClick={() => setIsReject(!(isReject))}>{ !(isReject) ? "Reject" : "Cancel" }</button>
+				
+				{ !(isSocialWorker) &&
+					<div className="flex justify-center">
+						<div className="flex justify-evenly w-1/2">
+							<button className="govuk-button" onClick={() => handleApproveForm(form) }>Approve</button>
+							<button className="govuk-button govuk-button--warning" onClick={() => setIsReject(!(isReject))}>{ !(isReject) ? "Reject" : "Cancel" }</button>
+						</div>
 					</div>
-				</div>
+				}	
+				
 				{ isReject &&
 					<form onSubmit={(event) => handleSubmitFeedback(form.id ? form.id : "", event) }>
 					

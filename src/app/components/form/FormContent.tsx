@@ -268,6 +268,7 @@ export function FormContent() {
 								isFormValid={isFormValid}
 								disabled={processingMessage || !(isDraft)}
 								updatedFields={updatedFields}
+								isSocialWorker={ isSocialWorker }
 							/>
 						</div>
 						{ isDraft &&
