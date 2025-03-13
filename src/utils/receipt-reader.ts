@@ -62,7 +62,9 @@ export async function POST(request: NextRequest) {
     // Convert HEIC/HEIF if needed
     if (CONVERTIBLE_TYPES.includes(file.type)) {
       const converted = await convertHeicToJpeg(currentBuffer);
-      currentBuffer = converted.data;
+      currentBuffer = Buffer.from(
+        new Uint8Array(converted.data.buffer, converted.data.byteOffset, converted.data.byteLength)
+      );
       mimeType = converted.mimeType;
       logs.push(logSize("Size after HEIC conversion", currentBuffer.length));
     } else if (!SUPPORTED_MIME_TYPES.includes(file.type)) {

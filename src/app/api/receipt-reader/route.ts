@@ -6,6 +6,11 @@ import {
   MAX_FILE_SIZE,
 } from "../../../../amplify/shared/types";
 import { handler } from "../../../../amplify/functions/receipt-reader/handler";
+import { uploadData } from "aws-amplify/storage";
+import { Amplify } from "aws-amplify";
+import outputs from "../../../../amplify_outputs.json"
+
+Amplify.configure(outputs)
 
 function formatBytes(bytes: number): string {
   const sizes = ["Bytes", "KB", "MB", "GB"];
@@ -80,6 +85,21 @@ export async function POST(request: NextRequest) {
         `File size (${formatBytes(base64Data.length)}) exceeds limit of ${formatBytes(MAX_FILE_SIZE)}`,
       );
     }
+
+    // Upload the processed file to S3 using Amplify Storage.
+    // Here we generate a unique path based on timestamp and original file name.
+    const uploadPath = `uploads/${Date.now()}_${file.name}`;
+    const uploadResult = await uploadData({
+      path: uploadPath,
+      data: currentBuffer,
+      options: {
+        contentType: mimeType,
+        bucket: 'receipts',
+      },
+    }).result;
+    logs.push(`[RECEIPT ANALYSIS] File uploaded to: ${uploadPath}`);
+
+    console.log(uploadResult);
 
     // Mock context and callback for the Lambda handler
     const context = {} as any; // Mock context
