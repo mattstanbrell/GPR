@@ -1,6 +1,6 @@
 import { getName } from "@/utils/authenticationUtils";
 import { MessageType, UserType } from "../../types/threads"
-import { formatTimestamp } from "../util/_helpers"
+import { formatTimestamp } from "@/utils/timeUtils";
 import { useEffect, useState } from "react"
 
 interface MessageProps {
