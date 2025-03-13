@@ -3,11 +3,13 @@ import { PrimaryButton } from "../util/Button"
 import Toggle from "./Toggle"
 import { FORM } from "@/app/constants/urls"
 import MessagesContainer from "./MessagesContainer"
-import { useUserModel, getName } from "@/utils/authenticationUtils";
 import Link from "next/link"
 import MessageInput from "./MessageInput"
 import { ThreadType } from "./types"
 import { createMessage} from "@/utils/apis"
+import { useContext } from "react"
+import { ThreadsContext } from "@/app/threads/layout"
+import { getName } from "@/utils/authenticationUtils";
 
 
 interface ThreadProps {
@@ -19,12 +21,12 @@ interface ThreadProps {
 }
 
 const Thread = ({ thread, className, isMobile, sidebarToggle, loading }: ThreadProps) => {
-    const currentUser = useUserModel();
+    const {currentUser} = useContext(ThreadsContext);
 
-    function onMessageSend(e: React.FormEvent<HTMLTextAreaElement>) {
-        if(!currentUser?.id || !thread?.id || !e.currentTarget.value ) return;
-        
-        createMessage(currentUser?.id, thread?.id, e.currentTarget.value, new Date().toISOString());
+    function onMessageSend(message: string) {
+        if(!currentUser?.id || !thread?.id || !message ) return;
+
+        createMessage(currentUser?.id, thread?.id, message, new Date().toISOString());
     }
 
     return (
@@ -40,7 +42,7 @@ const Thread = ({ thread, className, isMobile, sidebarToggle, loading }: ThreadP
                             }
                             <p className="text-3xl font-bold text-(--hounslow-primary) ps-7">{thread.name}</p>
                             <div className="flex pt-1 ps-6">
-                                <div className="flex flex-1 -space-x-2">
+                                <div className="flex flex-1">
                                     { !thread.allUsers ?
                                         <p className="self-center text-center text-3xl font-bold text-(--hounslow-primary)">Loading...</p>
                                         :
