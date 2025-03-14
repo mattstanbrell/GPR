@@ -1,5 +1,10 @@
 'use client'
-import Preview from './Preview';
+
+import FontSizeSelector from '../components/settings/FontSizeSelector';
+import FontSelector from '../components/settings/FontSelector';
+import SpacingSelector from '../components/settings/SpacingSelector';
+import Seperator from '../components/settings/Seperator';
+import Preview from '../components/settings/Preview';
 
 import { useState, useEffect } from 'react';
 import { updateUserSettings, getUserSettingsByUserId } from '@/utils/apis';
@@ -80,21 +85,6 @@ export default function SettingsClient() {
     setUserSettings();
   }, [userSettings]);
 
-  const handleFontSizeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedFontSize = parseFloat(event.target.value);
-    setTempFontSize(selectedFontSize);
-  };
-
-  const handleFontChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedFont = event.target.value;
-    setTempFont(selectedFont);
-  };
-
-  const handleSpacingChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedSpacing = parseInt(event.target.value);
-    setTempSpacing(selectedSpacing);
-  };
-
   const handleColourChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedColours = JSON.parse(event.target.value)
     const selectedFontColour = selectedColours.fontColour;
@@ -169,37 +159,15 @@ export default function SettingsClient() {
         <form onSubmit={handleSettingsChange}>
           <h3 className="govuk-heading-m">Choose your text preferences</h3>
           <div className="govuk-form-group">
-            <div style={{display: "flex", justifyContent: "space-between", alignItems: "center"}} className="form__control">
-              <label className="govuk-label">Font size</label>
-              <select style={{width: "min(700px, 60%)"}} className="govuk-select" value={tempFontSize} onChange={handleFontSizeChange}>
-                <option value={1}>1x (Standard)</option>
-                <option value={1.5}>1.5x</option>
-                <option value={2}>2x</option>
-                <option value={2.5}>2.5x</option>
-              </select>
-            </div>
-            <div style={{ width: "100%", height: "1px", backgroundColor: "#b1b4b6", marginTop: "15px", marginBottom: "15px" }}></div>
-            <div style={{display: "flex", justifyContent: "space-between", alignItems: "center"}} className="form__control">
-              <label className="govuk-label">Font</label>
-              <select style={{width: "min(700px, 60%)"}} className="govuk-select" value={tempFont} onChange={handleFontChange}>
-                <option value="lexend">Lexend (Standard)</option>
-                <option value="times">Times</option>
-                <option value="courier">Courier</option>
-                <option value="arial">Arial</option>
-              </select>
-            </div>
-            <div style={{ width: "100%", height: "1px", backgroundColor: "#b1b4b6", marginTop: "15px", marginBottom: "15px" }}></div>
-            <div style={{display: "flex", justifyContent: "space-between", alignItems: "center"}} className="form__control">
-              <label className="govuk-label">Letter spacing</label>
-              <select style={{width: "min(700px, 60%)"}} className="govuk-select" value={tempSpacing} onChange={handleSpacingChange}>
-                <option value={0}>0 (Standard)</option>
-                <option value={1}>+1</option>
-                <option value={2}>+2</option>
-                <option value={3}>+3</option>
-              </select>
-            </div>
-            <div style={{ width: "100%", height: "1px", backgroundColor: "#b1b4b6", marginTop: "15px", marginBottom: "15px" }}></div>
 
+            <FontSizeSelector fontSize={tempFontSize} updateTempFontSize={setTempFontSize}/>
+            <Seperator/>
+
+            <FontSelector font={tempFont} updateTempFont={setTempFont}/>
+            <Seperator/>
+            
+            <SpacingSelector spacing={tempSpacing} updateTempSpacing={setTempSpacing}/>
+            <Seperator/>
 
             <fieldset className="govuk-fieldset">
               <legend className="govuk-heading-m">Choose your colour preferences</legend>

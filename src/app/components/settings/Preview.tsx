@@ -1,5 +1,4 @@
 "use client"
-import * as React from 'react';
 
 type userSettings = {
   fontSize: number;
@@ -12,7 +11,6 @@ type userSettings = {
 interface UserSettingsProps {
   userSettings: userSettings;
 }
-
 
 export default function Preview({ userSettings }: UserSettingsProps) {
   const { fontSize, font, fontColour, bgColour, spacing } = userSettings;
