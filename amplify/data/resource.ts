@@ -1,6 +1,7 @@
 import { a, defineData, type ClientSchema } from "@aws-amplify/backend";
 import { norm } from "../functions/norm/resource";
 import { postAuthentication } from "../auth/post-authentication/resource";
+import { receiptReader } from '../functions/receipt-reader/resource';
 
 const schema = a
 	.schema({
@@ -100,11 +101,8 @@ const schema = a
 			.model({
 				formID: a.id(),
 				form: a.belongsTo("Form", "formID"),
-				transactionDate: a.date(),
-				merchantName: a.string(),
-				paymentMethod: a.string(),
 				subtotal: a.float(),
-				itemDesc: a.string(),
+				s3Key: a.string()
 			})
 			.authorization((allow) => [allow.authenticated()]),
 
@@ -164,6 +162,18 @@ const schema = a
 				areasCovered: a.string().required(),
 			})
 			.authorization((allow) => [allow.authenticated()]),
+
+		receiptReader: a
+		.query()
+		.arguments({
+			base64Data: a.string().required(),
+			mimeType: a.string().required(),
+		})
+		.returns(a.json()) 
+		.authorization((allow) => [allow.authenticated()])
+		.handler(a.handler.function(receiptReader)),
+
+		
 	})
 	// Add schema-level authorization to grant the norm function access to all models
 	.authorization((allow) => [

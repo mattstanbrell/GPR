@@ -5,7 +5,7 @@ const client = generateClient<Schema>();
 
 /*
 To correctly get type hints and to not upset the typescript
-typer checker, you must include:
+type checker, you must include:
 
 type User = Schema['User']['type'];
 
@@ -44,11 +44,7 @@ type ChildUpdates = {
 };
 
 type ReceiptUpdates = {
-	transactionDate?: string;
-	merchantName?: string;
-	paymentMethod?: string;
 	subtotal?: number;
-	itemDesc?: string;
 };
 
 type AuditLogUpdates = {
@@ -460,19 +456,13 @@ export async function deleteChild(childId: string) {
 // Create a new receipt
 export async function createReceipt(
 	formID: string,
-	transactionDate: string,
-	merchantName: string,
-	paymentMethod: string,
 	subtotal: number,
-	itemDesc: string,
+	s3Key: string
 ) {
 	const { data, errors } = await client.models.Receipt.create({
 		formID,
-		transactionDate,
-		merchantName,
-		paymentMethod,
 		subtotal,
-		itemDesc,
+		s3Key
 	});
 	if (errors) {
 		throw new Error(errors[0].message);
@@ -492,6 +482,18 @@ export async function getReceiptById(receiptId: string) {
 // List all receipts
 export async function listReceipts() {
 	const { data, errors } = await client.models.Receipt.list();
+	if (errors) {
+		throw new Error(errors[0].message);
+	}
+	return data;
+}
+
+export async function listReceiptsByFormId(formID: string) {
+	const { data, errors } = await client.models.Receipt.list({
+		filter: {
+			formID: { eq: formID },
+		}
+	});
 	if (errors) {
 		throw new Error(errors[0].message);
 	}

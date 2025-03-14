@@ -6,7 +6,7 @@ interface AttachmentsListProps {
   onUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-export default function AttachmentsList({ files, onDelete, onUpload }: AttachmentsListProps) {
+const AttachmentsList = ({ files, onDelete, onUpload }: AttachmentsListProps) => {
   return (
     <div className="govuk-form-group">
       <dl className="govuk-summary-list govuk-summary-list--long-key">
@@ -29,3 +29,5 @@ export default function AttachmentsList({ files, onDelete, onUpload }: Attachmen
     </div>
   );
 }
+
+export default AttachmentsList;

@@ -5,7 +5,7 @@ interface AttachmentItemProps {
   onDelete: (fileName: string) => void;
 }
 
-export default function AttachmentItem({ file, onDelete }: AttachmentItemProps) {
+const AttachmentItem = ({ file, onDelete }: AttachmentItemProps) => {
   const [fileName, setFileName] = React.useState(file.name);
 
   const renameFile = () => {
@@ -41,3 +41,5 @@ export default function AttachmentItem({ file, onDelete }: AttachmentItemProps) 
     </div>
   );
 }
+
+export default AttachmentItem;
