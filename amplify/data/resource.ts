@@ -55,13 +55,7 @@ const schema = a
 						postcode: a.string(),
 					}),
 				}),
-				status: a.enum([
-					"DRAFT",
-					"SUBMITTED",
-					"AUTHORISED",
-					"VALIDATED",
-					"COMPLETED",
-				]),
+				status: a.enum(["DRAFT", "SUBMITTED", "AUTHORISED", "VALIDATED", "COMPLETED"]),
 				receipt: a.hasMany("Receipt", "formID"),
 				conversation: a.hasOne("NormConversation", "formID"),
 				creatorID: a.id().required(),
@@ -166,10 +160,7 @@ const schema = a
 			.authorization((allow) => [allow.authenticated()]),
 	})
 	// Add schema-level authorization to grant the norm function access to all models
-	.authorization((allow) => [
-		allow.resource(norm),
-		allow.resource(postAuthentication),
-	]);
+	.authorization((allow) => [allow.resource(norm), allow.resource(postAuthentication)]);
 
 export type Schema = ClientSchema<typeof schema>;
 
