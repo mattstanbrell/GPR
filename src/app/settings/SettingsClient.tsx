@@ -3,6 +3,7 @@
 import FontSizeSelector from '../components/settings/FontSizeSelector';
 import FontSelector from '../components/settings/FontSelector';
 import SpacingSelector from '../components/settings/SpacingSelector';
+import ColourRadioSet from '../components/settings/ColourRadioSet';
 import Seperator from '../components/settings/Seperator';
 import Preview from '../components/settings/Preview';
 
@@ -85,14 +86,6 @@ export default function SettingsClient() {
     setUserSettings();
   }, [userSettings]);
 
-  const handleColourChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedColours = JSON.parse(event.target.value)
-    const selectedFontColour = selectedColours.fontColour;
-    const selectedBgColour = selectedColours.bgColour;
-    setTempFontColour(selectedFontColour)
-    setTempBgColour(selectedBgColour);
-  };
-
   const updateSettings = (fontSize: number, font: string, spacing: number, fontColour: string, bgColour: string) => {
     setFontSize(fontSize);
     setFont(font);
@@ -171,58 +164,13 @@ export default function SettingsClient() {
 
             <fieldset className="govuk-fieldset">
               <legend className="govuk-heading-m">Choose your colour preferences</legend>
-              <div className="govuk-radios" data-module="govuk-radios">
-                <label className="form__label--radio" style={{ backgroundColor: '#f1f0f0' }}>
-                  <input
-                    onChange={handleColourChange}
-                    value='{"fontColour": "#000000", "bgColour": "#FFFFFF"}'
-                    className="form__radio"
-                    name="color-pref"
-                    type="radio"
-                    checked={tempFontColour === "#000000" && tempBgColour === "#FFFFFF"}
-                    style={{ width: '1.1875rem', height: '1.1875rem' }}
-                  />
-                  Standard
-                </label>
-                <label className="form__label--radio" style={{ backgroundColor: '#000', color: '#ff0' }}>
-                  <input
-                    onChange={handleColourChange}
-                    value='{"fontColour": "#FF0", "bgColour": "#000"}'
-                    className="form__radio"
-                    name="color-pref"
-                    type="radio"
-                    checked={tempFontColour === "#FF0" && tempBgColour === "#000"}
-                    style={{ width: '1.1875rem', height: '1.1875rem' }}
-                  />
-                  High contrast
-                </label>
-                <label className="form__label--radio" style={{ backgroundColor: '#fff9d2' }}>
-                  <input
-                    onChange={handleColourChange}
-                    value='{"fontColour": "#000000", "bgColour": "#fff9d2"}'
-                    className="form__radio"
-                    name="color-pref"
-                    type="radio"
-                    checked={tempFontColour === "#000000" && tempBgColour === "#fff9d2"}
-                    style={{ width: '1.1875rem', height: '1.1875rem' }}
-                  />
-                  Cream
-                </label>
-                <label className="form__label--radio" style={{ backgroundColor: '#9fcfff' }}>
-                  <input
-                    onChange={handleColourChange}
-                    value='{"fontColour": "#000000", "bgColour": "#9fcfff"}'
-                    className="form__radio"
-                    name="color-pref"
-                    type="radio"
-                    checked={tempFontColour === "#000000" && tempBgColour === "#9fcfff"}
-                    style={{ width: '1.1875rem', height: '1.1875rem' }}
-                  />
-                  Blue
-                </label>
-              </div>
+              <ColourRadioSet 
+                fontColour={tempFontColour} 
+                bgColour={tempBgColour} 
+                updateTempFontColour={setTempFontColour} 
+                updateTempBgColour={setTempBgColour}
+              />
             </fieldset>
-
 
             <div style={{ width: "100%", height: ".25rem", backgroundColor: "#f0e8f0", marginTop: "25px", marginBottom: "15px" }}></div>
             <div className="setting-buttons">
