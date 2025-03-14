@@ -12,7 +12,10 @@ import type { Schema } from "../../../amplify/data/resource";
 import DeleteButton from "./DeleteButton";
 
 // Define a type for the form data
-type FormData = Pick<Schema["Form"]["type"], "status" | "caseNumber" | "reason" | "amount" | "title"> & {
+type FormData = Pick<
+	Schema["Form"]["type"],
+	"status" | "caseNumber" | "reason" | "amount" | "title" | "financeCodeID"
+> & {
 	id: string;
 	createdAt: string;
 	updatedAt: string;
@@ -131,6 +134,9 @@ export default async function AllFormsPage() {
 											Amount
 										</th>
 										<th scope="col" className="govuk-table__header">
+											Finance Code
+										</th>
+										<th scope="col" className="govuk-table__header">
 											Created
 										</th>
 										<th scope="col" className="govuk-table__header">
@@ -158,6 +164,7 @@ export default async function AllFormsPage() {
 												</strong>
 											</td>
 											<td className="govuk-table__cell">£{form.amount}</td>
+											<td className="govuk-table__cell">{form.financeCodeID || "Not assigned"}</td>
 											<td className="govuk-table__cell">{formatSmartDate(form.createdAt)}</td>
 											<td className="govuk-table__cell">{formatSmartDate(form.updatedAt)}</td>
 											<td className="govuk-table__cell">

@@ -126,22 +126,16 @@
 		"areasCovered": "Must be registered. Includes after school clubs"
 	},
 	{
-		"typeDescription": "Nursery",
+		"typeDescription": "Nursery and Mother & Baby Unit",
 		"accountCode": "E778",
-		"accountCodeDescription": "Sponsored Nursery",
-		"areasCovered": "Includes Pre-school play groups"
+		"accountCodeDescription": "Sponsored Nursery and Mother & Baby Unit (merged code)",
+		"areasCovered": "Includes pre-school play groups and any additional costs for Mother & Baby Units not paid through placements (babysitting, additional supervision)"
 	},
 	{
 		"typeDescription": "Sponsored Playgroups",
 		"accountCode": "E779",
 		"accountCodeDescription": "All other Playgroups",
 		"areasCovered": ""
-	},
-	{
-		"typeDescription": "Mother & Baby Unit",
-		"accountCode": "E778",
-		"accountCodeDescription": "Mother & Baby Unit",
-		"areasCovered": "Any additional costs not paid through Placements. Babysitting, Additional Supervision"
 	},
 	{
 		"typeDescription": "Intentionally Homeless",

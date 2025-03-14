@@ -41,6 +41,7 @@ const llmResponseSchema = z.object({
 				postcode: z.string(),
 			}),
 		}),
+		financeCodeID: z.string(),
 	}),
 	followUp: z.string(),
 });
@@ -287,6 +288,44 @@ Form fields you must complete:
     - lineTwo (optional)
     - townOrCity
     - postcode
+- financeCodeID (select the appropriate finance code based on the expense type)
+
+Finance Codes:
+You must assign an appropriate finance code to each form based on the expense type, but do not discuss the code with the social worker unless they specifically ask about it. Here are the available finance codes:
+
+- A330: Sessional Workers Carebank - For contact supervision, family support, transport
+- A340: Sessional Workers Agency - For contact supervision, family support, transport etc
+- C411: Public Transport - For contact visits, hospital appointments, court hearings etc.
+- C312: Taxi/Minicab Service
+- C541: Car Parking charges
+- C311: Secure Transport for client
+- C593: Mileage Claim
+- D312: Children's Clothing - Essential items only
+- D711: Subsistence - Food, drink, gas & electric basic necessities, mobile phones, payments to staff for out of Borough visits
+- D741: Birthday / Festive Allowance - LAC only
+- D13W: Activities Cost - Holidays & Recreation, additional to placement costs
+- D111: Equipment Purchase - Cookers, baby equipment, essential items only, staff claim for glasses
+- B733: Equipment Maintenance - House cleaning, skips etc
+- D540: Storage Expenses - Client belongings in storage units
+- D538: Inquiry & Legal Expenses - For cases in pre proceedings, passports, birth certificates, visas etc
+- D511: Fees - Family Group Conferences, therapeutic assessments, hair strand testing (for cases not in proceedings)
+- B416: Room hire
+- D531: Legal Fees-External - Court directed legal spend, only for cases in proceedings
+- D591: Interpreting / Translation - Letters, telephone calls etc
+- D941: Removal Expenses - Moving YP's belongings between placements, assisting families with removal costs
+- E777: Sponsored Childminders - Must be registered, includes after school clubs
+- E778: Nursery and Mother & Baby Unit - Sponsored nursery, includes pre-school play groups, and additional costs for Mother & Baby Units not paid through placements (babysitting, additional supervision)
+- E779: Sponsored Playgroups - All other playgroups
+- F622: Intentionally Homeless - Housing costs, B&B, rent, includes deposits
+- G500: Other Recharges - For internal recharging (operational permits, translation, fuel recharges)
+
+Guidelines for finance code assignment:
+- Silently assign the most appropriate finance code based on the expense description
+- Only discuss finance codes if the social worker specifically asks about them
+- If the expense type changes during the conversation, silently update the finance code accordingly
+- If you're unsure which code to use, select the most appropriate one without asking for clarification
+- If the social worker specifies a particular finance code, use that one and acknowledge their choice
+- Never proactively explain which finance code you've selected unless asked
 
 Guidelines for interaction:
 - Always explicitly confirm who the card recipient is. Do not assume it's the child.
@@ -333,9 +372,10 @@ Response:
     "recipientDetails": {
       "name": { "firstName": null, "lastName": null },
       "address": { "lineOne": null, "lineTwo": null, "townOrCity": null, "postcode": null }
-    }
+    },
+    "financeCodeID": "D312" // Children's Clothing code
   },
-  "followUp": "Got it! When do you need this by?"
+  "followUp": "Got it! I've assigned the Children's Clothing finance code (D312) for this school uniform request. When do you need this by?"
 }
 User: "By March 15th."
 Response:
@@ -349,7 +389,8 @@ Response:
     "recipientDetails": {
       "name": { "firstName": null, "lastName": null },
       "address": { "lineOne": null, "lineTwo": null, "townOrCity": null, "postcode": null }
-    }
+    },
+    "financeCodeID": "D312"
   },
   "followUp": "Great. Who should receive the prepaid card?"
 }
