@@ -130,6 +130,46 @@ export function FormLayout({
 					<form onSubmit={handleSubmit} style={{ paddingRight: "20px", paddingLeft: "3px" }}>
 						<fieldset className="govuk-fieldset">
 							<legend className="govuk-fieldset__legend govuk-fieldset__legend--m">
+								<h2 className="govuk-fieldset__heading">Payment Method</h2>
+							</legend>
+							<div className={`govuk-form-group ${updatedFields.has("paymentMethod") ? "form-group-updated" : ""}`}>
+								<div className="govuk-radios">
+									<div className="govuk-radios__item">
+										<input
+											className={`govuk-radios__input ${updatedFields.has("paymentMethod") ? "field-updated" : ""}`}
+											id="payment-method-prepaid"
+											name="payment-method"
+											type="radio"
+											value="PREPAID_CARD"
+											checked={form.paymentMethod === "PREPAID_CARD" || !form.paymentMethod}
+											onChange={() => handleFormChange("paymentMethod", "PREPAID_CARD", true)}
+											disabled={disabled}
+										/>
+										<label className="govuk-label govuk-radios__label" htmlFor="payment-method-prepaid">
+											Prepaid Card
+										</label>
+									</div>
+									<div className="govuk-radios__item">
+										<input
+											className={`govuk-radios__input ${updatedFields.has("paymentMethod") ? "field-updated" : ""}`}
+											id="payment-method-purchase-order"
+											name="payment-method"
+											type="radio"
+											value="PURCHASE_ORDER"
+											checked={form.paymentMethod === "PURCHASE_ORDER"}
+											onChange={() => handleFormChange("paymentMethod", "PURCHASE_ORDER", true)}
+											disabled={disabled}
+										/>
+										<label className="govuk-label govuk-radios__label" htmlFor="payment-method-purchase-order">
+											Purchase Order
+										</label>
+									</div>
+								</div>
+							</div>
+						</fieldset>
+
+						<fieldset className="govuk-fieldset">
+							<legend className="govuk-fieldset__legend govuk-fieldset__legend--m">
 								<h2 className="govuk-fieldset__heading">Expense details</h2>
 							</legend>
 
@@ -214,7 +254,11 @@ export function FormLayout({
 
 							<div className={`govuk-form-group ${updatedFields.has("dateRequired") ? "form-group-updated" : ""}`}>
 								<fieldset className="govuk-fieldset" aria-describedby="date-required-hint">
-									<legend className="govuk-fieldset__legend">Date prepaid card is needed by</legend>
+									<legend className="govuk-fieldset__legend">
+										{form.paymentMethod === "PURCHASE_ORDER"
+											? "Date purchase order is needed by"
+											: "Date prepaid card is needed by"}
+									</legend>
 									<div className="govuk-date-input" id="date-required">
 										<div className="govuk-date-input__item">
 											<div className="govuk-form-group">
@@ -335,236 +379,463 @@ export function FormLayout({
 							</div>
 						</fieldset>
 
-						<fieldset className="govuk-fieldset">
-							<legend className="govuk-fieldset__legend govuk-fieldset__legend--m">
-								<h2 className="govuk-fieldset__heading">Card recipient details</h2>
-							</legend>
-							<div className="govuk-hint">Details of the person receiving the prepaid card.</div>
+						{/* Conditional rendering based on payment method */}
+						{form.paymentMethod !== "PURCHASE_ORDER" && (
+							<fieldset className="govuk-fieldset">
+								<legend className="govuk-fieldset__legend govuk-fieldset__legend--m">
+									<h2 className="govuk-fieldset__heading">Card recipient details</h2>
+								</legend>
+								<div className="govuk-hint">Details of the person receiving the prepaid card.</div>
 
-							<div className={`govuk-form-group ${updatedFields.has("recipientDetails") ? "form-group-updated" : ""}`}>
-								<label className="govuk-label" htmlFor="firstName">
-									First name
-								</label>
-								<input
-									className={`govuk-input ${updatedFields.has("recipientDetails") ? "field-updated" : ""}`}
-									id="firstName"
-									name="firstName"
-									type="text"
-									defaultValue={form.recipientDetails?.name?.firstName || ""}
-									onChange={(e) =>
-										handleFormChange("recipientDetails", {
-											...form.recipientDetails,
-											name: {
-												...form.recipientDetails?.name,
-												firstName: e.target.value,
-											},
-										})
-									}
-									onBlur={(e) =>
-										handleFormChange(
-											"recipientDetails",
-											{
+								<div
+									className={`govuk-form-group ${updatedFields.has("recipientDetails") ? "form-group-updated" : ""}`}
+								>
+									<label className="govuk-label" htmlFor="firstName">
+										First name
+									</label>
+									<input
+										className={`govuk-input ${updatedFields.has("recipientDetails") ? "field-updated" : ""}`}
+										id="firstName"
+										name="firstName"
+										type="text"
+										defaultValue={form.recipientDetails?.name?.firstName || ""}
+										onChange={(e) =>
+											handleFormChange("recipientDetails", {
 												...form.recipientDetails,
 												name: {
 													...form.recipientDetails?.name,
 													firstName: e.target.value,
 												},
-											},
-											true,
-										)
-									}
-									disabled={disabled}
-								/>
-							</div>
+											})
+										}
+										onBlur={(e) =>
+											handleFormChange(
+												"recipientDetails",
+												{
+													...form.recipientDetails,
+													name: {
+														...form.recipientDetails?.name,
+														firstName: e.target.value,
+													},
+												},
+												true,
+											)
+										}
+										disabled={disabled}
+									/>
+								</div>
 
-							<div className={`govuk-form-group ${updatedFields.has("recipientDetails") ? "form-group-updated" : ""}`}>
-								<label className="govuk-label" htmlFor="lastName">
-									Last name
-								</label>
-								<input
-									className={`govuk-input ${updatedFields.has("recipientDetails") ? "field-updated" : ""}`}
-									id="lastName"
-									name="lastName"
-									type="text"
-									defaultValue={form.recipientDetails?.name?.lastName || ""}
-									onChange={(e) =>
-										handleFormChange("recipientDetails", {
-											...form.recipientDetails,
-											name: {
-												...form.recipientDetails?.name,
-												lastName: e.target.value,
-											},
-										})
-									}
-									onBlur={(e) =>
-										handleFormChange(
-											"recipientDetails",
-											{
+								<div
+									className={`govuk-form-group ${updatedFields.has("recipientDetails") ? "form-group-updated" : ""}`}
+								>
+									<label className="govuk-label" htmlFor="lastName">
+										Last name
+									</label>
+									<input
+										className={`govuk-input ${updatedFields.has("recipientDetails") ? "field-updated" : ""}`}
+										id="lastName"
+										name="lastName"
+										type="text"
+										defaultValue={form.recipientDetails?.name?.lastName || ""}
+										onChange={(e) =>
+											handleFormChange("recipientDetails", {
 												...form.recipientDetails,
 												name: {
 													...form.recipientDetails?.name,
 													lastName: e.target.value,
 												},
-											},
-											true,
-										)
-									}
-									disabled={disabled}
-								/>
-							</div>
+											})
+										}
+										onBlur={(e) =>
+											handleFormChange(
+												"recipientDetails",
+												{
+													...form.recipientDetails,
+													name: {
+														...form.recipientDetails?.name,
+														lastName: e.target.value,
+													},
+												},
+												true,
+											)
+										}
+										disabled={disabled}
+									/>
+								</div>
 
-							<div className={`govuk-form-group ${updatedFields.has("recipientDetails") ? "form-group-updated" : ""}`}>
-								<label className="govuk-label" htmlFor="address-line-1">
-									Address line 1
-								</label>
-								<input
-									className={`govuk-input ${updatedFields.has("recipientDetails") ? "field-updated" : ""}`}
-									id="address-line-1"
-									name="address-line-1"
-									type="text"
-									defaultValue={form.recipientDetails?.address?.lineOne || ""}
-									onChange={(e) =>
-										handleFormChange("recipientDetails", {
-											...form.recipientDetails,
-											address: {
-												...form.recipientDetails?.address,
-												lineOne: e.target.value,
-											},
-										})
-									}
-									onBlur={(e) =>
-										handleFormChange(
-											"recipientDetails",
-											{
+								<div
+									className={`govuk-form-group ${updatedFields.has("recipientDetails") ? "form-group-updated" : ""}`}
+								>
+									<label className="govuk-label" htmlFor="address-line-1">
+										Address line 1
+									</label>
+									<input
+										className={`govuk-input ${updatedFields.has("recipientDetails") ? "field-updated" : ""}`}
+										id="address-line-1"
+										name="address-line-1"
+										type="text"
+										defaultValue={form.recipientDetails?.address?.lineOne || ""}
+										onChange={(e) =>
+											handleFormChange("recipientDetails", {
 												...form.recipientDetails,
 												address: {
 													...form.recipientDetails?.address,
 													lineOne: e.target.value,
 												},
-											},
-											true,
-										)
-									}
-									disabled={disabled}
-									autoComplete="address-line1"
-								/>
-							</div>
+											})
+										}
+										onBlur={(e) =>
+											handleFormChange(
+												"recipientDetails",
+												{
+													...form.recipientDetails,
+													address: {
+														...form.recipientDetails?.address,
+														lineOne: e.target.value,
+													},
+												},
+												true,
+											)
+										}
+										disabled={disabled}
+										autoComplete="address-line1"
+									/>
+								</div>
 
-							<div className={`govuk-form-group ${updatedFields.has("recipientDetails") ? "form-group-updated" : ""}`}>
-								<label className="govuk-label" htmlFor="address-line-2">
-									Address line 2 (optional)
-								</label>
-								<input
-									className={`govuk-input ${updatedFields.has("recipientDetails") ? "field-updated" : ""}`}
-									id="address-line-2"
-									name="address-line-2"
-									type="text"
-									defaultValue={form.recipientDetails?.address?.lineTwo || ""}
-									onChange={(e) =>
-										handleFormChange("recipientDetails", {
-											...form.recipientDetails,
-											address: {
-												...form.recipientDetails?.address,
-												lineTwo: e.target.value,
-											},
-										})
-									}
-									onBlur={(e) =>
-										handleFormChange(
-											"recipientDetails",
-											{
+								<div
+									className={`govuk-form-group ${updatedFields.has("recipientDetails") ? "form-group-updated" : ""}`}
+								>
+									<label className="govuk-label" htmlFor="address-line-2">
+										Address line 2 (optional)
+									</label>
+									<input
+										className={`govuk-input ${updatedFields.has("recipientDetails") ? "field-updated" : ""}`}
+										id="address-line-2"
+										name="address-line-2"
+										type="text"
+										defaultValue={form.recipientDetails?.address?.lineTwo || ""}
+										onChange={(e) =>
+											handleFormChange("recipientDetails", {
 												...form.recipientDetails,
 												address: {
 													...form.recipientDetails?.address,
 													lineTwo: e.target.value,
 												},
-											},
-											true,
-										)
-									}
-									disabled={disabled}
-									autoComplete="address-line2"
-								/>
-							</div>
+											})
+										}
+										onBlur={(e) =>
+											handleFormChange(
+												"recipientDetails",
+												{
+													...form.recipientDetails,
+													address: {
+														...form.recipientDetails?.address,
+														lineTwo: e.target.value,
+													},
+												},
+												true,
+											)
+										}
+										disabled={disabled}
+										autoComplete="address-line2"
+									/>
+								</div>
 
-							<div className={`govuk-form-group ${updatedFields.has("recipientDetails") ? "form-group-updated" : ""}`}>
-								<label className="govuk-label" htmlFor="address-town">
-									Town or city
-								</label>
-								<input
-									className={`govuk-input govuk-input--width-20 ${
-										updatedFields.has("recipientDetails") ? "field-updated" : ""
-									}`}
-									id="address-town"
-									name="address-town"
-									type="text"
-									defaultValue={form.recipientDetails?.address?.townOrCity || ""}
-									onChange={(e) =>
-										handleFormChange("recipientDetails", {
-											...form.recipientDetails,
-											address: {
-												...form.recipientDetails?.address,
-												townOrCity: e.target.value,
-											},
-										})
-									}
-									onBlur={(e) =>
-										handleFormChange(
-											"recipientDetails",
-											{
+								<div
+									className={`govuk-form-group ${updatedFields.has("recipientDetails") ? "form-group-updated" : ""}`}
+								>
+									<label className="govuk-label" htmlFor="address-town">
+										Town or city
+									</label>
+									<input
+										className={`govuk-input govuk-input--width-20 ${
+											updatedFields.has("recipientDetails") ? "field-updated" : ""
+										}`}
+										id="address-town"
+										name="address-town"
+										type="text"
+										defaultValue={form.recipientDetails?.address?.townOrCity || ""}
+										onChange={(e) =>
+											handleFormChange("recipientDetails", {
 												...form.recipientDetails,
 												address: {
 													...form.recipientDetails?.address,
 													townOrCity: e.target.value,
 												},
-											},
-											true,
-										)
-									}
-									disabled={disabled}
-									autoComplete="address-level2"
-								/>
-							</div>
+											})
+										}
+										onBlur={(e) =>
+											handleFormChange(
+												"recipientDetails",
+												{
+													...form.recipientDetails,
+													address: {
+														...form.recipientDetails?.address,
+														townOrCity: e.target.value,
+													},
+												},
+												true,
+											)
+										}
+										disabled={disabled}
+										autoComplete="address-level2"
+									/>
+								</div>
 
-							<div className={`govuk-form-group ${updatedFields.has("recipientDetails") ? "form-group-updated" : ""}`}>
-								<label className="govuk-label" htmlFor="address-postcode">
-									Postcode
-								</label>
-								<input
-									className={`govuk-input govuk-input--width-10 ${
-										updatedFields.has("recipientDetails") ? "field-updated" : ""
-									}`}
-									id="address-postcode"
-									name="address-postcode"
-									type="text"
-									defaultValue={form.recipientDetails?.address?.postcode || ""}
-									onChange={(e) =>
-										handleFormChange("recipientDetails", {
-											...form.recipientDetails,
-											address: {
-												...form.recipientDetails?.address,
-												postcode: e.target.value,
-											},
-										})
-									}
-									onBlur={(e) =>
-										handleFormChange(
-											"recipientDetails",
-											{
+								<div
+									className={`govuk-form-group ${updatedFields.has("recipientDetails") ? "form-group-updated" : ""}`}
+								>
+									<label className="govuk-label" htmlFor="address-postcode">
+										Postcode
+									</label>
+									<input
+										className={`govuk-input govuk-input--width-10 ${
+											updatedFields.has("recipientDetails") ? "field-updated" : ""
+										}`}
+										id="address-postcode"
+										name="address-postcode"
+										type="text"
+										defaultValue={form.recipientDetails?.address?.postcode || ""}
+										onChange={(e) =>
+											handleFormChange("recipientDetails", {
 												...form.recipientDetails,
 												address: {
 													...form.recipientDetails?.address,
 													postcode: e.target.value,
 												},
-											},
-											true,
-										)
-									}
-									disabled={disabled}
-									autoComplete="postal-code"
-								/>
-							</div>
-						</fieldset>
+											})
+										}
+										onBlur={(e) =>
+											handleFormChange(
+												"recipientDetails",
+												{
+													...form.recipientDetails,
+													address: {
+														...form.recipientDetails?.address,
+														postcode: e.target.value,
+													},
+												},
+												true,
+											)
+										}
+										disabled={disabled}
+										autoComplete="postal-code"
+									/>
+								</div>
+							</fieldset>
+						)}
+
+						{/* Business details section for purchase orders */}
+						{form.paymentMethod === "PURCHASE_ORDER" && (
+							<fieldset className="govuk-fieldset">
+								<legend className="govuk-fieldset__legend govuk-fieldset__legend--m">
+									<h2 className="govuk-fieldset__heading">Business details</h2>
+								</legend>
+								<div className="govuk-hint">Details of the business receiving the purchase order.</div>
+
+								<div className={`govuk-form-group ${updatedFields.has("businessDetails") ? "form-group-updated" : ""}`}>
+									<label className="govuk-label" htmlFor="business-name">
+										Business name
+									</label>
+									<input
+										className={`govuk-input ${updatedFields.has("businessDetails") ? "field-updated" : ""}`}
+										id="business-name"
+										name="business-name"
+										type="text"
+										defaultValue={form.businessDetails?.name || ""}
+										onChange={(e) =>
+											handleFormChange("businessDetails", {
+												...form.businessDetails,
+												name: e.target.value,
+											})
+										}
+										onBlur={(e) =>
+											handleFormChange(
+												"businessDetails",
+												{
+													...form.businessDetails,
+													name: e.target.value,
+												},
+												true,
+											)
+										}
+										disabled={disabled}
+									/>
+								</div>
+
+								<div className={`govuk-form-group ${updatedFields.has("businessDetails") ? "form-group-updated" : ""}`}>
+									<label className="govuk-label" htmlFor="business-address-line-1">
+										Address line 1
+									</label>
+									<input
+										className={`govuk-input ${updatedFields.has("businessDetails") ? "field-updated" : ""}`}
+										id="business-address-line-1"
+										name="business-address-line-1"
+										type="text"
+										defaultValue={form.businessDetails?.address?.lineOne || ""}
+										onChange={(e) =>
+											handleFormChange("businessDetails", {
+												...form.businessDetails,
+												address: {
+													...form.businessDetails?.address,
+													lineOne: e.target.value,
+												},
+											})
+										}
+										onBlur={(e) =>
+											handleFormChange(
+												"businessDetails",
+												{
+													...form.businessDetails,
+													address: {
+														...form.businessDetails?.address,
+														lineOne: e.target.value,
+													},
+												},
+												true,
+											)
+										}
+										disabled={disabled}
+										autoComplete="address-line1"
+									/>
+								</div>
+
+								<div className={`govuk-form-group ${updatedFields.has("businessDetails") ? "form-group-updated" : ""}`}>
+									<label className="govuk-label" htmlFor="business-address-line-2">
+										Address line 2 (optional)
+									</label>
+									<input
+										className={`govuk-input ${updatedFields.has("businessDetails") ? "field-updated" : ""}`}
+										id="business-address-line-2"
+										name="business-address-line-2"
+										type="text"
+										defaultValue={form.businessDetails?.address?.lineTwo || ""}
+										onChange={(e) =>
+											handleFormChange("businessDetails", {
+												...form.businessDetails,
+												address: {
+													...form.businessDetails?.address,
+													lineTwo: e.target.value,
+												},
+											})
+										}
+										onBlur={(e) =>
+											handleFormChange(
+												"businessDetails",
+												{
+													...form.businessDetails,
+													address: {
+														...form.businessDetails?.address,
+														lineTwo: e.target.value,
+													},
+												},
+												true,
+											)
+										}
+										disabled={disabled}
+										autoComplete="address-line2"
+									/>
+								</div>
+
+								<div className={`govuk-form-group ${updatedFields.has("businessDetails") ? "form-group-updated" : ""}`}>
+									<label className="govuk-label" htmlFor="business-address-town">
+										Town or city
+									</label>
+									<input
+										className={`govuk-input govuk-input--width-20 ${
+											updatedFields.has("businessDetails") ? "field-updated" : ""
+										}`}
+										id="business-address-town"
+										name="business-address-town"
+										type="text"
+										defaultValue={form.businessDetails?.address?.townOrCity || ""}
+										onChange={(e) =>
+											handleFormChange("businessDetails", {
+												...form.businessDetails,
+												address: {
+													...form.businessDetails?.address,
+													townOrCity: e.target.value,
+												},
+											})
+										}
+										onBlur={(e) =>
+											handleFormChange(
+												"businessDetails",
+												{
+													...form.businessDetails,
+													address: {
+														...form.businessDetails?.address,
+														townOrCity: e.target.value,
+													},
+												},
+												true,
+											)
+										}
+										disabled={disabled}
+										autoComplete="address-level2"
+									/>
+								</div>
+
+								<div className={`govuk-form-group ${updatedFields.has("businessDetails") ? "form-group-updated" : ""}`}>
+									<label className="govuk-label" htmlFor="business-address-postcode">
+										Postcode
+									</label>
+									<input
+										className={`govuk-input govuk-input--width-10 ${
+											updatedFields.has("businessDetails") ? "field-updated" : ""
+										}`}
+										id="business-address-postcode"
+										name="business-address-postcode"
+										type="text"
+										defaultValue={form.businessDetails?.address?.postcode || ""}
+										onChange={(e) =>
+											handleFormChange("businessDetails", {
+												...form.businessDetails,
+												address: {
+													...form.businessDetails?.address,
+													postcode: e.target.value,
+												},
+											})
+										}
+										onBlur={(e) =>
+											handleFormChange(
+												"businessDetails",
+												{
+													...form.businessDetails,
+													address: {
+														...form.businessDetails?.address,
+														postcode: e.target.value,
+													},
+												},
+												true,
+											)
+										}
+										disabled={disabled}
+										autoComplete="postal-code"
+									/>
+								</div>
+
+								<div className={`govuk-form-group ${updatedFields.has("businessID") ? "form-group-updated" : ""}`}>
+									<div className="govuk-hint" style={{ marginTop: "20px" }}>
+										Or search for an existing business:
+									</div>
+									<div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+										<input
+											className={`govuk-input ${updatedFields.has("businessID") ? "field-updated" : ""}`}
+											id="business-search"
+											name="business-search"
+											type="text"
+											disabled={disabled}
+											placeholder="Search for a business..."
+											style={{ flexGrow: 1 }}
+										/>
+										<button className="govuk-button govuk-button--secondary" type="button" disabled={disabled}>
+											Search
+										</button>
+									</div>
+								</div>
+							</fieldset>
+						)}
 					</form>
 				</div>
 				<div className="button-container">

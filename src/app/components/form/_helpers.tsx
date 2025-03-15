@@ -34,14 +34,24 @@ export const isFormValid = (form: Partial<Schema["Form"]["type"]> | null): boole
 	// Check date required
 	if (!form.dateRequired?.day || !form.dateRequired?.month || !form.dateRequired?.year) return false;
 
-	// Check recipient details - name
-	if (!form.recipientDetails?.name?.firstName?.trim()) return false;
-	if (!form.recipientDetails?.name?.lastName?.trim()) return false;
+	// Check payment method specific fields
+	if (form.paymentMethod === "PURCHASE_ORDER") {
+		// Check business details for purchase orders
+		if (!form.businessDetails?.name?.trim()) return false;
+		if (!form.businessDetails?.address?.lineOne?.trim()) return false;
+		if (!form.businessDetails?.address?.townOrCity?.trim()) return false;
+		if (!form.businessDetails?.address?.postcode?.trim()) return false;
+	} else {
+		// Default to PREPAID_CARD validation if not specified or explicitly PREPAID_CARD
+		// Check recipient details - name
+		if (!form.recipientDetails?.name?.firstName?.trim()) return false;
+		if (!form.recipientDetails?.name?.lastName?.trim()) return false;
 
-	// Check recipient details - address
-	if (!form.recipientDetails?.address?.lineOne?.trim()) return false;
-	if (!form.recipientDetails?.address?.townOrCity?.trim()) return false;
-	if (!form.recipientDetails?.address?.postcode?.trim()) return false;
+		// Check recipient details - address
+		if (!form.recipientDetails?.address?.lineOne?.trim()) return false;
+		if (!form.recipientDetails?.address?.townOrCity?.trim()) return false;
+		if (!form.recipientDetails?.address?.postcode?.trim()) return false;
+	}
 
 	return true;
 };

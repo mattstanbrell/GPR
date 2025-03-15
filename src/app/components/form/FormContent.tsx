@@ -26,11 +26,13 @@ export function FormContent() {
 		reason: "",
 		amount: null,
 		section17: false,
+		paymentMethod: "PREPAID_CARD", // Default payment method
 		dateRequired: {
 			day: null,
 			month: null,
 			year: null,
 		},
+		// Initialize recipient details (for prepaid cards)
 		recipientDetails: {
 			name: {
 				firstName: "",
@@ -43,6 +45,18 @@ export function FormContent() {
 				postcode: "",
 			},
 		},
+		// Also initialize business details (for purchase orders)
+		businessDetails: {
+			name: "",
+			address: {
+				lineOne: "",
+				lineTwo: "",
+				townOrCity: "",
+				postcode: "",
+			},
+		},
+		// Use undefined instead of null for businessID to avoid DynamoDB GSI errors
+		businessID: undefined,
 	});
 	const userModel = useUserModel();
 	const [message, setMessage] = useState("");
@@ -55,8 +69,8 @@ export function FormContent() {
 
 	// Get the form fields directly from the schema
 	const formFields = {
-		simple: ["title", "caseNumber", "reason", "amount", "section17"] as const,
-		nested: ["dateRequired", "recipientDetails"] as const,
+		simple: ["title", "caseNumber", "reason", "amount", "section17", "paymentMethod", "businessID"] as const,
+		nested: ["dateRequired", "recipientDetails", "businessDetails"] as const,
 	};
 
 	const loadConversation = useCallback(
@@ -178,12 +192,20 @@ export function FormContent() {
 		if (!formToUpdate.id || !userModel?.id) return;
 
 		try {
-			await updateForm(formToUpdate.id, {
-				...formToUpdate,
+			// Create a clean version of the form data without null businessID
+			const { businessID, ...restOfForm } = formToUpdate;
+
+			// Only include businessID if it's not null
+			const formDataToUpdate = {
+				...restOfForm,
 				creatorID: userModel.id,
-			});
-		} catch {
-			setErrorMessage("Failed to update form. Please try again.");
+				...(businessID !== null && { businessID }),
+			};
+
+			await updateForm(formToUpdate.id, formDataToUpdate);
+		} catch (error) {
+			console.error("Form update error:", error);
+			setErrorMessage(`Failed to update form: ${error instanceof Error ? error.message : String(error)}`);
 		}
 	};
 
@@ -195,11 +217,19 @@ export function FormContent() {
 
 		try {
 			setLoading(true);
-			await updateForm(form.id, {
-				...form,
-				status: "SUBMITTED",
+
+			// Create a clean version of the form data without null businessID
+			const { businessID, ...restOfForm } = form;
+
+			// Only include businessID if it's not null
+			const formDataToUpdate: Partial<Schema["Form"]["type"]> = {
+				...restOfForm,
+				status: "SUBMITTED" as FormStatus,
 				creatorID: userModel.id,
-			});
+				...(businessID !== null && { businessID }),
+			};
+
+			await updateForm(form.id, formDataToUpdate);
 			router.push(FORM_BOARD);
 		} catch (_error: unknown) {
 			setErrorMessage(_error instanceof Error ? _error.message : String(_error));
@@ -296,14 +326,9 @@ export function FormContent() {
 								setForm(updatedForm);
 								setLastNormForm(updatedForm);
 
-								// Update the form in the database to ensure creatorID is preserved
-								if (updatedForm.id && userModel?.id) {
-									updateForm(updatedForm.id, {
-										...updatedForm,
-										creatorID: userModel.id,
-									}).catch(() => {
-										// Silently handle error
-									});
+								// Update the form in the database
+								if (updatedForm.id) {
+									updateFormInDatabase(updatedForm);
 								}
 							}}
 							currentForm={form}

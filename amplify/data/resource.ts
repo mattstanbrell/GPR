@@ -29,8 +29,24 @@ const schema = a
 					bgColour: a.string(),
 					spacing: a.integer(),
 				}),
+				createdBusinesses: a.hasMany("Business", "creatorID"),
 			})
 			.authorization((allow) => [allow.publicApiKey(), allow.authenticated()]),
+
+		Business: a
+			.model({
+				name: a.string().required(),
+				address: a.customType({
+					lineOne: a.string().required(),
+					lineTwo: a.string(),
+					townOrCity: a.string().required(),
+					postcode: a.string().required(),
+				}),
+				creatorID: a.id().required(),
+				creator: a.belongsTo("User", "creatorID"),
+				forms: a.hasMany("Form", "businessID"),
+			})
+			.authorization((allow) => [allow.authenticated()]),
 
 		Form: a
 			.model({
@@ -39,6 +55,18 @@ const schema = a
 				reason: a.string(),
 				amount: a.float(),
 				section17: a.boolean(),
+				paymentMethod: a.enum(["PREPAID_CARD", "PURCHASE_ORDER"]),
+				businessDetails: a.customType({
+					name: a.string(),
+					address: a.customType({
+						lineOne: a.string(),
+						lineTwo: a.string(),
+						townOrCity: a.string(),
+						postcode: a.string(),
+					}),
+				}),
+				businessID: a.id(),
+				business: a.belongsTo("Business", "businessID"),
 				dateRequired: a.customType({
 					day: a.integer(),
 					month: a.integer(),
