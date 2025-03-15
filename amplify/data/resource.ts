@@ -73,6 +73,7 @@ const schema = a
 				child: a.belongsTo("Child", "childID"),
 				audits: a.hasMany("AuditLog", "formID"),
 				feedback: a.string(),
+				urgency: a.string().default("false"),
                 thread: a.hasOne('Thread', 'formID'),
 				assignees: a.hasMany("FormAssignee", "formID"),
 			})
