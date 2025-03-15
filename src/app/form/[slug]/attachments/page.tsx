@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter, useParams } from "next/navigation";
+import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { AttachmentTable } from "@/app/components/form/attachments/AttachmentTable"
 import { UploadIcon } from "@/app/components/form/attachments/Icons";
@@ -9,10 +9,13 @@ import { Receipt } from "@/app/types/models";
 import { downloadData, remove } from 'aws-amplify/storage';
      
 
-const Attachments = ({ formName } : { formName: string }) => {
+const Attachments = () => {
   const router = useRouter();
   const params = useParams<{slug: string}>();
+  const searchParams = useSearchParams(); 
+  const formName = searchParams.get("formName")
   const { slug } = params; 
+  console.log(slug, formName)
   const [uploadedReceiptNames, setUploadedNames] = useState<string[]>([]);
   const [hasReceipts, setHasReceipts] = useState<boolean>(false); 
   const [isLoadingReceipts, setIsLoadingReceipts] = useState<boolean>(true); 
