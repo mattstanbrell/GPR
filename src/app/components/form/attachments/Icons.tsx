@@ -29,16 +29,8 @@ export const DownloadIcon = () => {
 
 export const UploadIcon = ({onClick} : {onClick: () => void}) => {
     return (
-        <>
-        <div title="upload" className="w-full flex justify-center">
-            <IconDecoractor 
-                src="/upload-circle.svg"
-                alt="A circle with a plus button in the middle."
-                onClick={ onClick }
-                className="hover:cursor-pointer"
-            /> 
+        <div title="upload" className="w-full flex justify-center" onClick={ onClick }>
+            <button title="upload" type="button" className="govuk-button govuk-button--secondary">Upload</button>
         </div>
-        <p className="w-full mt-2 text-center">Upload</p>
-        </>
     )
 }
