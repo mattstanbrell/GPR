@@ -19,40 +19,18 @@ const IconDecoractor = (
     )
 }
 
-export const AttachmentIcon = () => {
-    return <IconDecoractor 
-        src="/attachment-icon.svg"
-        alt="Three vertically aligned dots with spacing."
-    />
-}
-
-export const OptionsIcon = ({onClick} : {onClick: () => void}) => {
-    return <IconDecoractor 
-        src="/more-options.svg"
-        alt="Three vertically aligned dots with spacing."
-        onClick={ onClick }
-    />
-}
-
 export const DeleteIcon = () => {
-    return <IconDecoractor 
-        src="/delete.svg"
-        alt="A solid picture of a bin."
-        className="hover:cursor-pointer"
-    />
+    return <button title="Delete" type="button" className="govuk-button govuk-button--warning">Delete</button>
 }
 
 export const DownloadIcon = () => {
-    return <IconDecoractor 
-        src="/save.svg"
-        alt="A solid picture of a bin."
-        className="hover:cursor-pointer"
-    />
+    return <button title="Download" type="button" className="govuk-button">Download</button>
 }
 
 export const UploadIcon = ({onClick} : {onClick: () => void}) => {
     return (
-        <div className="w-full flex justify-center">
+        <>
+        <div title="upload" className="w-full flex justify-center">
             <IconDecoractor 
                 src="/upload-circle.svg"
                 alt="A circle with a plus button in the middle."
@@ -60,5 +38,7 @@ export const UploadIcon = ({onClick} : {onClick: () => void}) => {
                 className="hover:cursor-pointer"
             /> 
         </div>
+        <p className="w-full mt-2 text-center">Upload</p>
+        </>
     )
 }

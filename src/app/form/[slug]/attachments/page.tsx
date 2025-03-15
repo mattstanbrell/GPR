@@ -41,8 +41,8 @@ const Attachments = ({ formName } : { formName: string }) => {
 
   return (
     <div className="govuk-width-container">
-      <div className="govuk-grid-row">
-        <div className="govuk-grid-column-two-thirds">
+      <div className="govuk-grid-row flex justify-center">
+        <div className="govuk-grid-column-two-thirds overflow-x-scroll">
           <h1 className="govuk-heading-xl" style={{marginBottom: '0'}}>{ formName }</h1>
           <span className="govuk-caption-m">Attachments</span>
           <div
