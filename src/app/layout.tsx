@@ -31,10 +31,12 @@ export const AppContext = createContext<
 	{ 
 		currentUser?: User | null,
 		isSignedIn: boolean,
+		setUser: (user: User) => void,
 		isMobile: boolean,
 	}>({
 		currentUser: null,
 		isSignedIn: false,
+		setUser: () => {},
 		isMobile: false
 	});
 
@@ -55,12 +57,13 @@ export default function RootLayout({
 			setUser(data);
 		}
 			
-		Hub.listen("auth", ({ payload }) => {
+		const hub = Hub.listen("auth", ({ payload }) => {
 			if (payload.event === "signInWithRedirect") {
 				router.push(HOME);
 			}
 			if (payload.event === "signedOut") {
 				setIsSignedIn(false);
+				setUser(null);
 				router.push("/");
 			}
 		});
@@ -71,20 +74,28 @@ export default function RootLayout({
 				fetchUserModel();
 			})
 			.catch(() => setIsSignedIn(false));
+
+		return () => {
+			hub();
+		}
 	}, [router]);
 
 	const handleClick = async () => {
-		if (isSignedIn) {
-			await signOut();
-		} else {
-			await signInWithRedirect({
-				provider: { custom: "MicrosoftEntraID" },
-			});
+		try {
+			if (isSignedIn) {
+				await signOut();
+			} else {
+				await signInWithRedirect({
+					provider: { custom: "MicrosoftEntraID" },
+				});
+			}
+		} catch (error) {
+			console.error("Error signing in:", error);
 		}
 	};
 
 	return (
-		<AppContext.Provider value={{ currentUser, isSignedIn, isMobile }}>
+		<AppContext.Provider value={{ currentUser, isSignedIn, setUser, isMobile }}>
 			<html
 				lang="en"
 				className={`${lexend.className} antialiased govuk-template`}
