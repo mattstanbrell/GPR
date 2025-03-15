@@ -129,6 +129,28 @@ export async function deleteUser(userId: string) {
 	return data;
 }
 
+// ----------Business APIs-----------
+export async function createBusiness(
+	name: string,
+	address: {
+		lineOne: string;
+		lineTwo?: string;
+		townOrCity: string;
+		postcode: string;
+	},
+	creatorID: string,
+) {
+	const { data, errors } = await client.models.Business.create({
+		name,
+		address,
+		creatorID,
+	});
+	if (errors) {
+		throw new Error(errors[0].message);
+	}
+	return data;
+}
+
 // ------------Form APIs -------------
 export async function createForm(formData: Partial<Schema["Form"]["type"]> & { creatorID: string }) {
 	const { data, errors } = await client.models.Form.create(formData);

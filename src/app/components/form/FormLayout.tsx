@@ -814,26 +814,6 @@ export function FormLayout({
 										autoComplete="postal-code"
 									/>
 								</div>
-
-								<div className={`govuk-form-group ${updatedFields.has("businessID") ? "form-group-updated" : ""}`}>
-									<div className="govuk-hint" style={{ marginTop: "20px" }}>
-										Or search for an existing business:
-									</div>
-									<div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-										<input
-											className={`govuk-input ${updatedFields.has("businessID") ? "field-updated" : ""}`}
-											id="business-search"
-											name="business-search"
-											type="text"
-											disabled={disabled}
-											placeholder="Search for a business..."
-											style={{ flexGrow: 1 }}
-										/>
-										<button className="govuk-button govuk-button--secondary" type="button" disabled={disabled}>
-											Search
-										</button>
-									</div>
-								</div>
 							</fieldset>
 						)}
 					</form>

@@ -75,7 +75,7 @@ interface UIMessage {
 
 // Helper function to extract the actual content from assistant messages
 function extractAssistantContent(content: string): string {
-	// First try to parse as JSON
+	// Try to parse as JSON
 	try {
 		const parsedContent = JSON.parse(content);
 
@@ -84,16 +84,10 @@ function extractAssistantContent(content: string): string {
 			return parsedContent.followUp;
 		}
 
-		// If no followUp but it's an object, it might be in a different format
+		// If no followUp but it's an object, return the original content
 		return content;
 	} catch (e) {
-		// If JSON parsing fails, try regex to extract followUp content
-		const followUpMatch = content.match(/"followUp"\s*:\s*"([^"]*?)"/);
-		if (followUpMatch?.[1]) {
-			return followUpMatch[1].replace(/\\"/g, '"');
-		}
-
-		// If all else fails, return the original content
+		// If parsing fails, return the original content
 		return content;
 	}
 }

@@ -4,16 +4,16 @@ import type React from "react";
 import { useEffect, useState, useCallback, useRef } from "react";
 import type { Schema } from "../../../../amplify/data/resource";
 import { useRouter, useSearchParams } from "next/navigation";
+import { generateClient } from "@aws-amplify/api";
+import { FormLayout } from "./FormLayout";
+import { NormLayout } from "./NormLayout";
 import { FORM_BOARD } from "../../constants/urls";
+import { createForm, updateForm, getFormById, getNormConversationByFormId, createBusiness } from "../../../utils/apis";
+import { useUserModel } from "../../../utils/authenticationUtils";
+import type { FormStatus } from "@/app/types/models";
 import { isFormValid, processMessages } from "./_helpers";
 import type { UIMessage, FormChanges } from "./types";
 import { FormErrorSummary } from "./FormErrorSummary";
-import { FormLayout } from "./FormLayout";
-import { NormLayout } from "./NormLayout";
-import { createForm, updateForm, getFormById, getNormConversationByFormId } from "../../../utils/apis";
-import { useUserModel } from "../../../utils/authenticationUtils";
-import type { FormStatus } from "@/app/types/models";
-import { generateClient } from "@aws-amplify/api";
 
 export function FormContent() {
 	const router = useRouter();
@@ -179,7 +179,7 @@ export function FormContent() {
 	const handleFormChange = (field: string, value: unknown, updateDb = false) => {
 		if (!form) return;
 
-		setForm((prevForm) => {
+		setForm((prevForm: Partial<Schema["Form"]["type"]>) => {
 			const newForm = { ...prevForm, [field]: value };
 			if (updateDb && newForm.id) {
 				updateFormInDatabase(newForm);
@@ -224,20 +224,52 @@ export function FormContent() {
 			const client = generateClient<Schema>();
 			console.log("submission messages", messages);
 			console.log("submission form", form);
-			const { data: financeCodeResponse } = await client.queries.FinanceCodeFunction({
+
+			// Start finance code generation in parallel
+			const financeCodePromise = client.queries.FinanceCodeFunction({
 				messages: JSON.stringify(messages),
 				currentFormState: JSON.stringify(form),
 			});
 
+			// Check if we need to create a business
+			let businessID = form.businessID;
+			if (!businessID && form.paymentMethod === "PURCHASE_ORDER" && form.businessDetails?.name) {
+				try {
+					// Create a new business from the business details
+					const newBusiness = await createBusiness(
+						form.businessDetails.name,
+						{
+							lineOne: form.businessDetails.address?.lineOne || "",
+							lineTwo: form.businessDetails.address?.lineTwo || undefined,
+							townOrCity: form.businessDetails.address?.townOrCity || "",
+							postcode: form.businessDetails.address?.postcode || "",
+						},
+						userModel.id,
+					);
+
+					// Set the businessID to the newly created business
+					if (newBusiness) {
+						businessID = newBusiness.id;
+						console.log("Created new business with ID:", businessID);
+					}
+				} catch (businessError) {
+					console.error("Error creating business:", businessError);
+					// Continue with submission even if business creation fails
+				}
+			}
+
+			// Wait for finance code generation to complete
+			const { data: financeCodeResponse } = await financeCodePromise;
+
 			// Create a clean version of the form data without null businessID
-			const { businessID, ...restOfForm } = form;
+			const { businessID: _, ...restOfForm } = form;
 
 			// Only include businessID if it's not null
 			const formDataToUpdate: Partial<Schema["Form"]["type"]> = {
 				...restOfForm,
 				status: "SUBMITTED" as FormStatus,
 				creatorID: userModel.id,
-				...(businessID !== null && { businessID }),
+				...(businessID && { businessID }),
 				// Add the suggested finance code from the financeCode function
 				...(financeCodeResponse && { suggestedFinanceCodeID: financeCodeResponse }),
 			};
