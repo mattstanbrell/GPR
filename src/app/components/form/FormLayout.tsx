@@ -167,6 +167,25 @@ export function FormLayout({
 								/>
 							</div>
 
+							<div className={`govuk-form-group ${updatedFields.has("section17") ? "form-group-updated" : ""}`}>
+								<div className="govuk-checkboxes">
+									<div className="govuk-checkboxes__item">
+										<input
+											className={`govuk-checkboxes__input ${updatedFields.has("section17") ? "field-updated" : ""}`}
+											id="section17"
+											name="section17"
+											type="checkbox"
+											checked={form.section17 || false}
+											onChange={(e) => handleFormChange("section17", e.target.checked, true)}
+											disabled={disabled}
+										/>
+										<label className="govuk-label govuk-checkboxes__label" htmlFor="section17">
+											Section 17
+										</label>
+									</div>
+								</div>
+							</div>
+
 							<div className={`govuk-form-group ${updatedFields.has("amount") ? "form-group-updated" : ""}`}>
 								<label className="govuk-label" htmlFor="amount">
 									Amount

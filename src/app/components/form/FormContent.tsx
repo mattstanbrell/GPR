@@ -25,6 +25,7 @@ export function FormContent() {
 		caseNumber: "",
 		reason: "",
 		amount: null,
+		section17: false,
 		dateRequired: {
 			day: null,
 			month: null,
@@ -54,7 +55,7 @@ export function FormContent() {
 
 	// Get the form fields directly from the schema
 	const formFields = {
-		simple: ["title", "caseNumber", "reason", "amount"] as const,
+		simple: ["title", "caseNumber", "reason", "amount", "section17"] as const,
 		nested: ["dateRequired", "recipientDetails"] as const,
 	};
 

@@ -38,6 +38,7 @@ const schema = a
 				caseNumber: a.string(),
 				reason: a.string(),
 				amount: a.float(),
+				section17: a.boolean(),
 				dateRequired: a.customType({
 					day: a.integer(),
 					month: a.integer(),
@@ -156,7 +157,6 @@ const schema = a
 
 		FinanceCode: a
 			.model({
-				id: a.id().required(),
 				accountCode: a.string().required(),
 				typeDescription: a.string().required(),
 				accountCodeDescriptions: a.string().required(),
