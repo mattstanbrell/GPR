@@ -98,7 +98,7 @@ const ReceiptPage = () => {
         mimeType: file.type,
       });
 
-      // Optionally upload the file to S3
+      // upload the file to S3
       const uploadPath = `uploads/${Date.now()}_${file.name}`;
       const uploadResult = await uploadData({
         path: uploadPath,
@@ -131,7 +131,7 @@ const ReceiptPage = () => {
           <UploadFileBody />
           {error && <PageError error={error} />}
           <div
-            className="govuk-file-drop-zone"
+            className={`govuk-file-drop-zone${isDragging ? " govuk-file-drop-zone--dragging" : ""}`}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
@@ -147,6 +147,11 @@ const ReceiptPage = () => {
               aria-describedby={error ? "receipt-upload-error" : undefined}
             />
           </div>
+          {file && ( 
+            <div className="govuk-body" style={{ marginTop: "1rem" }}>
+              Selected file: <strong>{file.name}</strong>
+            </div>
+          )}
         </div>
         {isLoading && <LoadingMessage />}
       </main>

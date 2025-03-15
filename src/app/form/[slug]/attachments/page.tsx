@@ -45,7 +45,7 @@ const Attachments = ({ formName } : { formName: string }) => {
 
       const s3Key = receipt.s3Key as string;
   
-    const { body, eTag } = await downloadData({
+    const { body } = await downloadData({
       path: s3Key,
     }).result;
 
