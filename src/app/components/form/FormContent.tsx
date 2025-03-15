@@ -10,7 +10,7 @@ import type { UIMessage, FormChanges } from "./types";
 import { FormErrorSummary } from "./FormErrorSummary";
 import { FormLayout } from "./FormLayout";
 import { NormLayout } from "./NormLayout";
-import { createForm, updateForm, getFormById, getNormConversationByFormId } from "../../../utils/apis";
+import { createForm, updateForm, getFormById, getNormConversationByFormId, assignUserToForm } from "../../../utils/apis";
 import { useUserModel } from "../../../utils/authenticationUtils";
 import type { FormStatus } from "@/app/types/models";
 
@@ -190,7 +190,7 @@ export function FormContent() {
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 
-		if (!form || !form.id || !userModel?.id) return;
+		if (!form || !form.id || !userModel?.id || !form.amount || !userModel?.managerUserId || !userModel?.assistantManagerUserId) return;
 
 		try {
 			setLoading(true);
@@ -199,6 +199,14 @@ export function FormContent() {
 				status: "SUBMITTED",
 				creatorID: userModel.id,
 			});
+			let assigneeId;
+			if (form.amount > 5000) {
+ 				assigneeId = userModel?.managerUserId;
+ 			} else {
+ 				assigneeId = userModel?.assistantManagerUserId;
+ 			}
+			await assignUserToForm(form.id, assigneeId);
+			
 			router.push(FORM_BOARD);
 		} catch (_error: unknown) {
 			setErrorMessage(_error instanceof Error ? _error.message : String(_error));
