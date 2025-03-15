@@ -10,7 +10,6 @@ const Attachments = ({ formName } : { formName: string }) => {
   const router = useRouter();
   const params = useParams<{slug: string}>();
   const { slug } = params; 
-  const [isOptionsOpen, setIsOptionsOpen] = useState<boolean>(false);
   const [uploadedReceiptNames, setUploadedNames] = useState<string[]>([]); //useState<string[]>(["hello.png", "test.jpg"]);
   const [hasReceipts, setHasReceipts] = useState<boolean>(false); 
   const [isLoadingReceipts, setIsLoadingReceipts] = useState<boolean>(true); 
@@ -29,10 +28,6 @@ const Attachments = ({ formName } : { formName: string }) => {
     }
     fetchFormAttachments(); 
   }, [slug])
-
-  const handleOptions = () => {
-    setIsOptionsOpen(!(isOptionsOpen)); 
-  }
 
   const handleDownload = (index: number) => {
     // TODO: implement download logic or call server function 
