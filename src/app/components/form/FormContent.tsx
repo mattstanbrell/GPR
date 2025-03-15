@@ -231,35 +231,37 @@ export function FormContent() {
 				currentFormState: JSON.stringify(form),
 			});
 
-			// Check if we need to create a business
-			let businessID = form.businessID;
-			if (!businessID && form.paymentMethod === "PURCHASE_ORDER" && form.businessDetails?.name) {
-				try {
-					// Create a new business from the business details
-					const newBusiness = await createBusiness(
-						form.businessDetails.name,
-						{
-							lineOne: form.businessDetails.address?.lineOne || "",
-							lineTwo: form.businessDetails.address?.lineTwo || undefined,
-							townOrCity: form.businessDetails.address?.townOrCity || "",
-							postcode: form.businessDetails.address?.postcode || "",
-						},
-						userModel.id,
-					);
-
-					// Set the businessID to the newly created business
-					if (newBusiness) {
-						businessID = newBusiness.id;
-						console.log("Created new business with ID:", businessID);
-					}
-				} catch (businessError) {
-					console.error("Error creating business:", businessError);
-					// Continue with submission even if business creation fails
-				}
+			// Start business creation in parallel if needed
+			let businessPromise: Promise<{ id: string } | null> = Promise.resolve(null);
+			if (!form.businessID && form.paymentMethod === "PURCHASE_ORDER" && form.businessDetails?.name) {
+				businessPromise = createBusiness(
+					form.businessDetails.name,
+					{
+						lineOne: form.businessDetails.address?.lineOne || "",
+						lineTwo: form.businessDetails.address?.lineTwo || undefined,
+						townOrCity: form.businessDetails.address?.townOrCity || "",
+						postcode: form.businessDetails.address?.postcode || "",
+					},
+					userModel.id,
+				).catch((error) => {
+					console.error("Error creating business:", error);
+					// Return null if business creation fails
+					return null;
+				});
 			}
 
-			// Wait for finance code generation to complete
-			const { data: financeCodeResponse } = await financeCodePromise;
+			// Wait for both operations to complete in parallel
+			const [financeCodeResult, newBusiness] = await Promise.all([financeCodePromise, businessPromise]);
+
+			// Get the finance code response
+			const financeCodeResponse = financeCodeResult.data;
+
+			// Get the business ID (either existing or newly created)
+			let businessID = form.businessID;
+			if (newBusiness) {
+				businessID = newBusiness.id;
+				console.log("Created new business with ID:", businessID);
+			}
 
 			// Create a clean version of the form data without null businessID
 			const { businessID: _, ...restOfForm } = form;
