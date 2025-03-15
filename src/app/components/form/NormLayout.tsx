@@ -62,6 +62,14 @@ export function NormLayout({
 		return content;
 	};
 
+	// Helper function to detect payment method changes
+	const detectPaymentMethodChange = (
+		currentForm: Partial<Schema["Form"]["type"]>,
+		updatedForm: Partial<Schema["Form"]["type"]>,
+	): boolean => {
+		return currentForm.paymentMethod !== updatedForm.paymentMethod;
+	};
+
 	const handleNormMessageSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		if (!message.trim() || !formId || processingMessage) return;
@@ -96,7 +104,13 @@ export function NormLayout({
 							{
 								role: "system",
 								content: `User manually changed the following fields: ${Object.entries(formChanges)
-									.map(([field, { from, to }]) => `${field}: from ${JSON.stringify(from)} to ${JSON.stringify(to)}`)
+									.map(([field, { from, to }]) => {
+										// Special handling for payment method changes
+										if (field === "paymentMethod") {
+											return `${field}: from ${from || "undefined"} to ${to || "undefined"} (This changes the form type)`;
+										}
+										return `${field}: from ${JSON.stringify(from)} to ${JSON.stringify(to)}`;
+									})
 									.join(", ")}`,
 							},
 							userMessage,
@@ -119,7 +133,11 @@ export function NormLayout({
 				conversationID: conversationId,
 				messages: messagesPayload,
 				formID: formId,
-				currentFormState: JSON.stringify(currentForm),
+				currentFormState: JSON.stringify({
+					...currentForm,
+					// Ensure payment method is explicitly included
+					paymentMethod: currentForm.paymentMethod || "PREPAID_CARD",
+				}),
 			});
 
 			if (!normResponse) {
@@ -175,15 +193,38 @@ export function NormLayout({
 				if (normResponse?.currentFormState) {
 					const updatedForm = JSON.parse(normResponse.currentFormState);
 					if (updatedForm) {
-						// Only update if Norm actually changed something
-						const hasChanges = Object.keys(updatedForm as Partial<Schema["Form"]["type"]>).some(
-							(key) =>
-								JSON.stringify(
-									(updatedForm as Partial<Schema["Form"]["type"]>)[key as keyof Partial<Schema["Form"]["type"]>],
-								) !== JSON.stringify(currentForm[key as keyof Partial<Schema["Form"]["type"]>]),
-						);
+						// Check if payment method has changed
+						const paymentMethodChanged = detectPaymentMethodChange(currentForm, updatedForm);
+
+						// Only update if Norm actually changed something or payment method changed
+						const hasChanges =
+							paymentMethodChanged ||
+							Object.keys(updatedForm as Partial<Schema["Form"]["type"]>).some(
+								(key) =>
+									JSON.stringify(
+										(updatedForm as Partial<Schema["Form"]["type"]>)[key as keyof Partial<Schema["Form"]["type"]>],
+									) !== JSON.stringify(currentForm[key as keyof Partial<Schema["Form"]["type"]>]),
+							);
 
 						if (hasChanges) {
+							// If payment method changed, add a system message explaining the change
+							if (paymentMethodChanged) {
+								setMessages((prev: UIMessage[]) => [
+									...prev,
+									{
+										id: Date.now(),
+										role: "assistant",
+										content: `I've updated the payment method to ${
+											updatedForm.paymentMethod === "PURCHASE_ORDER" ? "Purchase Order" : "Prepaid Card"
+										}. ${
+											updatedForm.paymentMethod === "PURCHASE_ORDER"
+												? "I'll now ask for business details instead of recipient details."
+												: "I'll now ask for recipient details instead of business details."
+										}`,
+									},
+								]);
+							}
+
 							onFormUpdate(updatedForm);
 						}
 					}

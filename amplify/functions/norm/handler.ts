@@ -29,18 +29,34 @@ const llmResponseSchema = z.object({
 			month: z.number(),
 			year: z.number(),
 		}),
-		recipientDetails: z.object({
-			name: z.object({
-				firstName: z.string(),
-				lastName: z.string(),
-			}),
-			address: z.object({
-				lineOne: z.string(),
-				lineTwo: z.string(),
-				townOrCity: z.string(),
-				postcode: z.string(),
-			}),
-		}),
+		paymentMethod: z.enum(["PREPAID_CARD", "PURCHASE_ORDER"]).optional(),
+		// Conditional fields based on payment method
+		recipientDetails: z
+			.object({
+				name: z.object({
+					firstName: z.string(),
+					lastName: z.string(),
+				}),
+				address: z.object({
+					lineOne: z.string(),
+					lineTwo: z.string(),
+					townOrCity: z.string(),
+					postcode: z.string(),
+				}),
+			})
+			.optional(),
+		businessDetails: z
+			.object({
+				name: z.string(),
+				address: z.object({
+					lineOne: z.string(),
+					lineTwo: z.string(),
+					townOrCity: z.string(),
+					postcode: z.string(),
+				}),
+			})
+			.optional(),
+		businessID: z.string().optional(),
 		suggestedFinanceCodeID: z.string(),
 	}),
 	followUp: z.string(),
@@ -60,6 +76,25 @@ const tools = [
 					name: {
 						type: "string",
 						description: "The name of the child",
+					},
+				},
+				required: ["name"],
+				additionalProperties: false,
+			},
+			strict: true,
+		},
+	},
+	{
+		type: "function" as const,
+		function: {
+			name: "searchBusinesses",
+			description: "Search for businesses by name",
+			parameters: {
+				type: "object",
+				properties: {
+					name: {
+						type: "string",
+						description: "The name of the business to search for",
 					},
 				},
 				required: ["name"],
@@ -141,6 +176,17 @@ async function handleToolCalls(
 				});
 				break;
 			}
+			case "searchBusinesses": {
+				const name = args.name;
+				const result = await searchBusinesses(name);
+
+				messages.push({
+					role: "tool",
+					content: JSON.stringify(result),
+					tool_call_id: toolCall.id,
+				});
+				break;
+			}
 		}
 	});
 
@@ -185,10 +231,30 @@ async function processLLMResponse(
 		content: llmMessage.content || "",
 	});
 
-	// Return messages and parsed form data without updating the form
+	// Process the form data based on payment method
+	const initialFormData = llmMessage.parsed?.form || null;
+
+	// Ensure we're handling both payment methods correctly
+	const formData = initialFormData
+		? {
+				...initialFormData,
+				// Make sure we preserve the payment method
+				paymentMethod: initialFormData.paymentMethod || currentFormState.paymentMethod,
+				// Ensure we have the appropriate fields based on payment method
+				...(initialFormData.paymentMethod === "PURCHASE_ORDER" || currentFormState.paymentMethod === "PURCHASE_ORDER"
+					? {
+							businessDetails: initialFormData.businessDetails || currentFormState.businessDetails,
+						}
+					: {
+							recipientDetails: initialFormData.recipientDetails || currentFormState.recipientDetails,
+						}),
+			}
+		: null;
+
+	// Return messages and parsed form data
 	return {
 		messages,
-		formData: llmMessage.parsed?.form || null,
+		formData,
 		followUp: llmMessage.parsed?.followUp || null,
 	};
 }
@@ -242,6 +308,34 @@ async function getUserDetails(userID: string) {
 			postcode: "SW1A 1AA",
 		},
 	};
+}
+
+async function searchBusinesses(name: string) {
+	try {
+		// Query the Business model to find matches
+		const { data: businesses, errors } = await client.models.Business.list({
+			// @ts-ignore - The type definitions don't match the actual API
+			filter: { name: { contains: name } },
+			limit: 5,
+		});
+
+		if (errors) {
+			throw new Error(`Error searching businesses: ${errors.map((e) => e.message).join(", ")}`);
+		}
+
+		if (!businesses || businesses.length === 0) {
+			return { message: `No businesses found matching "${name}"` };
+		}
+
+		return businesses.map((business) => ({
+			id: business.id,
+			name: business.name,
+			address: business.address,
+		}));
+	} catch (error) {
+		console.error("Error searching businesses:", error);
+		return { error: `Failed to search businesses: ${error instanceof Error ? error.message : String(error)}` };
+	}
 }
 
 export const handler: Schema["Norm"]["functionHandler"] = async (event) => {
