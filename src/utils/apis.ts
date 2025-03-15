@@ -26,6 +26,7 @@ type UserUpdates = {
 	email?: string;
 	permissionGroup?: "ADMIN" | "MANAGER" | "SOCIAL_WORKER" | null;
 	lastLogin?: string;
+	team?: string;
 	userSettings?: {
 		fontSize: number;
 		font: string;
@@ -123,6 +124,55 @@ export async function updateUser(userId: string, updates: UserUpdates) {
 
 export async function deleteUser(userId: string) {
 	const { data, errors } = await client.models.User.delete({ id: userId });
+	if (errors) {
+		throw new Error(errors[0].message);
+	}
+	return data;
+}
+
+// ------------Team APIs -------------
+export async function createTeam(managerUserID: string, assistantManagerUserID: string) {
+	const { data, errors } = await client.models.Team.create({managerUserID: managerUserID, assistantManagerUserID: assistantManagerUserID});
+	if (errors) {
+		throw new Error(errors[0].message);
+	}
+	return data;
+}
+
+// Get a form by ID
+export async function getTeamById(teamId: string) {
+	const { data, errors } = await client.models.Team.get({ id: teamId });
+	if (errors) {
+		throw new Error(errors[0].message);
+	}
+	return data;
+}
+
+// List all forms
+export async function listTeams() {
+	const { data, errors } = await client.models.Team.list();
+	if (errors) {
+		throw new Error(errors[0].message);
+	}
+	return data;
+}
+
+// Update a form
+export async function updateForm(formId: string, updates: Partial<Schema["Form"]["type"]>) {
+	const { data, errors } = await client.models.Team.update({
+		id: formId,
+		...updates,
+	});
+
+	if (errors) {
+		throw new Error(errors[0].message);
+	}
+	return data;
+}
+
+// Delete a form
+export async function deleteForm(formId: string) {
+	const { data, errors } = await client.models.Form.delete({ id: formId });
 	if (errors) {
 		throw new Error(errors[0].message);
 	}
