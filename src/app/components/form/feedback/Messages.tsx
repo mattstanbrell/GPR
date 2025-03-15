@@ -1,10 +1,8 @@
 import { FORM_STATUS } from "@/app/constants/models"
 import type { Form } from "@/app/types/models"
+import type { MessageStatus } from "@/app/types/feedback"
 
-
-type MessageStatus = number; 
-
-const STATUS = {
+const MESSAGE_STATUS = {
     APPROVED: 1,
     REJECTED: 2,
     SUBMITTED: 3,
@@ -25,9 +23,9 @@ export const SubmitWarningMessage = () => {
 
 const StatusMessage = ({heading, status, message} : {heading: string, status: MessageStatus, message?: string}) => {
     let bgColour;
-    if (status === STATUS.APPROVED) {
+    if (status === MESSAGE_STATUS.APPROVED) {
         bgColour = "bg-[#00703c]";
-    } else if (status === STATUS.REJECTED) {
+    } else if (status === MESSAGE_STATUS.REJECTED) {
         bgColour = "bg-[#d4351c]";
     } else {
         bgColour = "bg-[#1d70b8]";
@@ -50,20 +48,20 @@ const StatusMessage = ({heading, status, message} : {heading: string, status: Me
 
 export const SubmitSuccessStatusMessage = () => { 
     const msg = "Feedback Submitted!";
-    return <StatusMessage heading="Submitted" status={ STATUS.SUBMITTED } message={ msg } /> 
+    return <StatusMessage heading="Submitted" status={ MESSAGE_STATUS.SUBMITTED } message={ msg } /> 
 }
 
 const ApprovedStatusMessage = () => {
     const msg = "You can now purchase the items.";
-    return <StatusMessage heading="Approved" status={ STATUS.APPROVED } message={ msg } /> 
+    return <StatusMessage heading="Approved" status={ MESSAGE_STATUS.APPROVED } message={ msg } /> 
 }
 
 const RejectedStatusMessage = ({feedback} : {feedback: string}) => {
-    return <StatusMessage heading="Rejected" status={ STATUS.REJECTED } message={ feedback } /> 
+    return <StatusMessage heading="Rejected" status={ MESSAGE_STATUS.REJECTED } message={ feedback } /> 
 }
 
 const AwaitingApprovalStatusMessage = () => {
-    return <StatusMessage heading="Awaiting Approval" status={ STATUS.AWAITING_APPROVAL } /> 
+    return <StatusMessage heading="Awaiting Approval" status={ MESSAGE_STATUS.AWAITING_APPROVAL } /> 
 }
 
 export const ApprovalStatusMessage = ({form} : {form: Form}) => {
