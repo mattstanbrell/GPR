@@ -21,6 +21,7 @@ export const TableBody = (
         <tbody>
             {receiptNames.map((name, index) => (
                 <TableRow 
+                    key={index}
                     name={ name } 
                     handleDownload={ handleDownload } 
                     handleDelete={ handleDelete } 

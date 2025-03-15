@@ -2,6 +2,7 @@
 import { useState, use } from "react";
 import Form from '@/app/components/receipts/form/Form';
 import { useSearchParams } from "next/navigation";
+import { ReceiptData } from '@/app/components/types/receipt';
 
 const Title = ({ text }: { text: string }) => (
   <div className="h-[5vh] border-b-1 border-b-[#a9a9a9]">

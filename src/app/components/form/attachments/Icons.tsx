@@ -1,7 +1,7 @@
 
-import Image from "next/image";
+// import Image from "next/image";
 
-const iconSize = 30
+// const iconSize = 30
 
 // const IconDecoractor = (
 //     {src, alt, onClick, className} : 
