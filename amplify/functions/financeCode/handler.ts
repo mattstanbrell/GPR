@@ -1,12 +1,10 @@
 import { env } from "$amplify/env/financeCode";
 import type { Schema } from "../../data/resource";
 import { Amplify } from "aws-amplify";
-import { generateClient } from "aws-amplify/data";
 import { getAmplifyDataClientConfig } from "@aws-amplify/backend/function/runtime";
 import OpenAI from "openai";
 import { z } from "zod";
 import { zodResponseFormat } from "openai/helpers/zod";
-import type { ParsedChatCompletion } from "openai/resources/beta/chat/completions";
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 import type { AppSyncResolverEvent } from "aws-lambda";
 
@@ -14,15 +12,11 @@ import type { AppSyncResolverEvent } from "aws-lambda";
 const { resourceConfig, libraryOptions } = await getAmplifyDataClientConfig(env);
 Amplify.configure(resourceConfig, libraryOptions);
 
-const client = generateClient<Schema>();
-
 const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
 
 const llmResponseSchema = z.object({
 	financeCode: z.string(),
 });
-
-type LLMResponseType = z.infer<typeof llmResponseSchema>;
 
 const systemPrompt = `You are a specialized assistant responsible for selecting the appropriate finance code based on expense requests submitted by social workers. 
 
@@ -151,9 +145,11 @@ Based on this information, what is the most appropriate finance code?`,
 			},
 		];
 
+		console.log("chat messages: ", chatMessages);
+
 		// Call OpenAI using the beta chat completions parse method with zodResponseFormat
 		const completion = await openai.beta.chat.completions.parse({
-			model: "gpt-4o",
+			model: "gpt-4o-mini",
 			messages: chatMessages,
 			response_format: zodResponseFormat(llmResponseSchema, "schema"),
 		});

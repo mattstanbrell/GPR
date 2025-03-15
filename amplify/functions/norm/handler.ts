@@ -57,7 +57,6 @@ const llmResponseSchema = z.object({
 			})
 			.optional(),
 		businessID: z.string().optional(),
-		suggestedFinanceCodeID: z.string(),
 	}),
 	followUp: z.string(),
 });
@@ -407,7 +406,6 @@ Common form fields for both payment methods:
   - month
   - year
 - paymentMethod (either "PREPAID_CARD" or "PURCHASE_ORDER")
-- suggestedFinanceCodeID (suggest an appropriate finance code based on the expense type)
 
 For PREPAID_CARD payment method, also complete:
 - recipientDetails:
@@ -446,35 +444,6 @@ Guidelines for business handling:
 - If the business doesn't exist or the user wants to enter details manually, collect the business details directly.
 - Never invent a businessID—only use one returned by the searchBusinesses tool.
 - If no businessID is available, leave it undefined or empty.
-
-You must suggest an appropriate finance code for each form based on the expense type, but do not discuss the code with the social worker unless they specifically ask about it. Your suggestion will be reviewed by a manager who may change it. Here are the available finance codes:
-- A330: Sessional Workers Carebank - For contact supervision, family support, transport
-- A340: Sessional Workers Agency - For contact supervision, family support, transport etc
-- C411: Public Transport - For contact visits, hospital appointments, court hearings etc.
-- C312: Taxi/Minicab Service
-- C541: Car Parking charges
-- C311: Secure Transport for client
-- C593: Mileage Claim
-- D312: Children's Clothing - Essential items only
-- D711: Subsistence - Food, drink, gas & electric basic necessities, mobile phones, payments to staff for out of Borough visits
-- D741: Birthday / Festive Allowance - LAC only
-- D13W: Activities Cost - Holidays & Recreation, additional to placement costs
-- D111: Equipment Purchase - Cookers, baby equipment, essential items only, staff claim for glasses
-- B733: Equipment Maintenance - House cleaning, skips etc
-- D540: Storage Expenses - Client belongings in storage units
-- D538: Inquiry & Legal Expenses - For cases in pre proceedings, passports, birth certificates, visas etc
-- D511: Fees - Family Group Conferences, therapeutic assessments, hair strand testing (for cases not in proceedings)
-- B416: Room hire
-- D531: Legal Fees-External - Court directed legal spend, only for cases in proceedings
-- D591: Interpreting / Translation - Letters, telephone calls etc
-- D941: Removal Expenses - Moving YP's belongings between placements, assisting families with removal costs
-- E777: Sponsored Childminders - Must be registered, includes after school clubs
-- E778: Nursery and Mother & Baby Unit - Sponsored nursery, includes pre-school play groups, and additional costs for Mother & Baby Units not paid through placements (babysitting, additional supervision)
-- E779: Sponsored Playgroups - All other playgroups
-- F622: Intentionally Homeless - Housing costs, B&B, rent, includes deposits
-- G500: Other Recharges - For internal recharging (operational permits, translation, fuel recharges)
-
-Silently select and update the most appropriate finance code based on the expense description or any changes. Only discuss finance codes if explicitly asked, and then clarify that your suggestion is provisional and subject to managerial approval.
 
 Guidelines for interaction:
 - Users may manually edit form fields between messages; always respect these edits. Only update manually edited fields if the social worker provides new, explicit information that directly contradicts or replaces them.
@@ -519,8 +488,7 @@ Response:
     "recipientDetails": {
       "name": { "firstName": null, "lastName": null },
       "address": { "lineOne": null, "lineTwo": null, "townOrCity": null, "postcode": null }
-    },
-    "suggestedFinanceCodeID": "D312" // Suggesting Children's Clothing code
+    }
   },
   "followUp": "When do you need this by?"
 }
@@ -548,8 +516,7 @@ Response:
         "postcode": "EC1 2AB" // From the business search result
       }
     },
-    "businessID": "b12345", // ID from the business search result
-    "suggestedFinanceCodeID": "D111"
+    "businessID": "b12345" // ID from the business search result
   },
   "followUp": "I found ABC School Supplies in our system. What's the case number for this purchase order?"
 }
@@ -567,8 +534,7 @@ Response:
     "businessDetails": {
       "name": "ABC School Supplies",
       "address": { "lineOne": null, "lineTwo": null, "townOrCity": null, "postcode": null }
-    },
-    "suggestedFinanceCodeID": "D111"
+    }
   },
   "followUp": "I couldn't find ABC School Supplies in our system - could you give me their address?"
 }
@@ -591,8 +557,7 @@ Response:
         "townOrCity": "London", 
         "postcode": "EC1 3XY"
       }
-    },
-    "suggestedFinanceCodeID": "D111"
+    }
   },
   "followUp": "What's the case number for this purchase order?"
 }
