@@ -13,6 +13,7 @@ import { NormLayout } from "./NormLayout";
 import { createForm, updateForm, getFormById, getNormConversationByFormId } from "../../../utils/apis";
 import { useUserModel } from "../../../utils/authenticationUtils";
 import type { FormStatus } from "@/app/types/models";
+import { generateClient } from "@aws-amplify/api";
 
 export function FormContent() {
 	const router = useRouter();
@@ -211,12 +212,22 @@ export function FormContent() {
 
 	// Handle form submission
 	const handleSubmit = async (e: React.FormEvent) => {
+		console.log("handleSubmit called");
 		e.preventDefault();
 
 		if (!form || !form.id || !userModel?.id) return;
 
 		try {
 			setLoading(true);
+
+			// Call the financeCode function with the UI messages and current form state
+			const client = generateClient<Schema>();
+			console.log("submission messages", messages);
+			console.log("submission form", form);
+			const { data: financeCodeResponse } = await client.queries.FinanceCodeFunction({
+				messages: JSON.stringify(messages),
+				currentFormState: JSON.stringify(form),
+			});
 
 			// Create a clean version of the form data without null businessID
 			const { businessID, ...restOfForm } = form;
@@ -227,6 +238,8 @@ export function FormContent() {
 				status: "SUBMITTED" as FormStatus,
 				creatorID: userModel.id,
 				...(businessID !== null && { businessID }),
+				// Add the suggested finance code from the financeCode function
+				...(financeCodeResponse && { suggestedFinanceCodeID: financeCodeResponse }),
 			};
 
 			await updateForm(form.id, formDataToUpdate);

@@ -178,6 +178,7 @@ async function handleToolCalls(
 			}
 			case "searchBusinesses": {
 				const name = args.name;
+				console.log("Current messages:", messages);
 				const result = await searchBusinesses(name);
 
 				messages.push({
@@ -215,6 +216,7 @@ async function processLLMResponse(
 		});
 
 		await handleToolCalls(llmMessage.tool_calls, messages, userID);
+		console.log("messages after tool call: ", messages);
 
 		const followUpCompletion = await openai.beta.chat.completions.parse({
 			model: "gpt-4o",
