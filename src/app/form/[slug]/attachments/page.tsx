@@ -2,29 +2,30 @@
 
 import { useRouter, useParams } from "next/navigation";
 import { useState, useEffect } from "react";
-import { Table } from "@/app/components/form/attachments/Table"
+import { AttachmentTable } from "@/app/components/form/attachments/AttachmentTable"
 import { UploadIcon } from "@/app/components/form/attachments/Icons";
-import { listReceipts, listReceiptsByFormId } from "@/utils/apis"
+import { listReceiptsByFormId } from "@/utils/apis"
+import { Receipt } from "@/app/types/models";
 
 const Attachments = ({ formName } : { formName: string }) => {
   const router = useRouter();
   const params = useParams<{slug: string}>();
   const { slug } = params; 
-  const [uploadedReceiptNames, setUploadedNames] = useState<string[]>([]); //useState<string[]>(["hello.png", "test.jpg"]);
+  const [uploadedReceiptNames, setUploadedNames] = useState<string[]>([]);
   const [hasReceipts, setHasReceipts] = useState<boolean>(false); 
   const [isLoadingReceipts, setIsLoadingReceipts] = useState<boolean>(true); 
+  const [formReceipts, setFormReceipts] = useState<Receipt[]>([]);
 
   useEffect(() => {
     const fetchFormAttachments = async () => {
-      const receipts = await listReceiptsByFormId(slug)
-      console.log(receipts)
+      const receipts = await listReceiptsByFormId(slug);
       const receiptNames: string[] = [];
       receipts.map(({ receiptName: name }) => {
         receiptNames.push(name ? name : "")
       })
       setUploadedNames(receiptNames);
       setIsLoadingReceipts(false);
-      setHasReceipts(receipts.length > 0) 
+      setHasReceipts(receipts.length > 0);
     }
     fetchFormAttachments(); 
   }, [slug])
@@ -44,23 +45,14 @@ const Attachments = ({ formName } : { formName: string }) => {
       <div className="govuk-grid-row flex justify-center">
         <div className="govuk-grid-column-two-thirds overflow-x-scroll">
           <h1 className="govuk-heading-xl" style={{marginBottom: '0'}}>{ formName }</h1>
-          <span className="govuk-caption-m">Attachments</span>
-          <div
-            style={{
-              width: "100%",
-              height: ".25rem",
-              backgroundColor: "#AA8CAE",
-              marginTop: "25px",
-              marginBottom: "15px",
-            }}
-          ></div>
+          <span className="govuk-caption-m pb-4 mb-4 border-solid border-b-4 border-[#AA8CAE]">Attachments</span>
           { !(isLoadingReceipts) &&
             <>
             { !(hasReceipts) ? (
-              <h3>No receipts to show.</h3> 
+              <h3>No receipts receipreceiptststo show.</h3> 
             ) : (
-              <Table 
-                uploadedReceiptNames={ uploadedReceiptNames } 
+              <AttachmentTable 
+                receiptNames={ uploadedReceiptNames } 
                 handleDownload={ handleDownload }
                 handleDelete={ handleDelete }
               /> 
