@@ -33,6 +33,8 @@ type UserUpdates = {
 		bgColour: string;
 		spacing: number;
 	};
+	managerUserId: string;
+	assistantManagerUserId: string; 
 };
 
 type ChildUpdates = {

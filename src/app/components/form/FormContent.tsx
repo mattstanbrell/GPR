@@ -271,7 +271,7 @@ export function FormContent() {
 								isSocialWorker={ isSocialWorker }
 							/>
 						</div>
-						{ isDraft &&
+						{ isDraft && isSocialWorker &&
 							<div className="md:w-4/10">
 								<NormLayout
 									messages={messages}

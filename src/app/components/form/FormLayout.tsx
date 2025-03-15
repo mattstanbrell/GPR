@@ -5,6 +5,7 @@ import { updateForm } from "@/utils/apis"
 import { redirect } from "next/navigation";
 import { FORM_BOARD } from "@/app/constants/urls";
 import { Form } from "@/app/types/models";
+import FeedbackContainer from "./feedback/FeedbackContainer";
 
 interface FormLayoutProps {
 	form: Partial<Schema["Form"]["type"]>;
@@ -17,20 +18,6 @@ interface FormLayoutProps {
 	isSocialWorker: boolean;
 }
 
-const handleSubmitFeedback = async (formId: string, event: React.FormEvent<HTMLFormElement>) => {
-	event.preventDefault();
-	const formData = new FormData(event.currentTarget);
-	const data = { feedback: formData.get("reject-feedback") as string };
-	await updateForm(formId, data);
-	
-}
-
-const handleApproveForm = async (form: Partial<Form>) => {
-	await updateForm(form.id ? form.id : "", { ...form, status: "AUTHORISED" });
-	redirect(FORM_BOARD);
-}
-
-
 export function FormLayout({
 	form,
 	loading,
@@ -41,9 +28,6 @@ export function FormLayout({
 	updatedFields,
 	isSocialWorker,
 }: FormLayoutProps) {
-
-	const [isReject, setIsReject] = useState<boolean>(false);
-
 	return (
 		<>
 			<style jsx>{`
@@ -151,32 +135,11 @@ export function FormLayout({
 				>
 					{form.title || "Form"}
 				</h1>
-				
-				{ !(isSocialWorker) &&
-					<div className="flex justify-center">
-						<div className="flex justify-evenly w-1/2">
-							<button className="govuk-button" onClick={() => handleApproveForm(form) }>Approve</button>
-							<button className="govuk-button govuk-button--warning" onClick={() => setIsReject(!(isReject))}>{ !(isReject) ? "Reject" : "Cancel" }</button>
-						</div>
-					</div>
-				}	
-				
-				{ isReject &&
-					<form onSubmit={(event) => handleSubmitFeedback(form.id ? form.id : "", event) }>
-					
-					<div className="w-full govuk-form-group pr-[20px]">
-						<textarea name="reject-feedback" className="h-[10vh] w-full govuk-textarea" defaultValue={ `${form && form.feedback}`} placeholder="Reason for rejection." required />
-						<div className="flex justify-center">
-							<div className="flex justify-evenly w-1/2">
-								<button type="submit" className="govuk-button">Submit Feedback</button>
-							</div>
-						</div>
-					</div>
-					</form>
-				}
+
+				<FeedbackContainer form={ form } /> 
 
 				<div style={{ flexGrow: 1, overflowY: "auto", paddingRight: "0" }}>
-					<form onSubmit={handleSubmit} style={{ paddingRight: "20px", paddingLeft: "3px" }}>
+					<form onSubmit={ handleSubmit } style={{ paddingRight: "20px", paddingLeft: "3px" }}>
 						<fieldset className="govuk-fieldset">
 							<legend className="govuk-fieldset__legend govuk-fieldset__legend--m">
 								<h2 className="govuk-fieldset__heading">Expense details</h2>

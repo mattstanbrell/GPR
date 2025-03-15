@@ -2,7 +2,7 @@
 import type { Schema } from "../../../amplify/data/resource";
 
 export type User = Schema["User"]["type"]; 
-export type Form = Schema["Form"]["type"];
+export type Form = Schema["Form"]["type"] | Partial<Schema["Form"]["type"]>;
 export type FormAssignee = Schema["FormAssignee"]["type"];
 export type Child = Schema["Child"]["type"];
 export type Receipt = Schema["Receipt"]["type"]; 
