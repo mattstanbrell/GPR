@@ -207,24 +207,6 @@ export function NormLayout({
 							);
 
 						if (hasChanges) {
-							// If payment method changed, add a system message explaining the change
-							if (paymentMethodChanged) {
-								setMessages((prev: UIMessage[]) => [
-									...prev,
-									{
-										id: Date.now(),
-										role: "assistant",
-										content: `I've updated the payment method to ${
-											updatedForm.paymentMethod === "PURCHASE_ORDER" ? "Purchase Order" : "Prepaid Card"
-										}. ${
-											updatedForm.paymentMethod === "PURCHASE_ORDER"
-												? "I'll now ask for business details instead of recipient details."
-												: "I'll now ask for recipient details instead of business details."
-										}`,
-									},
-								]);
-							}
-
 							onFormUpdate(updatedForm);
 						}
 					}
