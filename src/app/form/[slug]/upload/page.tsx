@@ -20,7 +20,7 @@ const Upload = ({ params }: { params: Promise<{ slug: string }> }) => {
   const uploadPathParam = searchParams.get("uploadPath");
   const fileNameParam = searchParams.get("fileName");
 
-  let result: any = null;
+  let result = null;
   if (resultParam) {
     try {
       const parsedWrapper = JSON.parse(decodeURIComponent(resultParam));

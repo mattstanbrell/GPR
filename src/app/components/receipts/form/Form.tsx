@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 import Table from "@/app/components/receipts/form/Table";
 import { Submit } from "@/app/components/receipts/form/Buttons";
 import { createReceipt } from '@/utils/apis'
+import { ReceiptData } from "../../types/receipt";
 
 interface FormProps {
   receiptData: ReceiptData;

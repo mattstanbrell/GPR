@@ -96,7 +96,7 @@ const Attachments = ({ formName } : { formName: string }) => {
           { !(isLoadingReceipts) &&
             <>
             { !(hasReceipts) ? (
-              <h3>No receipts receipreceiptststo show.</h3> 
+              <h3>No receipts to show.</h3> 
             ) : (
               <AttachmentTable 
                 receiptNames={ uploadedReceiptNames } 
