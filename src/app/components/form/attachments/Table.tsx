@@ -1,27 +1,40 @@
 'use client'
 
 import { Receipt } from "@/app/types/models";
-import { AttachmentIcon, OptionsIcon } from "@/app/components/form/attachments/Icons"
+import { AttachmentIcon, DeleteIcon, DownloadIcon } from "@/app/components/form/attachments/Icons"
 
-const TableRow = ({name, handleOptions} : {name: string, handleOptions: () => void}) => {
+const TableRow = (
+    {name, handleDownload, handleDelete, index} : 
+    {   name: string, 
+        handleDownload: (index: number) => void, 
+        handleDelete: (index: number) => void, 
+        index: number
+    }
+) => {
     return (
-        <tr className="border-solid border-1 border-black">
+        <tr key={ index } className="border-solid border-1 border-black">
             <td><AttachmentIcon /></td>
             <td>{ name }</td>
-            <td><OptionsIcon onClick={ handleOptions } /> </td>
+            <td onClick={() => handleDownload(index)}><DownloadIcon /></td>
+            <td onClick={() => handleDelete(index)}><DeleteIcon /></td>
         </tr>   
     )
 }
 
 export const Table = (
-    {uploadedReceiptNames, handleOptions} : 
-    {uploadedReceiptNames: string[], handleOptions: () => void}
+    {uploadedReceiptNames, handleDownload, handleDelete} : 
+    {uploadedReceiptNames: string[], handleDownload: (index: number) => void, handleDelete: (index: number) => void}
 ) => {
     return (
         <table className="w-full">
             <tbody>
                 {uploadedReceiptNames.map((name, index) => (
-                    <TableRow name={ name } handleOptions={ handleOptions } />
+                    <TableRow 
+                        name={ name } 
+                        handleDownload={ handleDownload } 
+                        handleDelete={ handleDelete } 
+                        index={ index } 
+                    />
                 ))}
             </tbody>
         </table>

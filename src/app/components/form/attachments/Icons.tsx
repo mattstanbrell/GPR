@@ -34,6 +34,22 @@ export const OptionsIcon = ({onClick} : {onClick: () => void}) => {
     />
 }
 
+export const DeleteIcon = () => {
+    return <IconDecoractor 
+        src="/delete.svg"
+        alt="A solid picture of a bin."
+        className="hover:cursor-pointer"
+    />
+}
+
+export const DownloadIcon = () => {
+    return <IconDecoractor 
+        src="/save.svg"
+        alt="A solid picture of a bin."
+        className="hover:cursor-pointer"
+    />
+}
+
 export const UploadIcon = ({onClick} : {onClick: () => void}) => {
     return (
         <div className="w-full flex justify-center">
