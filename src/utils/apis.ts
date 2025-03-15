@@ -447,11 +447,13 @@ export async function deleteChild(childId: string) {
 
 // Create a new receipt
 export async function createReceipt(
+	receiptName: string,
 	formID: string,
 	subtotal: number,
 	s3Key: string
 ) {
 	const { data, errors } = await client.models.Receipt.create({
+		receiptName,
 		formID,
 		subtotal,
 		s3Key

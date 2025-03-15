@@ -111,7 +111,7 @@ const ReceiptPage = () => {
       console.log("S3 upload result:", uploadResult);
 
       router.push(
-        `/form/${slug}/upload?result=${encodeURIComponent(JSON.stringify(result))}&uploadPath=${encodeURIComponent(uploadPath)}`
+        `/form/${slug}/upload?result=${encodeURIComponent(JSON.stringify(result))}&uploadPath=${encodeURIComponent(uploadPath)}&fileName=${encodeURIComponent(file.name)}`
       );
     } catch (error) {
       console.error("Error analyzing receipt:", error);
