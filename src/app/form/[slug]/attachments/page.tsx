@@ -10,7 +10,7 @@ const Attachments = () => {
   const params = useParams<{slug: string}>();
   const { slug } = params; 
   console.log("Current slug:", slug);
-  // const receipts = listReceiptsByFormId(slug).then(receipts=>console.log(receipts));
+  const receipts = listReceiptsByFormId(slug).then(receipts=>console.log(receipts));
 
   return (
     <div className="govuk-width-container">

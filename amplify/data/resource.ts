@@ -99,6 +99,7 @@ const schema = a
 
 		Receipt: a
 			.model({
+				receiptName: a.string(),
 				formID: a.id(),
 				form: a.belongsTo("Form", "formID"),
 				subtotal: a.float(),
