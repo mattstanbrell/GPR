@@ -4,8 +4,10 @@ import { useRouter, useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { AttachmentTable } from "@/app/components/form/attachments/AttachmentTable"
 import { UploadIcon } from "@/app/components/form/attachments/Icons";
-import { listReceiptsByFormId } from "@/utils/apis"
+import { listReceiptsByFormId, deleteReceipt } from "@/utils/apis"
 import { Receipt } from "@/app/types/models";
+import { downloadData, remove } from 'aws-amplify/storage';
+     
 
 const Attachments = ({ formName } : { formName: string }) => {
   const router = useRouter();
@@ -26,18 +28,63 @@ const Attachments = ({ formName } : { formName: string }) => {
       setUploadedNames(receiptNames);
       setIsLoadingReceipts(false);
       setHasReceipts(receipts.length > 0);
+      setFormReceipts(receipts)
     }
     fetchFormAttachments(); 
   }, [slug])
+  
 
-  const handleDownload = (index: number) => {
-    // TODO: implement download logic or call server function 
-    console.log("this is the download button being called")
-  }
+  const handleDownload = async (index: number) => {
+    try {
+      const receipt = formReceipts[index];
 
-  const handleDelete = (index: number) => {
-    // TODO: implement delete logic or call server function 
-    console.log("this is the delete button being called")
+      if (!receipt || !receipt.s3Key) {
+        console.error("No receipt found or s3Key is missing.");
+        return;
+      }
+
+      const s3Key = receipt.s3Key as string;
+  
+    const { body, eTag } = await downloadData({
+      path: s3Key,
+    }).result;
+
+    const blob = new Blob([body as unknown as BlobPart], { type: "image/*" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = receipt.receiptName || "receipt"; 
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+
+    } catch (error) {
+      console.error("Error downloading the receipt:", error);
+    }
+  };
+
+  const handleDelete = async (index: number) => {
+    try{
+      const receipt = formReceipts[index];
+      if (receipt.s3Key) {
+        await remove({path: receipt.s3Key});
+      }
+
+      await deleteReceipt(receipt.id);
+
+      const updatedReceipts = formReceipts.filter((_, i) => i !== index);
+      setFormReceipts(updatedReceipts);
+
+      const updatedReceiptNames = updatedReceipts.map((r) => r.receiptName || "");
+      setUploadedNames(updatedReceiptNames);
+      
+      setHasReceipts(updatedReceipts.length > 0);
+
+
+    } catch (error) {
+      console.error("Error deleting the receipt:", error);
+    }
   }
 
   return (
