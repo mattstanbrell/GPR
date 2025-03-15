@@ -41,7 +41,7 @@ const llmResponseSchema = z.object({
 				postcode: z.string(),
 			}),
 		}),
-		financeCodeID: z.string(),
+		suggestedFinanceCodeID: z.string(),
 	}),
 	followUp: z.string(),
 });
@@ -288,10 +288,10 @@ Form fields you must complete:
     - lineTwo (optional)
     - townOrCity
     - postcode
-- financeCodeID (select the appropriate finance code based on the expense type)
+- suggestedFinanceCodeID (suggest an appropriate finance code based on the expense type)
 
 Finance Codes:
-You must assign an appropriate finance code to each form based on the expense type, but do not discuss the code with the social worker unless they specifically ask about it. Here are the available finance codes:
+You must suggest an appropriate finance code for each form based on the expense type, but do not discuss the code with the social worker unless they specifically ask about it. Your suggestion will be reviewed by a manager who may change it. Here are the available finance codes:
 
 - A330: Sessional Workers Carebank - For contact supervision, family support, transport
 - A340: Sessional Workers Agency - For contact supervision, family support, transport etc
@@ -320,12 +320,12 @@ You must assign an appropriate finance code to each form based on the expense ty
 - G500: Other Recharges - For internal recharging (operational permits, translation, fuel recharges)
 
 Guidelines for finance code assignment:
-- Silently assign the most appropriate finance code based on the expense description
+- Silently suggest the most appropriate finance code based on the expense description
 - Only discuss finance codes if the social worker specifically asks about them
-- If the expense type changes during the conversation, silently update the finance code accordingly
+- If the expense type changes during the conversation, silently update the suggested finance code accordingly
 - If you're unsure which code to use, select the most appropriate one without asking for clarification
-- If the social worker specifies a particular finance code, use that one and acknowledge their choice
-- Never proactively explain which finance code you've selected unless asked
+- If the social worker asks about finance codes, explain that you can suggest a code but the final decision will be made by their manager
+- Never proactively explain which finance code you've suggested unless asked
 
 Guidelines for interaction:
 - Always explicitly confirm who the card recipient is. Do not assume it's the child.
@@ -373,9 +373,9 @@ Response:
       "name": { "firstName": null, "lastName": null },
       "address": { "lineOne": null, "lineTwo": null, "townOrCity": null, "postcode": null }
     },
-    "financeCodeID": "D312" // Children's Clothing code
+    "suggestedFinanceCodeID": "D312" // Suggesting Children's Clothing code
   },
-  "followUp": "Got it! I've assigned the Children's Clothing finance code (D312) for this school uniform request. When do you need this by?"
+  "followUp": "When do you need this by?"
 }
 User: "By March 15th."
 Response:
@@ -390,7 +390,7 @@ Response:
       "name": { "firstName": null, "lastName": null },
       "address": { "lineOne": null, "lineTwo": null, "townOrCity": null, "postcode": null }
     },
-    "financeCodeID": "D312"
+    "suggestedFinanceCodeID": "D312"
   },
   "followUp": "Great. Who should receive the prepaid card?"
 }

@@ -14,7 +14,7 @@ import DeleteButton from "./DeleteButton";
 // Define a type for the form data
 type FormData = Pick<
 	Schema["Form"]["type"],
-	"status" | "caseNumber" | "reason" | "amount" | "title" | "financeCodeID"
+	"status" | "caseNumber" | "reason" | "amount" | "title" | "financeCodeID" | "suggestedFinanceCodeID"
 > & {
 	id: string;
 	createdAt: string;
@@ -134,6 +134,9 @@ export default async function AllFormsPage() {
 											Amount
 										</th>
 										<th scope="col" className="govuk-table__header">
+											Suggested Code
+										</th>
+										<th scope="col" className="govuk-table__header">
 											Finance Code
 										</th>
 										<th scope="col" className="govuk-table__header">
@@ -164,6 +167,7 @@ export default async function AllFormsPage() {
 												</strong>
 											</td>
 											<td className="govuk-table__cell">£{form.amount}</td>
+											<td className="govuk-table__cell">{form.suggestedFinanceCodeID || "Not suggested"}</td>
 											<td className="govuk-table__cell">{form.financeCodeID || "Not assigned"}</td>
 											<td className="govuk-table__cell">{formatSmartDate(form.createdAt)}</td>
 											<td className="govuk-table__cell">{formatSmartDate(form.updatedAt)}</td>

@@ -66,7 +66,9 @@ const schema = a
 				feedback: a.string(),
 				assignees: a.hasMany("FormAssignee", "formID"),
 				financeCodeID: a.string(),
-				financeCode: a.belongsTo("FinanceCode", ["financeCodeID", "accountCode"]),
+				financeCode: a.belongsTo("FinanceCode", "financeCodeID"),
+				suggestedFinanceCodeID: a.string(),
+				suggestedFinanceCode: a.belongsTo("FinanceCode", "suggestedFinanceCodeID"),
 			})
 			.authorization((allow) => [allow.authenticated()]),
 
@@ -154,11 +156,13 @@ const schema = a
 
 		FinanceCode: a
 			.model({
+				id: a.id().required(),
 				accountCode: a.string().required(),
 				typeDescription: a.string().required(),
 				accountCodeDescriptions: a.string().required(),
 				areasCovered: a.string().required(),
 				forms: a.hasMany("Form", "financeCodeID"),
+				suggestedForms: a.hasMany("Form", "suggestedFinanceCodeID"),
 			})
 			.authorization((allow) => [allow.authenticated()]),
 	})
