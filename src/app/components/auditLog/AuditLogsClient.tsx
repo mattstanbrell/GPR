@@ -4,6 +4,7 @@ import { useState } from "react";
 import { type Schema } from "../../../../amplify/data/resource";
 import AuditLogEntry from "./AuditLogEntry";
 import AuditLogsPagination from "./AuditLogsPagination";
+import LogsPerPageSelector from "./LogsPerPageSelector";
 
 type AuditLog = Schema["AuditLog"]["type"];
 
@@ -25,6 +26,7 @@ const AuditLogsClient = ({logs} : {logs:AuditLog[]}) => {
 
   return (
     <>
+      <LogsPerPageSelector logsPerPage={logsPerPage} updateLogsPerPage={setLogsPerPage}/>
       <table className="govuk-table">
         <caption className="govuk-table__caption govuk-table__caption--xl">Audit Logs</caption>
         <thead className="govuk-table__head">
@@ -34,8 +36,8 @@ const AuditLogsClient = ({logs} : {logs:AuditLog[]}) => {
           </tr>
         </thead>
         <tbody className="govuk-table__body">
-          {sortedLogs.length > 0 ? (
-            sortedLogs.map((log) => 
+          {currentLogs.length > 0 ? (
+            currentLogs.map((log) => 
               <AuditLogEntry key={log.id} log={log} />
             )
           ) : (

@@ -40,6 +40,8 @@ const AuditLogsPage = () => {
   }, [])
 
   // addAuditLog("A123","viewed a form")
+  // addAuditLog("B123","submitted a form")
+  // addAuditLog("C123","approved a form")
   // console.log("abc")
 
   return (
