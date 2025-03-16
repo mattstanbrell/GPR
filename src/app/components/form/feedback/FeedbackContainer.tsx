@@ -1,11 +1,12 @@
 'use client'
 
+import { useContext } from "react";
+import { AppContext } from "@/app/layout";
 import { useState } from "react";
 import { AuthorisationButtonsContainer,
     SubmitFeedbackButtonContainer } from "@/app/components/form/feedback/ButtonsContainer";
 import { FORM_STATUS, PERMISSIONS } from "@/app/constants/models";
 import { Form } from "@/app/types/models";
-import { useUserModel } from "@/utils/authenticationUtils";
 import { SubmitSuccessStatusMessage, ApprovalStatusMessage, SubmitWarningMessage } from "@/app/components/form/feedback/Messages";
 import { updateForm } from "@/utils/apis";
 
@@ -24,7 +25,6 @@ const FeedbackTextArea = (
 }
 
 const handleSubmitFeedback = async (form: Partial<Form>, event: React.FormEvent<HTMLFormElement>) => {
-    console.log(event, form)
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
     console.log(formData)
@@ -36,9 +36,11 @@ const handleSubmitFeedback = async (form: Partial<Form>, event: React.FormEvent<
 }
 
 const FeedbackContainer = ({form} : {form: Form}) => {
-    const userModel = useUserModel();
-    const isSocialWorker = userModel?.permissionGroup === PERMISSIONS.SOCIAL_WORKER_GROUP;
-    const isApproved = form.status === FORM_STATUS.AUTHORISED || form.status === FORM_STATUS.VALIDATED;
+    const { currentUser } = useContext(AppContext);
+    const isSocialWorker = currentUser?.permissionGroup === PERMISSIONS.SOCIAL_WORKER_GROUP;
+    const isFormApproved = (
+        form.status === FORM_STATUS.AUTHORISED || form.status === FORM_STATUS.VALIDATED
+    );
     
     const [isReject, setIsReject] = useState<boolean>(false);
     const [isSubmitted, setIsSubmitted] = useState<boolean>(false); 
@@ -54,7 +56,7 @@ const FeedbackContainer = ({form} : {form: Form}) => {
                 { isSubmitted ? (
                     <SubmitSuccessStatusMessage />
                     ) : (
-                    isApproved && <ApprovalStatusMessage form={ form } />
+                    isFormApproved && <ApprovalStatusMessage form={ form } />
                 )}
                 <AuthorisationButtonsContainer form={ form } 
                     isReject={ isReject } 
