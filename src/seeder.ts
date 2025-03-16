@@ -144,7 +144,6 @@ export default async function seedDummyData() {
       const createdAuditLog = await createAuditLog(
         log.action,
         log.date,
-        log.userID,
         log.formID
       );
       if (!createdAuditLog) {

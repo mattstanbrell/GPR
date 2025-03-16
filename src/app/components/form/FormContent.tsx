@@ -13,6 +13,7 @@ import { NormLayout } from "./NormLayout";
 import { createForm, updateForm, getFormById, getNormConversationByFormId } from "../../../utils/apis";
 import { useUserModel } from "../../../utils/authenticationUtils";
 import type { FormStatus } from "@/app/types/models";
+import { addAuditLog } from "@/utils/auditLogUtils";
 
 export function FormContent() {
 	const router = useRouter();
@@ -199,6 +200,7 @@ export function FormContent() {
 				status: "SUBMITTED",
 				creatorID: userModel.id,
 			});
+			addAuditLog(form.id, "submitted");
 			router.push(FORM_BOARD);
 		} catch (_error: unknown) {
 			setErrorMessage(_error instanceof Error ? _error.message : String(_error));

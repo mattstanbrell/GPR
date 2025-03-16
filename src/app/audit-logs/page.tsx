@@ -3,6 +3,7 @@
 import AuditLogsClient from "@/app/components/auditLog/AuditLogsClient";
 import { listAuditLogs } from "@/utils/apis";
 import { useState, useEffect } from "react";
+import { addAuditLog } from "@/utils/auditLogUtils";
 
 import seedDummyData from "@/seeder";
 
@@ -37,6 +38,9 @@ const AuditLogsPage = () => {
     };
     fetchAuditLogs();
   }, [])
+
+  // addAuditLog("A123","viewed a form")
+  // console.log("abc")
 
   return (
     <>
