@@ -1,12 +1,24 @@
+'use client';
+
 import HomeSignInButton from "./components/HomeSignInButton";
 import { HOME } from "./constants/urls";
-import { redirect } from "next/navigation";
-import { AuthGetCurrentUserServer } from "@/utils/amplifyServerUtils";
+import { useRouter } from "next/navigation";
+import { AppContext } from "./layout";
+import { useContext, useEffect } from "react";
 
-export default async function Home() {
-	const user = await AuthGetCurrentUserServer();
-	if (user) {
-		redirect(HOME);
+
+export default function Home() {
+	const { currentUser: user, isLoading } = useContext(AppContext);
+	const router = useRouter();
+
+	useEffect(() => {
+		if (user) {
+			router.push(HOME);
+		}
+	}, [isLoading, router]);
+
+	if (isLoading) {
+		return <h3 className="text-center">Loading...</h3>;
 	}
 
 	return (
