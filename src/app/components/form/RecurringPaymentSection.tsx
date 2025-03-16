@@ -1,6 +1,12 @@
 import { useState } from "react";
 import type { Schema } from "../../../../amplify/data/resource";
-import { calculateNextOccurrences, type DayOfWeek, type Position, type Frequency } from "@/app/types/recurrence";
+import {
+	calculateNextOccurrences,
+	type DayOfWeek,
+	type Position,
+	type Frequency,
+	type Month,
+} from "@/app/types/recurrence";
 
 interface RecurringPaymentSectionProps {
 	form: Partial<Schema["Form"]["type"]>;
@@ -28,19 +34,19 @@ export function RecurringPaymentSection({ form, handleFormChange, disabled }: Re
 		{ value: "LAST", label: "Last" },
 	];
 
-	const months: { value: number; label: string }[] = [
-		{ value: 1, label: "January" },
-		{ value: 2, label: "February" },
-		{ value: 3, label: "March" },
-		{ value: 4, label: "April" },
-		{ value: 5, label: "May" },
-		{ value: 6, label: "June" },
-		{ value: 7, label: "July" },
-		{ value: 8, label: "August" },
-		{ value: 9, label: "September" },
-		{ value: 10, label: "October" },
-		{ value: 11, label: "November" },
-		{ value: 12, label: "December" },
+	const months: { value: string; label: string }[] = [
+		{ value: "JANUARY", label: "January" },
+		{ value: "FEBRUARY", label: "February" },
+		{ value: "MARCH", label: "March" },
+		{ value: "APRIL", label: "April" },
+		{ value: "MAY", label: "May" },
+		{ value: "JUNE", label: "June" },
+		{ value: "JULY", label: "July" },
+		{ value: "AUGUST", label: "August" },
+		{ value: "SEPTEMBER", label: "September" },
+		{ value: "OCTOBER", label: "October" },
+		{ value: "NOVEMBER", label: "November" },
+		{ value: "DECEMBER", label: "December" },
 	];
 
 	// UI state for the component
@@ -71,9 +77,11 @@ export function RecurringPaymentSection({ form, handleFormChange, disabled }: Re
 	};
 
 	// Handle month selection for yearly frequency
-	const handleMonthChange = (d: number) => {
+	const handleMonthChange = (month: string) => {
 		const currentMonths = form.recurrencePattern?.months || [];
-		const newMonths = currentMonths.includes(d) ? currentMonths.filter((month) => month !== d) : [...currentMonths, d];
+		const newMonths = currentMonths.includes(month)
+			? currentMonths.filter((m) => m !== month)
+			: [...currentMonths, month];
 		handleFormChange("recurrencePattern.months", newMonths);
 	};
 
@@ -184,7 +192,7 @@ export function RecurringPaymentSection({ form, handleFormChange, disabled }: Re
 								dayOfWeek: form.recurrencePattern.monthPosition.dayOfWeek as DayOfWeek,
 							}
 						: undefined,
-				months: (form.recurrencePattern.months || []).filter((m): m is number => m !== null && m !== undefined),
+				months: (form.recurrencePattern.months || []).filter((m): m is Month => m !== null && m !== undefined),
 				excludedDates: (form.recurrencePattern.excludedDates || []).filter(
 					(d): d is string => d !== null && d !== undefined,
 				),
@@ -231,7 +239,20 @@ export function RecurringPaymentSection({ form, handleFormChange, disabled }: Re
 				neverEnds: true,
 				daysOfWeek: [] as DayOfWeek[],
 				dayOfMonth: [1] as number[],
-				months: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as number[],
+				months: [
+					"JANUARY",
+					"FEBRUARY",
+					"MARCH",
+					"APRIL",
+					"MAY",
+					"JUNE",
+					"JULY",
+					"AUGUST",
+					"SEPTEMBER",
+					"OCTOBER",
+					"NOVEMBER",
+					"DECEMBER",
+				] as Month[],
 			});
 		}
 	};

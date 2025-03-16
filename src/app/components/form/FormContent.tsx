@@ -76,7 +76,20 @@ export function FormContent() {
 			neverEnds: true,
 			daysOfWeek: [],
 			dayOfMonth: [1],
-			months: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+			months: [
+				"JANUARY",
+				"FEBRUARY",
+				"MARCH",
+				"APRIL",
+				"MAY",
+				"JUNE",
+				"JULY",
+				"AUGUST",
+				"SEPTEMBER",
+				"OCTOBER",
+				"NOVEMBER",
+				"DECEMBER",
+			],
 		},
 	});
 	const userModel = useUserModel();

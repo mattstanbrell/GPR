@@ -105,7 +105,7 @@ export interface RecurrencePattern {
 	monthPosition?: MonthPosition;
 
 	// YEARLY RECURRENCE SPECIFIERS
-	months?: number[]; // 1-12 representing JANUARY through DECEMBER
+	months?: Month[]; // "JANUARY", "FEBRUARY", etc.
 
 	// EXCLUDED DATES
 	excludedDates?: string[]; // ISO date strings
@@ -254,8 +254,8 @@ export function calculateNextOccurrences(pattern: RecurrencePattern, count = 5):
 						return currentDate.getMonth() === startDate.getMonth();
 					}
 
-					// Convert month to 1-based index to match the months array
-					const currentMonth = currentDate.getMonth() + 1;
+					// Convert current month to Month enum
+					const currentMonth = monthNumberToEnum(currentDate.getMonth() + 1);
 					return pattern.months.includes(currentMonth);
 				}
 

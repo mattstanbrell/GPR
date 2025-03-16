@@ -36,7 +36,7 @@ const recurrencePatternSchema = z.object({
 			dayOfWeek: z.enum(["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]),
 		})
 		.optional(),
-	months: z.array(z.number()).optional(),
+	months: z.array(z.string()).optional(),
 	excludedDates: z.array(z.string()).optional(),
 	description: z.string().optional(),
 });
@@ -283,7 +283,7 @@ Input: "January and September each year"
   "frequency": "YEARLY",
   "interval": 1,
   "startDate": "2024-01-01",
-  "months": [1, 9],
+  "months": ["JANUARY", "SEPTEMBER"],
   "neverEnds": true,
   "description": "January and September each year"
 }
@@ -337,7 +337,7 @@ Input: "15th of March, June, September, and December"
   "frequency": "YEARLY",
   "interval": 1,
   "startDate": "2024-03-15",
-  "months": [3, 6, 9, 12],
+  "months": ["MARCH", "JUNE", "SEPTEMBER", "DECEMBER"],
   "dayOfMonth": [15],
   "neverEnds": true,
   "description": "15th of March, June, September, and December"
@@ -405,7 +405,7 @@ Input: "first Monday of January, April, July, and October"
   "frequency": "YEARLY",
   "interval": 1,
   "startDate": "2024-01-01",
-  "months": [1, 4, 7, 10],
+  "months": ["JANUARY", "APRIL", "JULY", "OCTOBER"],
   "monthPosition": {
     "position": "FIRST",
     "dayOfWeek": "MONDAY"
