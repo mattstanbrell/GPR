@@ -298,7 +298,9 @@ export function RecurringPaymentSection({ form, handleFormChange, disabled }: Re
 
 			{form.isRecurring && (
 				<>
-					<h3 className="govuk-heading-s">Recurrence Pattern</h3>
+					<h3 className="govuk-heading-s" style={{ marginTop: "30px" }}>
+						Recurrence Pattern
+					</h3>
 
 					<div className="govuk-form-group">
 						<label className="govuk-label" htmlFor="frequency">
@@ -332,11 +334,24 @@ export function RecurringPaymentSection({ form, handleFormChange, disabled }: Re
 							value={form.recurrencePattern?.interval || 1}
 							onChange={(e) => handlePatternChange("interval", Number.parseInt(e.target.value, 10))}
 							disabled={disabled}
+							style={{ marginRight: "10px" }}
 						/>
 						<span className="govuk-hint">
-							{form.recurrencePattern?.interval === 1
-								? `Every ${(form.recurrencePattern?.frequency || "MONTHLY").toLowerCase().slice(0, -2)}y`
-								: `Every ${form.recurrencePattern?.interval} ${(form.recurrencePattern?.frequency || "MONTHLY").toLowerCase()}s`}
+							{(() => {
+								const frequency = (form.recurrencePattern?.frequency || "MONTHLY").toLowerCase();
+								const interval = form.recurrencePattern?.interval || 1;
+
+								// Convert frequency to singular form
+								const frequencyMap: { [key: string]: string } = {
+									daily: "day",
+									weekly: "week",
+									monthly: "month",
+									yearly: "year",
+								};
+
+								const baseWord = frequencyMap[frequency] || frequency;
+								return interval === 1 ? `Every ${baseWord}` : `Every ${interval} ${baseWord}s`;
+							})()}
 						</span>
 					</div>
 
@@ -595,7 +610,7 @@ export function RecurringPaymentSection({ form, handleFormChange, disabled }: Re
 										disabled={disabled}
 									/>
 									<label className="govuk-label govuk-radios__label" htmlFor="end-occurrences">
-										End after occurrences
+										End after X occurrences
 									</label>
 								</div>
 
@@ -622,7 +637,7 @@ export function RecurringPaymentSection({ form, handleFormChange, disabled }: Re
 						</fieldset>
 					</div>
 
-					<div className="govuk-form-group">
+					<div className="govuk-form-group" style={{ marginBottom: "15px" }}>
 						<fieldset className="govuk-fieldset">
 							<legend className="govuk-fieldset__legend govuk-fieldset__legend--s">Excluded dates</legend>
 							<div className="govuk-hint">Dates to skip in the recurrence pattern</div>

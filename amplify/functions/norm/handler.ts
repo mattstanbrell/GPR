@@ -808,12 +808,12 @@ Response:
     "dateRequired": { "day": null, "month": null, "year": null },
     "isRecurring": false,
     "recipientDetails": {
-      "name": { "firstName": null, "lastName": null },
+      "name": { "firstName": "", "lastName": "" },
       "address": { 
-        "lineOne": null,
-        "lineTwo": null,
-        "townOrCity": null, 
-        "postcode": null 
+        "lineOne": "",
+        "lineTwo": "",
+        "townOrCity": "", 
+        "postcode": "" 
       }
     }
   },
@@ -965,10 +965,10 @@ Response:
     "businessDetails": {
       "name": "Rainbow Educational Supplies",
       "address": {
-        "lineOne": null,
-        "lineTwo": null,
-        "townOrCity": null,
-        "postcode": null
+        "lineOne": "",
+        "lineTwo": "",
+        "townOrCity": "",
+        "postcode": ""
       }
     }
   },
