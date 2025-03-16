@@ -6,7 +6,6 @@ import OpenAI from "openai";
 import { z } from "zod";
 import { zodResponseFormat } from "openai/helpers/zod";
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
-import type { AppSyncResolverEvent } from "aws-lambda";
 
 // Configure Amplify with the proper backend configuration
 const { resourceConfig, libraryOptions } = await getAmplifyDataClientConfig(env);
@@ -60,12 +59,6 @@ Available finance codes:
 - F622: Intentionally Homeless - Housing costs, B&B, rent, includes deposits
 - G500: Other Recharges - For internal recharging (operational permits, translation, fuel recharges)`;
 
-// Define the type for the event arguments
-interface FinanceCodeFunctionArgs {
-	messages: string;
-	currentFormState: string;
-}
-
 // Interface for UI messages
 interface UIMessage {
 	id: number;
@@ -107,9 +100,7 @@ function formatConversation(messages: UIMessage[]): string {
 		.join("\n\n");
 }
 
-export const handler: Schema["FinanceCodeFunction"]["functionHandler"] = async (
-	event: AppSyncResolverEvent<FinanceCodeFunctionArgs>,
-) => {
+export const handler: Schema["FinanceCodeFunction"]["functionHandler"] = async (event) => {
 	const { messages, currentFormState } = event.arguments;
 
 	try {
@@ -138,8 +129,6 @@ ${formattedConversation}
 Based on this information, what is the most appropriate finance code?`,
 			},
 		];
-
-		console.log("chat messages: ", chatMessages);
 
 		// Call OpenAI using the beta chat completions parse method with zodResponseFormat
 		const completion = await openai.beta.chat.completions.parse({
