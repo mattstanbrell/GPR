@@ -16,6 +16,8 @@ const schema = a
 				children: a.hasMany("UserChild", "userID"),
 				audits: a.hasMany("AuditLog", "userID"),
 				profileOwner: a.string(),
+				teamID: a.id(),
+				team: a.belongsTo("Team", "teamID"),
 				address: a.customType({
 					lineOne: a.string(),
 					lineTwo: a.string(),
@@ -31,6 +33,14 @@ const schema = a
 				}),
 			})
 			.authorization((allow) => [allow.publicApiKey(), allow.authenticated()]),
+
+		Team: a
+			.model({
+				managerUserID: a.id(),
+				assistantManagerUserID: a.id(),
+				members: a.hasMany("User", "teamID"),
+			})
+			.authorization((allow) => [allow.authenticated()]),
 
 		Form: a
 			.model({
