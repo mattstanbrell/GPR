@@ -321,6 +321,8 @@ export async function getFormsForChild(childId: string) {
 	return data;
 }
 
+//Add subscribe function that updates when submitted forms for that user are edited.
+
 // ------------------ FormAssignee APIs --------------
 // assign a user to a form
 export async function assignUserToForm(formId: string, userId: string) {
@@ -333,6 +335,8 @@ export async function assignUserToForm(formId: string, userId: string) {
 	}
 	return data;
 }
+
+//Add subscribe function that updates on creation of new FormAssignee to that manager.
 
 export async function assignUserToFormWithThread(formId: string, userId: string) {
 	const formAssignee = await assignUserToForm(formId, userId);
@@ -863,8 +867,6 @@ export async function getUnreadMessageNumber(threadID: string, userID: string) {
 }
 
 
-
-//Create a hook(subscribe) that increments threads unread message count(new field) on update.
 
 // Mark all unread messages in a certain thread as read.
 export async function setThreadMessagesToRead(threadID: string, userID: string) {
