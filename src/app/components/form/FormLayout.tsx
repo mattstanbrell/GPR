@@ -1,7 +1,10 @@
 
-import { FORM_STATUS } from "@/app/constants/models";
+import { FORM_STATUS, PERMISSIONS } from "@/app/constants/models";
 import type { Schema } from "../../../../amplify/data/resource";
 import FeedbackContainer from "./feedback/FeedbackContainer";
+import { useContext } from "react";
+import { AppContext } from "@/app/layout";
+import { SocialWorkerFormButtonContainer } from "./feedback/ButtonsContainer";
 
 interface FormLayoutProps {
 	form: Partial<Schema["Form"]["type"]>;
@@ -23,6 +26,10 @@ export function FormLayout({
 	disabled,
 	updatedFields,
 }: FormLayoutProps) {
+
+	const { currentUser } = useContext(AppContext)
+	const isSocialWorker = currentUser?.permissionGroup === PERMISSIONS.SOCIAL_WORKER_GROUP
+
 	return (
 		<>
 			<style jsx>{`
@@ -132,6 +139,7 @@ export function FormLayout({
 				</h1>
 
 				<FeedbackContainer form={ form } /> 
+				{ isSocialWorker && <SocialWorkerFormButtonContainer form={ form } /> }
 
 				<div style={{ flexGrow: 1, overflowY: "auto", paddingRight: "0" }}>
 					<form onSubmit={ handleSubmit } style={{ paddingRight: "20px", paddingLeft: "3px" }}>
