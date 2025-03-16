@@ -24,7 +24,7 @@ const FormTable = ({ forms }: { forms: Array<Form> }) => {
 				const id = form.id;
 				const title = form.title || form.reason ? form.reason : form.status;
 				const status = form.status;
-				const createdDate = form.createdAt && new Date(form.createdAt).toLocaleDateString("en-GB");
+				const updatedDate = form.updatedAt && new Date(form.updatedAt).toLocaleDateString("en-GB");
 				const redirectURI = `/form?id=${id}`;
 
 				return (
@@ -40,7 +40,7 @@ const FormTable = ({ forms }: { forms: Array<Form> }) => {
 							<StatusIcon status={status} />
 							<p className="w-3/4 pl-1 truncate">{title}</p>
 						</td>
-						<td className="p-2 text-right">{createdDate}</td>
+						<td className="p-2 text-right">{updatedDate}</td>
 					</tr>
 				);
 			})}
