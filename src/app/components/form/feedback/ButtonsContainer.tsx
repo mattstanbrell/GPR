@@ -10,7 +10,7 @@ export const AuthorisationButtonsContainer = (
 ) => {
     return (
         <div className="flex justify-center">
-            <div className="md:flex md:justify-evenly w-1/2">
+            <div className="md:flex md:justify-evenly w-1/2 mt-2">
                 <ApproveButton form={ form } />
                 <RejectButton isReject={ isReject } setIsReject={ setIsReject } />
             </div>

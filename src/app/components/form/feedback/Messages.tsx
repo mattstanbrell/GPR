@@ -47,13 +47,11 @@ const StatusMessage = ({heading, status, message} : {heading: string, status: Me
 }
 
 export const SubmitSuccessStatusMessage = () => { 
-    const msg = "Feedback Submitted!";
-    return <StatusMessage heading="Submitted" status={ MESSAGE_STATUS.SUBMITTED } message={ msg } /> 
+    return <StatusMessage heading="Submitted" status={ MESSAGE_STATUS.SUBMITTED } /> 
 }
 
 const ApprovedStatusMessage = () => {
-    const msg = "You can now purchase the items.";
-    return <StatusMessage heading="Approved" status={ MESSAGE_STATUS.APPROVED } message={ msg } /> 
+    return <StatusMessage heading="Approved" status={ MESSAGE_STATUS.APPROVED } /> 
 }
 
 const RejectedStatusMessage = ({feedback} : {feedback: string}) => {

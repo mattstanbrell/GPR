@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { AuthorisationButtonsContainer,
     SubmitFeedbackButtonContainer } from "@/app/components/form/feedback/ButtonsContainer";
-import { PERMISSIONS } from "@/app/constants/models";
+import { FORM_STATUS, PERMISSIONS } from "@/app/constants/models";
 import { Form } from "@/app/types/models";
 import { useUserModel } from "@/utils/authenticationUtils";
 import { SubmitSuccessStatusMessage, ApprovalStatusMessage, SubmitWarningMessage } from "@/app/components/form/feedback/Messages";
@@ -38,6 +38,7 @@ const handleSubmitFeedback = async (form: Partial<Form>, event: React.FormEvent<
 const FeedbackContainer = ({form} : {form: Form}) => {
     const userModel = useUserModel();
     const isSocialWorker = userModel?.permissionGroup === PERMISSIONS.SOCIAL_WORKER_GROUP;
+    const isApproved = form.status === FORM_STATUS.AUTHORISED || form.status === FORM_STATUS.VALIDATED;
     
     const [isReject, setIsReject] = useState<boolean>(false);
     const [isSubmitted, setIsSubmitted] = useState<boolean>(false); 
@@ -50,6 +51,11 @@ const FeedbackContainer = ({form} : {form: Form}) => {
             </>
         ) : (
             <>
+                { isSubmitted ? (
+                    <SubmitSuccessStatusMessage />
+                    ) : (
+                    isApproved && <ApprovalStatusMessage form={ form } />
+                )}
                 <AuthorisationButtonsContainer form={ form } 
                     isReject={ isReject } 
                     setIsReject={ setIsReject } 
@@ -68,7 +74,6 @@ const FeedbackContainer = ({form} : {form: Form}) => {
                         </div>
                     </form>
                 }
-                { isSubmitted && <SubmitSuccessStatusMessage /> }
             </>
         )}
         </>
