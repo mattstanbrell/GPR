@@ -21,17 +21,15 @@ const renderButtons = (permissionGroup: "ADMIN" | "MANAGER" | "SOCIAL_WORKER" | 
 };
 
 const Home = () => {
-	const { currentUser } = useContext(AppContext);
-	const [isLoading, setIsLoading] = useState<boolean>(true);
+	const { currentUser, isLoading, isSignedIn } = useContext(AppContext);
 	
 	useEffect(() => {
-		setIsLoading(false)
-	}, [currentUser])
-
+	}, [currentUser, isSignedIn, isLoading]);
+	console.log(currentUser);
 	return (
 		<>
 			
-			{ isLoading || !currentUser ? (
+			{ isLoading || !isSignedIn || !currentUser ? (
 				<h3 className="text-center">Loading...</h3>
 			) : (
 				<>

@@ -55,6 +55,7 @@ export default function RootLayout({
 				const userAttributes = await fetchUserAttributes();
 				const data = await getUserByEmail(userAttributes ? userAttributes.email : ""); 
 				setUser(data);
+				console.log("User model fetched:", data);
 				setIsSignedIn(true);
 			} catch (error) {
 				console.error("Error fetching user model:", error);
@@ -70,6 +71,7 @@ export default function RootLayout({
 				fetchUserModel();
 			})
 			.catch(() => {
+				setUser(null);
 				setIsSignedIn(false);
 				setIsLoading(false);
 			}
