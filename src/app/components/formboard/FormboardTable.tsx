@@ -24,7 +24,7 @@ const FormTable = ({ forms }: { forms: Array<Form> }) => {
 				const id = form.id;
 				const title = form.title;
 				const status = form.status;
-				const createdDate = form.createdAt;
+				const createdDate = form.createdAt && new Date(form.createdAt).toLocaleDateString("en-GB");
 				const redirectURI = `/form?id=${id}`;
 
 				return (
