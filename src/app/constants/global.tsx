@@ -10,3 +10,4 @@ export const MESSAGE_STATUS = {
   SUBMITTED: 3,
   AWAITING_APPROVAL: 4,
 }
+
