@@ -211,8 +211,10 @@ export function FormContent() {
 			});
 			let assigneeId;
 			if (form.amount > 5000) {
- 				assigneeId = team?.managerUserID;
+ 				if (!team?.managerUserID) return;
+				assigneeId = team?.managerUserID;
  			} else {
+				if (!team?.assistantManagerUserID) return;
  				assigneeId = team?.assistantManagerUserID;
  			}
 			await assignUserToForm(form.id, assigneeId);
