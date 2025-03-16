@@ -16,6 +16,7 @@ import {
 	getFormById,
 	getTeamByID,
 	assignUserToForm,
+	getNormConversationByFormId
 } from "../../../utils/apis";
 import { useUserModel } from "../../../utils/authenticationUtils";
 import type { FormStatus } from "@/app/types/models";
@@ -197,10 +198,10 @@ export function FormContent() {
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		
-		const team = await getTeamByID(userModel?.teamID);
+		if (!userModel) return; 
+
+    		const team = await getTeamByID(userModel.teamID || "");
 		if (!form || !form.id || !userModel?.id || !form.amount || !team) return;
-
-
 
 		try {
 			setLoading(true);
@@ -211,8 +212,10 @@ export function FormContent() {
 			});
 			let assigneeId;
 			if (form.amount > 5000) {
- 				assigneeId = team?.managerUserID;
+ 				if (!team?.managerUserID) return;
+				assigneeId = team?.managerUserID;
  			} else {
+				if (!team?.assistantManagerUserID) return;
  				assigneeId = team?.assistantManagerUserID;
  			}
 			await assignUserToForm(form.id, assigneeId);
