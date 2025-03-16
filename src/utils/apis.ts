@@ -1,5 +1,5 @@
 import { generateClient } from "@aws-amplify/api";
-import type { Schema } from "../../amplify/data/resource";
+import { data, type Schema } from "../../amplify/data/resource";
 
 const client = generateClient<Schema>();
 
@@ -814,6 +814,18 @@ export async function setThreadMessagesToRead(threadID: string, userID: string) 
     }
     return thread;
   }));
+}
+
+export async function getThreadByFormId(formId: string) {
+	const { data: threads, errors } = await client.models.Thread.list({
+		filter: { formID: { eq: formId } },
+	})
+
+	if (errors) {
+		throw new Error(errors[0].message); 
+	}
+
+	return threads[0];
 }
 
 // -------------- Message APIs --------------
