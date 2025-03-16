@@ -15,6 +15,9 @@ const schema = a
 				assignments: a.hasMany("FormAssignee", "userID"),
 				children: a.hasMany("UserChild", "userID"),
 				audits: a.hasMany("AuditLog", "userID"),
+                messages: a.hasMany('Message','userID'),
+                threads: a.hasMany('UserThread','userID'),
+                messagesRead: a.hasMany('UserMessage','userID'),
 				profileOwner: a.string(),
 				address: a.customType({
 					lineOne: a.string(),
@@ -72,6 +75,7 @@ const schema = a
 				child: a.belongsTo("Child", "childID"),
 				audits: a.hasMany("AuditLog", "formID"),
 				feedback: a.string(),
+                thread: a.hasOne('Thread', 'formID'),
 				assignees: a.hasMany("FormAssignee", "formID"),
 			})
 			.authorization((allow) => [allow.authenticated()]),
@@ -120,6 +124,52 @@ const schema = a
 				form: a.belongsTo("Form", "formID"),
 			})
 			.authorization((allow) => [allow.authenticated()]),
+
+
+          Message: a.model({
+            userID: a.id().required(),
+            threadID: a.id().required(),
+            user: a.belongsTo('User','userID'),
+            thread: a.belongsTo('Thread','threadID'),
+            content: a.string().required(),
+            usersRead: a.hasMany('UserMessage', 'messageID'),
+            readStatus: a.string().default('false'), //enum(['false','medium','true'])
+            timeSent: a.datetime() //datetime()
+          }).authorization(allow => [
+            allow.authenticated()
+          ]),
+
+          UserThread: a.model({
+            userID: a.id().required(),
+            threadID: a.id().required(),
+            user: a.belongsTo('User','userID'),
+            thread: a.belongsTo('Thread','threadID')
+          }).authorization(allow => [
+            allow.authenticated()
+          ]),
+
+          //Provides an indication of which users have read which message.
+          UserMessage: a.model({
+            userID: a.id().required(),
+            messageID: a.id().required(),
+            user: a.belongsTo('User','userID'),
+            message: a.belongsTo('Message','messageID'),
+            threadID: a.id().required(),
+            isRead: a.boolean()
+          }).authorization(allow => [
+            allow.authenticated()
+          ]),
+
+          Thread: a.model({
+            formID: a.id().required(),
+            form: a.belongsTo('Form','formID'),
+            lastMessageTime: a.datetime(),
+            users: a.hasMany('UserThread','threadID'),
+            messages: a.hasMany('Message','threadID'),
+            unreadCount: a.integer()
+          }).authorization(allow => [
+            allow.authenticated()
+          ]),
 
 		UserChild: a
 			.model({

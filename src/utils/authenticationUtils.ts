@@ -17,5 +17,9 @@ export const useUserModel = () => {
 		fetchUserModel();
 	}, []);
 
-	return userModel;
-};
+    return userModel;
+}
+
+export const getName = (user: {firstName: string, lastName: string}) => {
+	return `${user.firstName} ${user.lastName}`;
+}
