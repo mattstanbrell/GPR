@@ -6,3 +6,4 @@ export const UPDATES = "/updates";
 export const ADMIN = "/admin";
 export const ACTION_LOG = "/audit-logs";
 export const SETTINGS = "/settings";
+export const THREADS = "/threads/";

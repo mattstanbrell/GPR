@@ -12,3 +12,5 @@ export type Norm = Schema["Norm"]["type"];
 export type NormConversation = Schema["NormConversation"]["type"]; 
 export type FormStatus = Form["status"];
 export type PermissionsGroup = User["permissionGroup"]; 
+export type Message = Schema["Message"]["type"];
+export type UserThread = Schema["UserThread"]["type"];
