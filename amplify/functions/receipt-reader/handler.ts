@@ -1,8 +1,9 @@
 import type { Handler } from 'aws-lambda';
 import { env } from "$amplify/env/receipt-reader";
 import OpenAI from "openai";
-import type { AnalysisResult } from "../../shared/types";
-import { SYSTEM_PROMPT } from "../../shared/types";
+import { z } from "zod";
+import { zodResponseFormat } from "openai/helpers/zod";
+import { SYSTEM_PROMPT } from '../../shared/types';
 
 interface LambdaEvent {
   arguments: {
@@ -10,6 +11,16 @@ interface LambdaEvent {
     mimeType: string;
   };
 }
+
+// Define the Zod schema for the expected output
+const ReceiptAnalysisSchema = z.object({
+  total: z.string(),
+  items: z.array(z.object({
+    name: z.string(),
+    quantity: z.number(),
+    cost: z.number(),
+  })),
+});
 
 export const handler: Handler = async (event: LambdaEvent) => {
   try {
@@ -21,15 +32,14 @@ export const handler: Handler = async (event: LambdaEvent) => {
       apiKey: env.OPENAI_API_KEY,
     });
 
-    // Use the provided mimeType for the data URI
     const imageUrl = `data:${mimeType};base64,${base64Data}`;
 
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+    const completion = await openai.beta.chat.completions.parse({
+      model: "gpt-4o-mini-2024-07-18",
       messages: [
         {
           role: "system",
-          content: SYSTEM_PROMPT,
+          content: SYSTEM_PROMPT
         },
         {
           role: "user",
@@ -41,25 +51,23 @@ export const handler: Handler = async (event: LambdaEvent) => {
           ],
         },
       ],
+      response_format: zodResponseFormat(ReceiptAnalysisSchema, "receipt_analysis"),
       max_tokens: 2000,
       temperature: 0.1,
     });
 
-    console.log("GPT-4 response:", response);
-
-    const modelResponse = response.choices[0].message.content?.trim();
-    if (!modelResponse) {
+    const parsedResponse = completion.choices[0].message.parsed;
+    if (!parsedResponse) {
       throw new Error("No response from the model.");
     }
-    const parsedResponse = JSON.parse(modelResponse);
+
     const { total, items } = parsedResponse;
 
     const timeTaken = Date.now() - startTime;
-    const inputTokens = response.usage?.prompt_tokens || 0;
-    const outputTokens = response.usage?.completion_tokens || 0;
-    const cost = 0.004; // Hardcoded cost for gpt-4o-mini
+    const inputTokens = completion.usage?.prompt_tokens || 0;
+    const outputTokens = completion.usage?.completion_tokens || 0;
+    const cost = 0.004; 
 
-    // Return the JSON result directly
     return {
       total,
       items,
@@ -69,7 +77,7 @@ export const handler: Handler = async (event: LambdaEvent) => {
         inputTokens,
         outputTokens,
       },
-    } as AnalysisResult;
+    };
   } catch (error: unknown) {
     console.error("GPT-4 analysis error:", error);
     throw new Error(
