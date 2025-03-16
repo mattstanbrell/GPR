@@ -26,7 +26,7 @@ type UserUpdates = {
 	email?: string;
 	permissionGroup?: "ADMIN" | "MANAGER" | "SOCIAL_WORKER" | null;
 	lastLogin?: string;
-	team?: string;
+	teamID?: string;
 	userSettings?: {
 		fontSize: number;
 		font: string;
@@ -139,16 +139,16 @@ export async function createTeam(managerUserID: string, assistantManagerUserID: 
 	return data;
 }
 
-// Get a form by ID
-export async function getTeamById(teamId: string) {
-	const { data, errors } = await client.models.Team.get({ id: teamId });
+// Get a team by ID
+export async function getTeamByID(teamID: string) {
+	const { data, errors } = await client.models.Team.get({ id: teamID });
 	if (errors) {
 		throw new Error(errors[0].message);
 	}
 	return data;
 }
 
-// List all forms
+// List all teams
 export async function listTeams() {
 	const { data, errors } = await client.models.Team.list();
 	if (errors) {
@@ -157,10 +157,10 @@ export async function listTeams() {
 	return data;
 }
 
-// Update a form
-export async function updateForm(formId: string, updates: Partial<Schema["Form"]["type"]>) {
+// Update a team
+export async function updateTeam(teamID: string, updates: Partial<Schema["Team"]["type"]>) {
 	const { data, errors } = await client.models.Team.update({
-		id: formId,
+		id: teamID,
 		...updates,
 	});
 
@@ -170,9 +170,9 @@ export async function updateForm(formId: string, updates: Partial<Schema["Form"]
 	return data;
 }
 
-// Delete a form
-export async function deleteForm(formId: string) {
-	const { data, errors } = await client.models.Form.delete({ id: formId });
+// Delete a team
+export async function deleteTeam(teamID: string) {
+	const { data, errors } = await client.models.Team.delete({ id: teamID });
 	if (errors) {
 		throw new Error(errors[0].message);
 	}
