@@ -2,6 +2,7 @@ import { a, defineData, type ClientSchema } from "@aws-amplify/backend";
 import { norm } from "../functions/norm/resource";
 import { postAuthentication } from "../auth/post-authentication/resource";
 import { financeCode } from "../functions/financeCode/resource";
+import { receiptReader } from "../functions/receipt-reader/resource";
 
 const schema = a
 	.schema({
@@ -16,7 +17,12 @@ const schema = a
 				assignments: a.hasMany("FormAssignee", "userID"),
 				children: a.hasMany("UserChild", "userID"),
 				audits: a.hasMany("AuditLog", "userID"),
+				messages: a.hasMany("Message", "userID"),
+				threads: a.hasMany("UserThread", "userID"),
+				messagesRead: a.hasMany("UserMessage", "userID"),
 				profileOwner: a.string(),
+				teamID: a.id(),
+				team: a.belongsTo("Team", "teamID"),
 				address: a.customType({
 					lineOne: a.string(),
 					lineTwo: a.string(),
@@ -46,6 +52,14 @@ const schema = a
 				creatorID: a.id().required(),
 				creator: a.belongsTo("User", "creatorID"),
 				forms: a.hasMany("Form", "businessID"),
+			})
+			.authorization((allow) => [allow.authenticated()]),
+
+		Team: a
+			.model({
+				managerUserID: a.id(),
+				assistantManagerUserID: a.id(),
+				members: a.hasMany("User", "teamID"),
 			})
 			.authorization((allow) => [allow.authenticated()]),
 
@@ -94,6 +108,7 @@ const schema = a
 				child: a.belongsTo("Child", "childID"),
 				audits: a.hasMany("AuditLog", "formID"),
 				feedback: a.string(),
+				thread: a.hasOne("Thread", "formID"),
 				assignees: a.hasMany("FormAssignee", "formID"),
 				financeCodeID: a.string(),
 				financeCode: a.belongsTo("FinanceCode", "financeCodeID"),
@@ -101,34 +116,21 @@ const schema = a
 				suggestedFinanceCode: a.belongsTo("FinanceCode", "suggestedFinanceCodeID"),
 				isRecurring: a.boolean(),
 				recurrencePattern: a.customType({
-					// REQUIRED FIELDS
 					frequency: a.enum(["DAILY", "WEEKLY", "MONTHLY", "YEARLY"]),
 					interval: a.integer(),
-					startDate: a.string(), // ISO date string
-
-					// OPTIONAL END CONDITIONS
-					endDate: a.string(), // ISO date string
+					startDate: a.string(),
+					endDate: a.string(),
 					maxOccurrences: a.integer(),
 					neverEnds: a.boolean(),
-
-					// WEEKLY RECURRENCE SPECIFIERS
-					daysOfWeek: a.string().array(), // Values should be: "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"
-
-					// MONTHLY RECURRENCE SPECIFIERS
+					daysOfWeek: a.string().array(), // "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"
 					dayOfMonth: a.integer().array(), // 1-31, supports multiple days
 					monthEnd: a.boolean(),
 					monthPosition: a.customType({
 						position: a.enum(["FIRST", "SECOND", "THIRD", "FOURTH", "LAST"]),
-						dayOfWeek: a.string(), // Values should be: "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"
+						dayOfWeek: a.string(), // "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"
 					}),
-
-					// YEARLY RECURRENCE SPECIFIERS
 					months: a.integer().array(), // 1-12 representing JANUARY through DECEMBER
-
-					// EXCLUDED DATES
-					excludedDates: a.string().array(), // ISO date strings
-
-					// METADATA
+					excludedDates: a.string().array(),
 					description: a.string(),
 				}),
 			})
@@ -158,13 +160,11 @@ const schema = a
 
 		Receipt: a
 			.model({
+				receiptName: a.string(),
 				formID: a.id(),
 				form: a.belongsTo("Form", "formID"),
-				transactionDate: a.date(),
-				merchantName: a.string(),
-				paymentMethod: a.string(),
 				subtotal: a.float(),
-				itemDesc: a.string(),
+				s3Key: a.string(),
 			})
 			.authorization((allow) => [allow.authenticated()]),
 
@@ -176,6 +176,51 @@ const schema = a
 				user: a.belongsTo("User", "userID"),
 				formID: a.id(),
 				form: a.belongsTo("Form", "formID"),
+			})
+			.authorization((allow) => [allow.authenticated()]),
+
+		Message: a
+			.model({
+				userID: a.id().required(),
+				threadID: a.id().required(),
+				user: a.belongsTo("User", "userID"),
+				thread: a.belongsTo("Thread", "threadID"),
+				content: a.string().required(),
+				usersRead: a.hasMany("UserMessage", "messageID"),
+				readStatus: a.string().default("false"), //enum(['false','medium','true'])
+				timeSent: a.datetime(), //datetime()
+			})
+			.authorization((allow) => [allow.authenticated()]),
+
+		UserThread: a
+			.model({
+				userID: a.id().required(),
+				threadID: a.id().required(),
+				user: a.belongsTo("User", "userID"),
+				thread: a.belongsTo("Thread", "threadID"),
+			})
+			.authorization((allow) => [allow.authenticated()]),
+
+		//Provides an indication of which users have read which message.
+		UserMessage: a
+			.model({
+				userID: a.id().required(),
+				messageID: a.id().required(),
+				user: a.belongsTo("User", "userID"),
+				message: a.belongsTo("Message", "messageID"),
+				threadID: a.id().required(),
+				isRead: a.boolean(),
+			})
+			.authorization((allow) => [allow.authenticated()]),
+
+		Thread: a
+			.model({
+				formID: a.id().required(),
+				form: a.belongsTo("Form", "formID"),
+				lastMessageTime: a.datetime(),
+				users: a.hasMany("UserThread", "threadID"),
+				messages: a.hasMany("Message", "threadID"),
+				unreadCount: a.integer(),
 			})
 			.authorization((allow) => [allow.authenticated()]),
 
@@ -236,6 +281,16 @@ const schema = a
 			.returns(a.string())
 			.authorization((allow) => [allow.authenticated()])
 			.handler(a.handler.function(financeCode)),
+
+		receiptReader: a
+			.query()
+			.arguments({
+				base64Data: a.string().required(),
+				mimeType: a.string().required(),
+			})
+			.returns(a.json())
+			.authorization((allow) => [allow.authenticated()])
+			.handler(a.handler.function(receiptReader)),
 	})
 	// Add schema-level authorization to grant the norm function access to all models
 	.authorization((allow) => [allow.resource(norm), allow.resource(postAuthentication), allow.resource(financeCode)]);

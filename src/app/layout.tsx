@@ -7,13 +7,13 @@ import { audilyPrimary } from "./theme";
 import { GovUKFrontend } from "./components/GovUKInitialiser";
 import Header from "@/app/components/Header";
 import FullscreenMenu from "@/app/components/navigation/FullscreenMenu";
-import { useState, useEffect } from "react";
-import { Hub } from "aws-amplify/utils";
-import { getCurrentUser } from "aws-amplify/auth";
-import { HOME } from "@/app/constants/urls";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, createContext } from "react";
+import { fetchUserAttributes, getCurrentUser } from "aws-amplify/auth";
 import { signInWithRedirect, signOut } from "aws-amplify/auth";
-import { useResponsiveMenu } from "@/utils/responsivenessHelpers";
+import useIsMobileWindowSize, { useResponsiveMenu } from "@/utils/responsivenessHelpers";
+import { User } from "./types/models";
+import { getUserByEmail } from "@/utils/apis";
+
 
 // Alternative font which was used in the figma design
 const lexend = Lexend({
@@ -24,84 +24,126 @@ const lexend = Lexend({
 	variable: "--font-lexend",
 });
 
+export const AppContext = createContext<
+	{ 
+		currentUser?: User | null,
+		isSignedIn: boolean,
+		setUser: (user: User) => void,
+		isMobile: boolean,
+		isLoading: boolean
+	}>({
+		currentUser: null,
+		isSignedIn: false,
+		setUser: () => {},
+		isMobile: false,
+		isLoading: true
+	});
+
+
 export default function RootLayout({
 	children,
 }: Readonly<{ children: React.ReactNode }>) {
-	const router = useRouter();
 	const { isMenuOpen, toggleMobileMenu } = useResponsiveMenu(false);
+	const [currentUser, setUser] = useState<User | null>(null);
+	const isMobile = useIsMobileWindowSize();
 	const [isSignedIn, setIsSignedIn] = useState(false);
+	const [isLoading, setIsLoading] = useState(true);
 
 	useEffect(() => {
-		Hub.listen("auth", ({ payload }) => {
-			if (payload.event === "signInWithRedirect") {
-				router.push(HOME);
-			}
-			if (payload.event === "signedOut") {
+		const fetchUserModel = async () => {
+			try{
+				const userAttributes = await fetchUserAttributes();
+				const data = await getUserByEmail(userAttributes ? userAttributes.email : ""); 
+				if (!data) {
+					setUser(data);
+					setIsSignedIn(false);
+				} else {
+					setUser(data);
+					setIsSignedIn(true);
+				}
+			} catch (error) {
+				console.error("Error fetching user model:", error);
+				setUser(null);
 				setIsSignedIn(false);
-				router.push("/");
+			} finally {
+				setIsLoading(false);
 			}
-		});
+		}
 
 		getCurrentUser()
-			.then(() => setIsSignedIn(true))
-			.catch(() => setIsSignedIn(false));
-	}, [router]);
+			.then(() => {
+				fetchUserModel();
+			})
+			.catch(() => {
+				setUser(null);
+				setIsSignedIn(false);
+				setIsLoading(false);
+			}
+		);
+
+	}, []);
 
 	const handleClick = async () => {
-		if (isSignedIn) {
-			await signOut();
-		} else {
-			await signInWithRedirect({
-				provider: { custom: "MicrosoftEntraID" },
-			});
+		try {
+			if (isSignedIn) {
+				await signOut();
+			} else {
+				await signInWithRedirect({
+					provider: { custom: "MicrosoftEntraID" },
+				});
+			}
+		} catch (error) {
+			console.error("Error signing in:", error);
 		}
 	};
 
 	return (
-		<html
-			lang="en"
-			className={`${lexend.className} antialiased govuk-template`}
-		>
-			<head>
-				<meta name="theme-color" content={audilyPrimary} />
-			</head>
-			{isMenuOpen ? (
-				<body className="govuk-template__body w-full h-[100vh]">
-					<Header
-						toggleMobileMenu={toggleMobileMenu}
-						isMenuOpen={isMenuOpen}
-						isSignedIn={isSignedIn}
-						handleClick={handleClick}
-					/>
-					<FullscreenMenu
-						handleToggle={toggleMobileMenu}
-						handleClick={handleClick}
-					/>
-				</body>
-			) : (
-				<body className="govuk-template__body">
-					<ConfigureAmplifyClientSide />
-					<GovUKFrontend />
-					<Header
-						toggleMobileMenu={toggleMobileMenu}
-						isMenuOpen={isMenuOpen}
-						isSignedIn={isSignedIn}
-						handleClick={handleClick}
-					/>
-					<div className="govuk-width-container">
-						<main className="govuk-main-wrapper">{children}</main>
-					</div>
-					<footer className="govuk-footer">
+		<AppContext.Provider value={{ currentUser, isSignedIn, setUser, isMobile, isLoading }}>
+			<html
+				lang="en"
+				className={`${lexend.className} antialiased govuk-template`}
+			>
+				<head>
+					<meta name="theme-color" content={audilyPrimary} />
+				</head>
+				{isMenuOpen ? (
+					<body className="govuk-template__body w-full h-[100vh]">
+						<Header
+							toggleMobileMenu={toggleMobileMenu}
+							isMenuOpen={isMenuOpen}
+							isSignedIn={isSignedIn}
+							handleClick={handleClick}
+						/>
+						<FullscreenMenu
+							handleToggle={toggleMobileMenu}
+							handleClick={handleClick}
+						/>
+					</body>
+				) : (
+					<body className="govuk-template__body">
+						<ConfigureAmplifyClientSide />
+						<GovUKFrontend />
+						<Header
+							toggleMobileMenu={toggleMobileMenu}
+							isMenuOpen={isMenuOpen}
+							isSignedIn={isSignedIn}
+							handleClick={handleClick}
+						/>
 						<div className="govuk-width-container">
-							<div className="govuk-footer__meta">
-								<div className="govuk-footer__meta-item">
-									© CRITICAL Channel 2025
+							<main className="govuk-main-wrapper">{children}</main>
+						</div>
+						<footer className="govuk-footer">
+							<div className="govuk-width-container">
+								<div className="govuk-footer__meta">
+									<div className="govuk-footer__meta-item">
+										© CRITICAL Channel 2025
+									</div>
 								</div>
 							</div>
-						</div>
-					</footer>
-				</body>
-			)}
-		</html>
+						</footer>
+					</body>
+				)}
+			</html>
+		</AppContext.Provider>
 	);
 }

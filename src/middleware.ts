@@ -4,10 +4,7 @@ import { runWithAmplifyServerContext } from "@/utils/amplifyServerUtils";
 
 export async function middleware(request: NextRequest) {
 	const response = NextResponse.next();
-
-	if (request.nextUrl.pathname === "/") {
-		return response;
-	}
+	const isHomePage = request.nextUrl.pathname === "/";
 
 	const authenticated = await runWithAmplifyServerContext({
 		nextServerContext: { request, response },
@@ -23,11 +20,23 @@ export async function middleware(request: NextRequest) {
 		},
 	});
 
-	if (authenticated) {
-		return response;
+	if (!authenticated && !isHomePage) {
+		// Redirect to the home page if not authenticated
+		return NextResponse.redirect(new URL("/", request.url));
 	}
 
+<<<<<<< HEAD
 	return NextResponse.redirect(new URL("/", request.url));
+=======
+	if (authenticated && isHomePage) {
+		// Redirect to /home if authenticated and on the "/" page
+		return NextResponse.redirect(new URL("/home", request.url));
+	}
+
+	// Continue to the requested page. 
+	// If user is not authenticated, this is the sign in page.
+	return response;
+>>>>>>> origin/main
 }
 
 export const config = {
