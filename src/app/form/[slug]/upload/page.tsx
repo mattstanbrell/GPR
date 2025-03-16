@@ -49,7 +49,7 @@ const Upload = ({ params }: { params: Promise<{ slug: string }> }) => {
     }
   );
 
-  const name = "hotel_for_jim.jpg"; 
+  const name = fileNameParam; 
 
   const handleAddItem = () => {
     const newRow = { name: "", quantity: 0, cost: 0.0 };
