@@ -56,28 +56,14 @@ export default function RootLayout({
 			const data = await getUserByEmail(userAttributes ? userAttributes.email : ""); 
 			setUser(data);
 		}
-			
-		const hub = Hub.listen("auth", ({ payload }) => {
-			if (payload.event === "signInWithRedirect") {
-				router.push(HOME);
-			}
-			if (payload.event === "signedOut") {
-				setIsSignedIn(false);
-				setUser(null);
-				router.push("/");
-			}
-		});
 
 		getCurrentUser()
 			.then(() => {
-				setIsSignedIn(true);
 				fetchUserModel();
+				setIsSignedIn(true);
 			})
 			.catch(() => setIsSignedIn(false));
-
-		return () => {
-			hub();
-		}
+			
 	}, [router]);
 
 	const handleClick = async () => {
