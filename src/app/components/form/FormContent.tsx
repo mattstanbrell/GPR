@@ -197,7 +197,9 @@ export function FormContent() {
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		
-		const team = await getTeamByID(userModel.teamID ? userModel.teamID : "");
+		if (!userModel) return; 
+
+    		const team = await getTeamByID(userModel.teamID || "");
 		if (!form || !form.id || !userModel?.id || !form.amount || !team) return;
 
 		try {
