@@ -22,7 +22,7 @@ const FormTable = ({ forms }: { forms: Array<Form> }) => {
 		<>
 			{forms.map((form) => {
 				const id = form.id;
-				const title = form.title;
+				const title = form.title || form.reason ? form.reason : form.status;
 				const status = form.status;
 				const createdDate = form.createdAt && new Date(form.createdAt).toLocaleDateString("en-GB");
 				const redirectURI = `/form?id=${id}`;
@@ -34,11 +34,11 @@ const FormTable = ({ forms }: { forms: Array<Form> }) => {
 						onClick={() => handleRedirect(redirectURI)}
 						onKeyUp={(e) => e.key === "Enter" && handleRedirect(redirectURI)}
 						tabIndex={0}
-						className="h-8 border-2 border-dotted border-transparent border-b-black cursor-pointer hover:bg-[var(--color-background-light)]"
+						className="h-8 w-full border-2 border-dotted border-transparent border-b-black cursor-pointer hover:bg-[var(--color-background-light)]"
 					>
-						<td className="flex p-2 text-clip text-nowrap overflow-hidden">
+						<td className="flex p-2 text-clip text-ellipsis text-nowrap">
 							<StatusIcon status={status} />
-							<p className="pl-1">{title}</p>
+							<p className="w-3/4 pl-1 truncate">{title}</p>
 						</td>
 						<td className="p-2 text-right">{createdDate}</td>
 					</tr>
