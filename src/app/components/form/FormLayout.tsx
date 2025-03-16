@@ -1,10 +1,6 @@
-import { useState } from "react";
+
 import { FORM_STATUS } from "@/app/constants/models";
 import type { Schema } from "../../../../amplify/data/resource";
-import { updateForm } from "@/utils/apis"
-import { redirect } from "next/navigation";
-import { FORM_BOARD } from "@/app/constants/urls";
-import { Form } from "@/app/types/models";
 import FeedbackContainer from "./feedback/FeedbackContainer";
 
 interface FormLayoutProps {
@@ -26,7 +22,6 @@ export function FormLayout({
 	isFormValid,
 	disabled,
 	updatedFields,
-	isSocialWorker,
 }: FormLayoutProps) {
 	return (
 		<>

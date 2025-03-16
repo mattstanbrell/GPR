@@ -1,7 +1,7 @@
 
 'use client'
 
-import { ApproveButton, RejectButton, SubmitFeedbackButton } from "@/app/components/form/feedback/Buttons"
+import { ApproveButton, RejectButton } from "@/app/components/form/feedback/Buttons"
 import { Form } from "@/app/types/models"
 
 export const AuthorisationButtonsContainer = (
