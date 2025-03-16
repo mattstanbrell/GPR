@@ -2,28 +2,31 @@
 'use client'
 
 import { redirect } from "next/navigation"
-import type { Form } from "@/app/types/models"
+import type { Form, FormStatus } from "@/app/types/models"
 import { getThreadByFormId, updateForm } from "@/utils/apis"
 import { FORM, FORM_BOARD, THREADS } from "@/app/constants/urls"
 import { FORM_STATUS } from "@/app/constants/models"
 import { useEffect, useState } from "react"
-import { threads } from "../threads/dummy"
 
-const handleApproveForm = async (form: Partial<Form>) => {
-    await updateForm(form.id ? form.id : "", { ...form, status: "AUTHORISED" });
+const handleUpdateForm = async (form: Partial<Form>, status: FormStatus) => {
+    await updateForm(form.id ? form.id : "", { ...form, status: status });
     redirect(FORM_BOARD);
 }
 
-export const ApproveButton = ({form} : {form: Form}) => {
-    return <button className={`govuk-button`} onClick={() => handleApproveForm(form)}>Approve</button>
+export const AuthoriseButton = ({form, isDisabled} : {form: Form, isDisabled: boolean}) => {
+    return <button className={`govuk-button`} disabled={ isDisabled } onClick={() => handleUpdateForm(form, "AUTHORISED")}>Approve</button>
 } 
 
 export const RejectButton = (
-    {isReject, setIsReject} : 
-    {isReject: boolean, setIsReject: (isReject: boolean) => void}
+    {isReject, setIsReject, isDisabled} : 
+    {isReject: boolean, setIsReject: (isReject: boolean) => void, isDisabled: boolean}
 ) => {
-    return <button className={`govuk-button govuk-button--warning`} onClick={() => setIsReject(!isReject)}>{ !(isReject) ? "Reject" : "Cancel" }</button>
+    return <button className={`govuk-button govuk-button--warning`} disabled={ isDisabled } onClick={() => setIsReject(!isReject)}>{ !(isReject) ? "Reject" : "Cancel" }</button>
 }
+
+export const ValidateButton = ({form, isDisabled} : {form: Form, isDisabled: boolean}) => {
+    return <button className={`govuk-button`} disabled={ isDisabled } onClick={() => handleUpdateForm(form, "VALIDATED")}>Validate</button>
+} 
 
 export const SubmitFeedbackButton = () => {
     return <button type="submit" className="govuk-button">Submit Feedback</button>
