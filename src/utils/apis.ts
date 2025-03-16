@@ -11,7 +11,7 @@ type User = Schema['User']['type'];
 
 for any Model types you might be using in your components
 
-If you wanted to store a list of users which could be updated in
+If you wanted to store a list of users which could be updated in 
 your component, you would need this line:
 
 const [users, setUsers] = useState<User[]>([]);
@@ -26,6 +26,7 @@ type UserUpdates = {
 	email?: string;
 	permissionGroup?: "ADMIN" | "MANAGER" | "SOCIAL_WORKER" | null;
 	lastLogin?: string;
+	teamID?: string;
 	userSettings?: {
 		fontSize: number;
 		font: string;
@@ -121,6 +122,55 @@ export async function updateUser(userId: string, updates: UserUpdates) {
 
 export async function deleteUser(userId: string) {
 	const { data, errors } = await client.models.User.delete({ id: userId });
+	if (errors) {
+		throw new Error(errors[0].message);
+	}
+	return data;
+}
+
+// ------------Team APIs -------------
+export async function createTeam(managerUserID: string, assistantManagerUserID: string) {
+	const { data, errors } = await client.models.Team.create({managerUserID: managerUserID, assistantManagerUserID: assistantManagerUserID});
+	if (errors) {
+		throw new Error(errors[0].message);
+	}
+	return data;
+}
+
+// Get a team by ID
+export async function getTeamByID(teamID: string) {
+	const { data, errors } = await client.models.Team.get({ id: teamID });
+	if (errors) {
+		throw new Error(errors[0].message);
+	}
+	return data;
+}
+
+// List all teams
+export async function listTeams() {
+	const { data, errors } = await client.models.Team.list();
+	if (errors) {
+		throw new Error(errors[0].message);
+	}
+	return data;
+}
+
+// Update a team
+export async function updateTeam(teamID: string, updates: Partial<Schema["Team"]["type"]>) {
+	const { data, errors } = await client.models.Team.update({
+		id: teamID,
+		...updates,
+	});
+
+	if (errors) {
+		throw new Error(errors[0].message);
+	}
+	return data;
+}
+
+// Delete a team
+export async function deleteTeam(teamID: string) {
+	const { data, errors } = await client.models.Team.delete({ id: teamID });
 	if (errors) {
 		throw new Error(errors[0].message);
 	}
@@ -358,8 +408,6 @@ export async function getAssigneesForForm(formId: string) {
 	);
 	return users;
 }
-
-//Add an algorithm which assigns forms to the manager with the fewest forms.
 
 // ------------------ UserChild link APISs --------------
 

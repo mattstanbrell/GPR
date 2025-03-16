@@ -10,7 +10,13 @@ import type { UIMessage, FormChanges } from "./types";
 import { FormErrorSummary } from "./FormErrorSummary";
 import { FormLayout } from "./FormLayout";
 import { NormLayout } from "./NormLayout";
-import { createForm, updateForm, getFormById, getNormConversationByFormId } from "../../../utils/apis";
+import {
+	createForm,
+	updateForm,
+	getFormById,
+	getTeamByID,
+	assignUserToForm,
+} from "../../../utils/apis";
 import { useUserModel } from "../../../utils/authenticationUtils";
 import type { FormStatus } from "@/app/types/models";
 import { FORM_STATUS, PERMISSIONS } from "@/app/constants/models";
@@ -190,8 +196,11 @@ export function FormContent() {
 	// Handle form submission
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
+		
+		const team = await getTeamByID(userModel?.teamID);
+		if (!form || !form.id || !userModel?.id || !form.amount || !team) return;
 
-		if (!form || !form.id || !userModel?.id) return;
+
 
 		try {
 			setLoading(true);
@@ -200,6 +209,14 @@ export function FormContent() {
 				status: "SUBMITTED",
 				creatorID: userModel.id,
 			});
+			let assigneeId;
+			if (form.amount > 5000) {
+ 				assigneeId = team?.managerUserID;
+ 			} else {
+ 				assigneeId = team?.assistantManagerUserID;
+ 			}
+			await assignUserToForm(form.id, assigneeId);
+			
 			router.push(FORM_BOARD);
 		} catch (_error: unknown) {
 			setErrorMessage(_error instanceof Error ? _error.message : String(_error));

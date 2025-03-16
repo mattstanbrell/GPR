@@ -20,6 +20,8 @@ const schema = a
                 threads: a.hasMany('UserThread','userID'),
                 messagesRead: a.hasMany('UserMessage','userID'),
 				profileOwner: a.string(),
+				teamID: a.id(),
+				team: a.belongsTo("Team", "teamID"),
 				address: a.customType({
 					lineOne: a.string(),
 					lineTwo: a.string(),
@@ -35,6 +37,14 @@ const schema = a
 				}),
 			})
 			.authorization((allow) => [allow.publicApiKey(), allow.authenticated()]),
+
+		Team: a
+			.model({
+				managerUserID: a.id(),
+				assistantManagerUserID: a.id(),
+				members: a.hasMany("User", "teamID"),
+			})
+			.authorization((allow) => [allow.authenticated()]),
 
 		Form: a
 			.model({
@@ -74,6 +84,7 @@ const schema = a
 				child: a.belongsTo("Child", "childID"),
 				audits: a.hasMany("AuditLog", "formID"),
 				feedback: a.string(),
+				urgency: a.string().default("false"),
                 thread: a.hasOne('Thread', 'formID'),
 				assignees: a.hasMany("FormAssignee", "formID"),
 			})
