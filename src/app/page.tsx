@@ -15,7 +15,7 @@ export default function Home() {
 		if (user) {
 			router.push(HOME);
 		}
-	}, [isLoading, router]);
+	}, [isLoading, user, router]);
 
 	if (isLoading) {
 		return <h3 className="text-center">Loading...</h3>;
