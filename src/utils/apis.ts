@@ -59,6 +59,11 @@ type AuditLogUpdates = {
 	formID?: string;
 };
 
+type TeamUpdates = {
+	managerUserID?: string;
+	assistantManagerUserID?: string;
+};
+
 // ----------User APIs-----------
 export async function createUser(email: string, firstName: string, lastName: string) {
 	const { data, errors } = await client.models.User.create({
@@ -112,10 +117,13 @@ export async function listUsers() {
 }
 
 export async function updateUser(userId: string, updates: UserUpdates) {
-	const { data, errors } = await client.models.User.update({
-		id: userId,
-		...updates,
-	});
+	const existingUser = await getUserById(userId);
+	if (!existingUser) {
+		throw new Error("User not found");
+	}
+	// Merge the updates with the existing data
+	const mergedUser = { ...existingUser, ...updates };
+	const { data, errors } = await client.models.User.update(mergedUser);
 	if (errors) {
 		throw new Error(errors[0].message);
 	}
@@ -158,12 +166,14 @@ export async function listTeams() {
 }
 
 // Update a team
-export async function updateTeam(teamID: string, updates: Partial<Schema["Team"]["type"]>) {
-	const { data, errors } = await client.models.Team.update({
-		id: teamID,
-		...updates,
-	});
-
+export async function updateTeam(teamId: string, updates: TeamUpdates) {
+	const existingTeam = await getTeamByID(teamId);
+	if (!existingTeam) {
+		throw new Error("Team not found");
+	}
+	// Merge the updates with the existing data
+	const mergedTeam = { ...existingTeam, ...updates };
+	const { data, errors } = await client.models.Team.update(mergedTeam);
 	if (errors) {
 		throw new Error(errors[0].message);
 	}
