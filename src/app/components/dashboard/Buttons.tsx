@@ -4,6 +4,7 @@ import {
 	FORM,
 	UPDATES,
 	ADMIN,
+	THREADS,
 } from "@/app/constants/urls";
 import Link from "next/link";
 import Image from "next/image";
@@ -27,7 +28,9 @@ const Button = ({
 	return (
 		<Link
 			href={link}
-			className="text-3xl font-bold md:flex-none w-full flex-1 min-w-35 max-w-40 border-4 border-(--color-secondary) grid  h-47"
+			className="text-3xl font-bold md:flex-none w-full flex-1 min-w-35 max-w-40 
+				border-4 border-(--color-secondary) grid h-47 hover:border-(--color-accent) 
+				transition duration-300 delay-100 ease-in-out hover:-translate-y-1 hover:scale-110"
 		>
 			<button
 				type="button"
@@ -122,6 +125,17 @@ const ActionLogsButton = () => {
 	);
 };
 
+const ThreadsButton = () => {
+	return (
+		<Button
+			text="Threads"
+			link={THREADS}
+			src="/threads.svg"
+			alt="A picture of a speech bubble."
+		/>
+	);
+}
+
 export {
 	Button,
 	NewFormButton,
@@ -130,4 +144,5 @@ export {
 	UpdatesButton,
 	AdminButton,
 	ActionLogsButton,
+	ThreadsButton,
 };
