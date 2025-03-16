@@ -76,7 +76,7 @@ export function monthEnumToNumber(month: Month): number {
 
 export interface MonthPosition {
 	position: Position;
-	day_of_week: DayOfWeek;
+	dayOfWeek: DayOfWeek;
 }
 
 export interface YearPosition {
@@ -89,28 +89,26 @@ export interface RecurrencePattern {
 	// REQUIRED FIELDS
 	frequency: Frequency;
 	interval: number;
-	start_date: string; // ISO date string
+	startDate: string; // ISO date string
 
-	// OPTIONAL END CONDITIONS (choose one or none)
-	end_date?: string; // ISO date string
-	max_occurrences?: number;
-	never_ends?: boolean;
+	// OPTIONAL END CONDITIONS
+	endDate?: string; // ISO date string
+	maxOccurrences?: number;
+	neverEnds?: boolean;
 
 	// WEEKLY RECURRENCE SPECIFIERS
-	days_of_week?: DayOfWeek[];
+	daysOfWeek?: DayOfWeek[]; // Values should be: "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"
 
 	// MONTHLY RECURRENCE SPECIFIERS
-	day_of_month?: number[]; // Array of days (1-31)
-	month_end?: boolean;
-	month_position?: MonthPosition;
+	dayOfMonth?: number[]; // 1-31, supports multiple days
+	monthEnd?: boolean;
+	monthPosition?: MonthPosition;
 
 	// YEARLY RECURRENCE SPECIFIERS
-	months?: (Month | number)[]; // Can be Month enum or number 1-12
-	day_of_year?: number; // 1-366
-	year_position?: YearPosition;
+	months?: number[]; // 1-12 representing JANUARY through DECEMBER
 
 	// EXCLUDED DATES
-	excluded_dates?: string[]; // ISO date strings
+	excludedDates?: string[]; // ISO date strings
 
 	// METADATA
 	description?: string;
@@ -125,42 +123,35 @@ export interface RecurringPayment {
 
 // Helper function to generate a human-readable description of a recurrence pattern
 export function generateRecurrenceDescription(pattern: RecurrencePattern): string {
-	const { frequency, interval } = pattern;
-
 	let description = "";
 
-	// Base frequency and interval
-	if (interval === 1) {
-		if (frequency === "DAILY") description = "Every day";
-		if (frequency === "WEEKLY") description = "Every week";
-		if (frequency === "MONTHLY") description = "Every month";
-		if (frequency === "YEARLY") description = "Every year";
+	// Add frequency and interval
+	const frequency = pattern.frequency.toLowerCase();
+	if (pattern.interval === 1) {
+		description = `Every ${frequency.slice(0, -2)}y`;
 	} else {
-		if (frequency === "DAILY") description = `Every ${interval} days`;
-		if (frequency === "WEEKLY") description = `Every ${interval} weeks`;
-		if (frequency === "MONTHLY") description = `Every ${interval} months`;
-		if (frequency === "YEARLY") description = `Every ${interval} years`;
+		description = `Every ${pattern.interval} ${frequency}s`;
 	}
 
 	// Add day specifics for weekly
-	if (frequency === "WEEKLY" && pattern.days_of_week && pattern.days_of_week.length > 0) {
-		const daysCapitalized = pattern.days_of_week.map((day) => day.charAt(0) + day.slice(1).toLowerCase());
+	if (pattern.frequency === "WEEKLY" && pattern.daysOfWeek && pattern.daysOfWeek.length > 0) {
+		const daysCapitalized = pattern.daysOfWeek.map((day) => day.charAt(0) + day.slice(1).toLowerCase());
 
-		if (pattern.days_of_week.length === 7) {
+		if (pattern.daysOfWeek.length === 7) {
 			description += " on every day";
 		} else if (
-			pattern.days_of_week.length === 5 &&
-			pattern.days_of_week.includes("MONDAY") &&
-			pattern.days_of_week.includes("TUESDAY") &&
-			pattern.days_of_week.includes("WEDNESDAY") &&
-			pattern.days_of_week.includes("THURSDAY") &&
-			pattern.days_of_week.includes("FRIDAY")
+			pattern.daysOfWeek.length === 5 &&
+			pattern.daysOfWeek.includes("MONDAY") &&
+			pattern.daysOfWeek.includes("TUESDAY") &&
+			pattern.daysOfWeek.includes("WEDNESDAY") &&
+			pattern.daysOfWeek.includes("THURSDAY") &&
+			pattern.daysOfWeek.includes("FRIDAY")
 		) {
 			description += " on weekdays";
 		} else if (
-			pattern.days_of_week.length === 2 &&
-			pattern.days_of_week.includes("SATURDAY") &&
-			pattern.days_of_week.includes("SUNDAY")
+			pattern.daysOfWeek.length === 2 &&
+			pattern.daysOfWeek.includes("SATURDAY") &&
+			pattern.daysOfWeek.includes("SUNDAY")
 		) {
 			description += " on weekends";
 		} else {
@@ -169,75 +160,53 @@ export function generateRecurrenceDescription(pattern: RecurrencePattern): strin
 	}
 
 	// Add day specifics for monthly
-	if (frequency === "MONTHLY") {
-		if (pattern.day_of_month && pattern.day_of_month.length > 0) {
-			if (pattern.day_of_month.length === 1) {
-				description += ` on day ${pattern.day_of_month[0]}`;
+	if (pattern.frequency === "MONTHLY") {
+		if (pattern.dayOfMonth && pattern.dayOfMonth.length > 0) {
+			if (pattern.dayOfMonth.length === 1) {
+				description += ` on day ${pattern.dayOfMonth[0]}`;
 			} else {
-				description += ` on days ${pattern.day_of_month.join(", ")}`;
+				description += ` on days ${pattern.dayOfMonth.join(", ")}`;
 			}
 		}
 
-		if (pattern.month_end) {
+		if (pattern.monthEnd) {
 			description += " on the last day";
 		}
 
-		if (pattern.month_position) {
-			const { position, day_of_week } = pattern.month_position;
+		if (pattern.monthPosition) {
+			const { position, dayOfWeek } = pattern.monthPosition;
 			const positionText = position.toLowerCase();
-			const dayText = day_of_week.charAt(0) + day_of_week.slice(1).toLowerCase();
+			const dayText = dayOfWeek.charAt(0) + dayOfWeek.slice(1).toLowerCase();
 			description += ` on the ${positionText} ${dayText}`;
 		}
 	}
 
-	// Add specifics for yearly
-	if (frequency === "YEARLY") {
-		if (pattern.months && pattern.months.length > 0) {
-			const monthNames = pattern.months.map((month) => {
-				if (typeof month === "number") {
-					return new Date(2000, month - 1, 1).toLocaleString("default", { month: "long" });
-				}
-				return month.charAt(0) + month.slice(1).toLowerCase();
-			});
+	// Add month specifics for yearly
+	if (pattern.frequency === "YEARLY" && pattern.months && pattern.months.length > 0) {
+		const monthNames = pattern.months
+			.map((m) => {
+				const date = new Date(2000, m - 1, 1);
+				return date.toLocaleString("default", { month: "long" });
+			})
+			.join(", ");
+		description += ` in ${monthNames}`;
+	}
 
-			if (pattern.months.length === 1) {
-				description += ` in ${monthNames[0]}`;
-			} else {
-				description += ` in ${monthNames.join(", ")}`;
-			}
-		}
-
-		if (pattern.day_of_year) {
-			const date = new Date(2000, 0, pattern.day_of_year);
-			const monthName = date.toLocaleString("default", { month: "long" });
-			const day = date.getDate();
-			description += ` on ${monthName} ${day}`;
-		}
-
-		if (pattern.year_position) {
-			const { position, day_of_week, month } = pattern.year_position;
-			const positionText = position.toLowerCase();
-			const dayText = day_of_week.charAt(0) + day_of_week.slice(1).toLowerCase();
-
-			let monthText = "";
-			if (typeof month === "number") {
-				monthText = new Date(2000, month - 1, 1).toLocaleString("default", { month: "long" });
-			} else {
-				monthText = month.charAt(0) + month.slice(1).toLowerCase();
-			}
-
-			description += ` on the ${positionText} ${dayText} of ${monthText}`;
-		}
+	// Add start date
+	if (pattern.startDate) {
+		const startDate = new Date(pattern.startDate);
+		const formattedDate = startDate.toLocaleDateString();
+		description += `, starting ${formattedDate}`;
 	}
 
 	// Add end condition
-	if (pattern.end_date) {
-		const endDate = new Date(pattern.end_date);
+	if (pattern.endDate) {
+		const endDate = new Date(pattern.endDate);
 		const formattedDate = endDate.toLocaleDateString();
 		description += ` until ${formattedDate}`;
-	} else if (pattern.max_occurrences) {
-		description += ` for ${pattern.max_occurrences} occurrences`;
-	} else if (pattern.never_ends) {
+	} else if (pattern.maxOccurrences) {
+		description += ` for ${pattern.maxOccurrences} occurrences`;
+	} else if (pattern.neverEnds) {
 		description += " with no end date";
 	}
 
@@ -246,86 +215,82 @@ export function generateRecurrenceDescription(pattern: RecurrencePattern): strin
 
 // Function to calculate the next N occurrences of a recurrence pattern
 export function calculateNextOccurrences(pattern: RecurrencePattern, count = 5): Date[] {
-	// This is a simplified implementation
-	// A production version would need to handle all the complex recurrence rules
-
 	const occurrences: Date[] = [];
-	const startDate = new Date(pattern.start_date);
+	const startDate = new Date(pattern.startDate);
 
 	if (Number.isNaN(startDate.getTime())) {
-		return occurrences; // Invalid start date
+		throw new Error("Invalid start date");
 	}
 
-	const currentDate = new Date(startDate);
+	let currentDate = new Date(startDate);
+
+	// Map day numbers to day names for weekly recurrence
+	const dayOfWeekMap: Record<number, DayOfWeek> = {
+		0: "SUNDAY",
+		1: "MONDAY",
+		2: "TUESDAY",
+		3: "WEDNESDAY",
+		4: "THURSDAY",
+		5: "FRIDAY",
+		6: "SATURDAY",
+	};
 
 	while (occurrences.length < count) {
 		// Check if we've reached the end date
-		if (pattern.end_date) {
-			const endDate = new Date(pattern.end_date);
+		if (pattern.endDate) {
+			const endDate = new Date(pattern.endDate);
 			if (currentDate > endDate) break;
 		}
 
 		// Check if we've reached max occurrences
-		if (pattern.max_occurrences && occurrences.length >= pattern.max_occurrences) {
+		if (pattern.maxOccurrences && occurrences.length >= pattern.maxOccurrences) {
 			break;
 		}
 
 		// Check if date is excluded
 		const isExcluded =
-			pattern.excluded_dates?.some((excludedDate) => {
+			pattern.excludedDates?.some((excludedDate) => {
 				const excluded = new Date(excludedDate);
 				return (
-					excluded.getDate() === currentDate.getDate() &&
+					excluded.getFullYear() === currentDate.getFullYear() &&
 					excluded.getMonth() === currentDate.getMonth() &&
-					excluded.getFullYear() === currentDate.getFullYear()
+					excluded.getDate() === currentDate.getDate()
 				);
-			}) || false;
+			}) ?? false;
 
-		// Check if this date matches the pattern
-		const matches = (() => {
-			if (isExcluded) return false;
-
+		// Function to check if the current date matches the pattern
+		const isMatchingDate = (): boolean => {
 			switch (pattern.frequency) {
-				case "DAILY":
-					// For daily, every day matches (except excluded dates)
+				case "DAILY": {
 					return true;
+				}
 
 				case "WEEKLY": {
-					// For weekly, check if the current day of week is in the days_of_week array
-					if (!pattern.days_of_week || pattern.days_of_week.length === 0) {
+					// For weekly, check if the current day of week is in the daysOfWeek array
+					if (!pattern.daysOfWeek || pattern.daysOfWeek.length === 0) {
 						// If no days specified, use the day of week from the start date
 						const startDayOfWeek = startDate.getDay();
 						return currentDate.getDay() === startDayOfWeek;
 					}
 
-					const dayOfWeekMap: Record<number, DayOfWeek> = {
-						0: "SUNDAY",
-						1: "MONDAY",
-						2: "TUESDAY",
-						3: "WEDNESDAY",
-						4: "THURSDAY",
-						5: "FRIDAY",
-						6: "SATURDAY",
-					};
-
 					const currentDayOfWeek = dayOfWeekMap[currentDate.getDay()];
-					return pattern.days_of_week.includes(currentDayOfWeek);
+					return pattern.daysOfWeek.includes(currentDayOfWeek);
 				}
 
 				case "MONTHLY": {
 					// For monthly, check day of month or month position
-					if (pattern.day_of_month && pattern.day_of_month.length > 0) {
-						return pattern.day_of_month.includes(currentDate.getDate());
+					if (pattern.dayOfMonth && pattern.dayOfMonth.length > 0) {
+						return pattern.dayOfMonth.includes(currentDate.getDate());
 					}
 
-					if (pattern.month_end) {
+					if (pattern.monthEnd) {
 						// Check if it's the last day of the month
 						const lastDay = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
 						return currentDate.getDate() === lastDay;
 					}
 
-					if (pattern.month_position) {
-						const { position, day_of_week } = pattern.month_position;
+					if (pattern.monthPosition) {
+						const { position, dayOfWeek } = pattern.monthPosition;
 						const dayOfWeekMap: Record<DayOfWeek, number> = {
 							SUNDAY: 0,
 							MONDAY: 1,
@@ -336,175 +301,69 @@ export function calculateNextOccurrences(pattern: RecurrencePattern, count = 5):
 							SATURDAY: 6,
 						};
 
-						// Check if current date is the specified day of week
-						if (currentDate.getDay() !== dayOfWeekMap[day_of_week]) {
-							return false;
-						}
-
-						// Calculate which occurrence this is
+						// Get all dates in the current month that match the day of week
 						const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-						const dayOfWeekIndex = dayOfWeekMap[day_of_week];
+						const lastDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+						const matchingDates: number[] = [];
 
-						// Find the first occurrence of this day in the month
-						const firstOccurrence = 1 + ((7 + dayOfWeekIndex - firstDayOfMonth.getDay()) % 7);
-
-						// Calculate the occurrence number (1-based)
-						const occurrenceNumber = Math.ceil((currentDate.getDate() - firstOccurrence + 1) / 7);
-
-						if (position === "LAST") {
-							// Check if it's the last occurrence of this day in the month
-							const nextWeek = new Date(currentDate);
-							nextWeek.setDate(currentDate.getDate() + 7);
-							return nextWeek.getMonth() !== currentDate.getMonth();
+						for (let d = 1; d <= lastDayOfMonth.getDate(); d++) {
+							const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), d);
+							if (date.getDay() === dayOfWeekMap[dayOfWeek]) {
+								matchingDates.push(d);
+							}
 						}
 
-						const positionMap: Record<Position, number> = {
-							FIRST: 1,
-							SECOND: 2,
-							THIRD: 3,
-							FOURTH: 4,
-							LAST: -1, // Handled separately
-						};
+						// Get the date based on position
+						let targetDate: number;
+						switch (position) {
+							case "FIRST":
+								targetDate = matchingDates[0];
+								break;
+							case "SECOND":
+								targetDate = matchingDates[1];
+								break;
+							case "THIRD":
+								targetDate = matchingDates[2];
+								break;
+							case "FOURTH":
+								targetDate = matchingDates[3];
+								break;
+							case "LAST":
+								targetDate = matchingDates[matchingDates.length - 1];
+								break;
+							default:
+								return false;
+						}
 
-						return occurrenceNumber === positionMap[position];
+						return currentDate.getDate() === targetDate;
 					}
 
-					// If no monthly specifiers, use the day from the start date
-					return currentDate.getDate() === startDate.getDate();
+					return false;
 				}
 
 				case "YEARLY": {
-					// For yearly, check month and day
-					const currentMonth = currentDate.getMonth() + 1; // 1-based month
-
-					// Check if the current month is in the months array
-					if (pattern.months && pattern.months.length > 0) {
-						const monthMatches = pattern.months.some((month) => {
-							if (typeof month === "number") {
-								return month === currentMonth;
-							}
-							// Convert Month enum to number (1-12)
-							return monthEnumToNumber(month) === currentMonth;
-						});
-
-						if (!monthMatches) return false;
+					// For yearly, check if the month is in the months array
+					if (!pattern.months || pattern.months.length === 0) {
+						// If no months specified, use the month from the start date
+						return currentDate.getMonth() === startDate.getMonth();
 					}
 
-					// If day_of_year is specified, check that
-					if (pattern.day_of_year) {
-						const dayOfYear = getDayOfYear(currentDate);
-						return dayOfYear === pattern.day_of_year;
-					}
-
-					// If year_position is specified, check that
-					if (pattern.year_position) {
-						const { position, day_of_week, month } = pattern.year_position;
-
-						// Check if we're in the right month
-						let targetMonth: number;
-						if (typeof month === "number") {
-							targetMonth = month;
-						} else {
-							targetMonth = monthEnumToNumber(month);
-						}
-
-						if (currentMonth !== targetMonth) {
-							return false;
-						}
-
-						// The rest is similar to monthly position check
-						const dayOfWeekMap: Record<DayOfWeek, number> = {
-							SUNDAY: 0,
-							MONDAY: 1,
-							TUESDAY: 2,
-							WEDNESDAY: 3,
-							THURSDAY: 4,
-							FRIDAY: 5,
-							SATURDAY: 6,
-						};
-
-						// Check if current date is the specified day of week
-						if (currentDate.getDay() !== dayOfWeekMap[day_of_week]) {
-							return false;
-						}
-
-						// Calculate which occurrence this is
-						const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-						const dayOfWeekIndex = dayOfWeekMap[day_of_week];
-
-						// Find the first occurrence of this day in the month
-						const firstOccurrence = 1 + ((7 + dayOfWeekIndex - firstDayOfMonth.getDay()) % 7);
-
-						// Calculate the occurrence number (1-based)
-						const occurrenceNumber = Math.ceil((currentDate.getDate() - firstOccurrence + 1) / 7);
-
-						if (position === "LAST") {
-							// Check if it's the last occurrence of this day in the month
-							const nextWeek = new Date(currentDate);
-							nextWeek.setDate(currentDate.getDate() + 7);
-							return nextWeek.getMonth() !== currentDate.getMonth();
-						}
-
-						const positionMap: Record<Position, number> = {
-							FIRST: 1,
-							SECOND: 2,
-							THIRD: 3,
-							FOURTH: 4,
-							LAST: -1, // Handled separately
-						};
-
-						return occurrenceNumber === positionMap[position];
-					}
-
-					// If no yearly specifiers, use the month and day from the start date
-					return currentDate.getMonth() === startDate.getMonth() && currentDate.getDate() === startDate.getDate();
+					// Convert month to 1-based index to match the months array
+					const currentMonth = currentDate.getMonth() + 1;
+					return pattern.months.includes(currentMonth);
 				}
 
 				default:
 					return false;
 			}
-		})();
+		};
 
-		if (matches && !isExcluded) {
+		if (!isExcluded && isMatchingDate()) {
 			occurrences.push(new Date(currentDate));
 		}
 
-		// Advance to next potential date
-		switch (pattern.frequency) {
-			case "DAILY": {
-				currentDate.setDate(currentDate.getDate() + pattern.interval);
-				break;
-			}
-			case "WEEKLY": {
-				currentDate.setDate(currentDate.getDate() + 1);
-				break;
-			}
-			case "MONTHLY": {
-				if (occurrences.length > 0 || !matches) {
-					// Only increment month if we've already found a match or this date doesn't match
-					currentDate.setMonth(currentDate.getMonth() + pattern.interval);
-					// Reset to first day of month to avoid skipping months with fewer days
-					currentDate.setDate(1);
-				} else {
-					// If we haven't found a match yet, just go to the next day
-					currentDate.setDate(currentDate.getDate() + 1);
-				}
-				break;
-			}
-			case "YEARLY": {
-				if (occurrences.length > 0 || !matches) {
-					// Only increment year if we've already found a match or this date doesn't match
-					currentDate.setFullYear(currentDate.getFullYear() + pattern.interval);
-					// Reset to first day of year to avoid issues with leap years
-					currentDate.setMonth(0);
-					currentDate.setDate(1);
-				} else {
-					// If we haven't found a match yet, just go to the next day
-					currentDate.setDate(currentDate.getDate() + 1);
-				}
-				break;
-			}
-		}
+		// Move to the next day
+		currentDate.setDate(currentDate.getDate() + 1);
 	}
 
 	return occurrences;

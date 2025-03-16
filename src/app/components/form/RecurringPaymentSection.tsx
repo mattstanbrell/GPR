@@ -53,75 +53,42 @@ export function RecurringPaymentSection({ form, handleFormChange, disabled }: Re
 	// UI state for the component
 	const [excludedDateInput, setExcludedDateInput] = useState("");
 	const [endCondition, setEndCondition] = useState<"never" | "date" | "occurrences">(
-		form.recurrence_pattern?.never_ends
+		form.recurrencePattern?.neverEnds
 			? "never"
-			: form.recurrence_pattern?.end_date
+			: form.recurrencePattern?.endDate
 				? "date"
-				: form.recurrence_pattern?.max_occurrences
+				: form.recurrencePattern?.maxOccurrences
 					? "occurrences"
 					: "never",
 	);
-	const [useMonthPosition, setUseMonthPosition] = useState(!!form.recurrence_pattern?.month_position);
+	const [useMonthPosition, setUseMonthPosition] = useState(!!form.recurrencePattern?.monthPosition);
 
 	// Handle day of week selection for weekly frequency
-	const handleDayOfWeekChange = (day: DayOfWeek) => {
-		// Filter out any null values and ensure we have a DayOfWeek[] array
-		const currentDays = (form.recurrence_pattern?.days_of_week || []).filter(
-			(d): d is DayOfWeek => d !== null && d !== undefined,
-		);
-
-		let newDays: DayOfWeek[];
-
-		if (currentDays.includes(day)) {
-			newDays = currentDays.filter((d) => d !== day);
-		} else {
-			newDays = [...currentDays, day];
-		}
-
-		handleFormChange("recurrence_pattern.days_of_week", newDays);
+	const handleDayOfWeekChange = (d: string) => {
+		const currentDays = form.recurrencePattern?.daysOfWeek || [];
+		const newDays = currentDays.includes(d) ? currentDays.filter((day) => day !== d) : [...currentDays, d];
+		handleFormChange("recurrencePattern.daysOfWeek", newDays);
 	};
 
 	// Handle day of month selection for monthly frequency
-	const handleDayOfMonthChange = (day: number) => {
-		// Filter out any null values and ensure we have a number[] array
-		const currentDays = (form.recurrence_pattern?.day_of_month || []).filter(
-			(d): d is number => d !== null && d !== undefined,
-		);
-
-		let newDays: number[];
-
-		if (currentDays.includes(day)) {
-			newDays = currentDays.filter((d) => d !== day);
-		} else {
-			newDays = [...currentDays, day];
-		}
-
-		handleFormChange("recurrence_pattern.day_of_month", newDays);
+	const handleDayOfMonthChange = (d: number) => {
+		const currentDays = form.recurrencePattern?.dayOfMonth || [];
+		const newDays = currentDays.includes(d) ? currentDays.filter((day) => day !== d) : [...currentDays, d];
+		handleFormChange("recurrencePattern.dayOfMonth", newDays);
 	};
 
 	// Handle month selection for yearly frequency
-	const handleMonthChange = (monthNum: number) => {
-		// Filter out any null values and ensure we have a number[] array
-		const currentMonths = (form.recurrence_pattern?.months || []).filter(
-			(m): m is number => m !== null && m !== undefined,
-		);
-
-		let newMonths: number[];
-
-		if (currentMonths.includes(monthNum)) {
-			newMonths = currentMonths.filter((m) => m !== monthNum);
-		} else {
-			newMonths = [...currentMonths, monthNum];
-		}
-
-		handleFormChange("recurrence_pattern.months", newMonths);
+	const handleMonthChange = (d: number) => {
+		const currentMonths = form.recurrencePattern?.months || [];
+		const newMonths = currentMonths.includes(d) ? currentMonths.filter((month) => month !== d) : [...currentMonths, d];
+		handleFormChange("recurrencePattern.months", newMonths);
 	};
 
 	// Handle month position changes
-	const handleMonthPositionChange = (field: "position" | "day_of_week", value: string) => {
-		const currentPosition = form.recurrence_pattern?.month_position || { position: "FIRST", day_of_week: "MONDAY" };
+	const handleMonthPositionChange = (field: "position" | "dayOfWeek", value: string) => {
+		const currentPosition = form.recurrencePattern?.monthPosition || { position: "FIRST", dayOfWeek: "MONDAY" };
 
-		handleFormChange("recurrence_pattern.month_position", {
+		handleFormChange("recurrencePattern.monthPosition", {
 			...currentPosition,
 			[field]: value,
 		});
@@ -131,23 +98,23 @@ export function RecurringPaymentSection({ form, handleFormChange, disabled }: Re
 	const handleMonthlyTypeChange = (type: "day" | "position" | "end") => {
 		if (type === "day") {
 			setUseMonthPosition(false);
-			handleFormChange("recurrence_pattern.month_end", false);
-			handleFormChange("recurrence_pattern.month_position", undefined);
+			handleFormChange("recurrencePattern.monthEnd", false);
+			handleFormChange("recurrencePattern.monthPosition", undefined);
 		} else if (type === "position") {
 			setUseMonthPosition(true);
-			handleFormChange("recurrence_pattern.month_end", false);
+			handleFormChange("recurrencePattern.monthEnd", false);
 
 			// Ensure month_position is set
-			if (!form.recurrence_pattern?.month_position) {
-				handleFormChange("recurrence_pattern.month_position", {
+			if (!form.recurrencePattern?.monthPosition) {
+				handleFormChange("recurrencePattern.monthPosition", {
 					position: "FIRST",
-					day_of_week: "MONDAY",
+					dayOfWeek: "MONDAY",
 				});
 			}
 		} else if (type === "end") {
 			setUseMonthPosition(false);
-			handleFormChange("recurrence_pattern.month_end", true);
-			handleFormChange("recurrence_pattern.month_position", undefined);
+			handleFormChange("recurrencePattern.monthEnd", true);
+			handleFormChange("recurrencePattern.monthPosition", undefined);
 		}
 	};
 
@@ -156,17 +123,17 @@ export function RecurringPaymentSection({ form, handleFormChange, disabled }: Re
 		setEndCondition(condition);
 
 		if (condition === "never") {
-			handleFormChange("recurrence_pattern.never_ends", true);
-			handleFormChange("recurrence_pattern.end_date", undefined);
-			handleFormChange("recurrence_pattern.max_occurrences", undefined);
+			handleFormChange("recurrencePattern.neverEnds", true);
+			handleFormChange("recurrencePattern.endDate", undefined);
+			handleFormChange("recurrencePattern.maxOccurrences", undefined);
 		} else if (condition === "date") {
-			handleFormChange("recurrence_pattern.never_ends", false);
-			handleFormChange("recurrence_pattern.max_occurrences", undefined);
+			handleFormChange("recurrencePattern.neverEnds", false);
+			handleFormChange("recurrencePattern.maxOccurrences", undefined);
 		} else if (condition === "occurrences") {
-			handleFormChange("recurrence_pattern.never_ends", false);
-			handleFormChange("recurrence_pattern.end_date", undefined);
-			if (!form.recurrence_pattern?.max_occurrences) {
-				handleFormChange("recurrence_pattern.max_occurrences", 12);
+			handleFormChange("recurrencePattern.neverEnds", false);
+			handleFormChange("recurrencePattern.endDate", undefined);
+			if (!form.recurrencePattern?.maxOccurrences) {
+				handleFormChange("recurrencePattern.maxOccurrences", 12);
 			}
 		}
 	};
@@ -175,62 +142,60 @@ export function RecurringPaymentSection({ form, handleFormChange, disabled }: Re
 	const handleAddExcludedDate = () => {
 		if (!excludedDateInput) return;
 
-		const currentExcludedDates = form.recurrence_pattern?.excluded_dates || [];
+		const currentExcludedDates = form.recurrencePattern?.excludedDates || [];
 		if (!currentExcludedDates.includes(excludedDateInput)) {
-			handleFormChange("recurrence_pattern.excluded_dates", [...currentExcludedDates, excludedDateInput]);
+			handleFormChange("recurrencePattern.excludedDates", [...currentExcludedDates, excludedDateInput]);
 			setExcludedDateInput("");
 		}
 	};
 
 	// Handle excluded date removal
 	const handleRemoveExcludedDate = (date: string) => {
-		const currentExcludedDates = form.recurrence_pattern?.excluded_dates || [];
+		const currentExcludedDates = form.recurrencePattern?.excludedDates || [];
 		handleFormChange(
-			"recurrence_pattern.excluded_dates",
+			"recurrencePattern.excludedDates",
 			currentExcludedDates.filter((d) => d !== date),
 		);
 	};
 
 	// Generate next occurrences preview
 	const generateNextOccurrencesPreview = () => {
-		if (!form.recurrence_pattern?.start_date) {
+		if (!form.recurrencePattern?.startDate) {
 			return ["Please set a start date to see occurrences"];
 		}
 
 		try {
 			// Create a safe copy of the pattern with proper types
 			const safePattern = {
-				frequency: form.recurrence_pattern.frequency as Frequency,
-				interval: form.recurrence_pattern.interval || 1,
-				start_date: form.recurrence_pattern.start_date,
-				end_date:
-					form.recurrence_pattern.end_date && form.recurrence_pattern.end_date !== null
-						? form.recurrence_pattern.end_date
+				frequency: form.recurrencePattern.frequency as Frequency,
+				interval: form.recurrencePattern.interval || 1,
+				startDate: form.recurrencePattern.startDate,
+				endDate:
+					form.recurrencePattern.endDate && form.recurrencePattern.endDate !== null
+						? form.recurrencePattern.endDate
 						: undefined,
-				max_occurrences:
-					form.recurrence_pattern.max_occurrences && form.recurrence_pattern.max_occurrences !== null
-						? form.recurrence_pattern.max_occurrences
+				maxOccurrences:
+					form.recurrencePattern.maxOccurrences && form.recurrencePattern.maxOccurrences !== null
+						? form.recurrencePattern.maxOccurrences
 						: undefined,
-				never_ends: form.recurrence_pattern.never_ends || false,
-				days_of_week: (form.recurrence_pattern.days_of_week || []).filter(
+				neverEnds: form.recurrencePattern.neverEnds || false,
+				daysOfWeek: (form.recurrencePattern.daysOfWeek || []).filter(
 					(d): d is DayOfWeek => d !== null && d !== undefined,
 				),
-				day_of_month: (form.recurrence_pattern.day_of_month || []).filter(
-					(d): d is number => d !== null && d !== undefined,
-				),
-				month_end: form.recurrence_pattern.month_end ?? undefined,
-				month_position:
-					form.recurrence_pattern?.month_position?.position && form.recurrence_pattern?.month_position?.day_of_week
+				dayOfMonth: (form.recurrencePattern.dayOfMonth || []).filter((d): d is number => d !== null && d !== undefined),
+				monthEnd: form.recurrencePattern.monthEnd ?? undefined,
+				monthPosition:
+					form.recurrencePattern?.monthPosition?.position && form.recurrencePattern?.monthPosition?.dayOfWeek
 						? {
-								position: form.recurrence_pattern.month_position.position,
-								day_of_week: form.recurrence_pattern.month_position.day_of_week as DayOfWeek,
+								position: form.recurrencePattern.monthPosition.position,
+								dayOfWeek: form.recurrencePattern.monthPosition.dayOfWeek as DayOfWeek,
 							}
 						: undefined,
-				months: (form.recurrence_pattern.months || []).filter((m): m is number => m !== null && m !== undefined),
-				excluded_dates: (form.recurrence_pattern.excluded_dates || []).filter(
+				months: (form.recurrencePattern.months || []).filter((m): m is number => m !== null && m !== undefined),
+				excludedDates: (form.recurrencePattern.excludedDates || []).filter(
 					(d): d is string => d !== null && d !== undefined,
 				),
-				description: form.recurrence_pattern.description ?? undefined,
+				description: form.recurrencePattern.description ?? undefined,
 			};
 
 			const dates = calculateNextOccurrences(safePattern, 4);
@@ -243,64 +208,36 @@ export function RecurringPaymentSection({ form, handleFormChange, disabled }: Re
 
 	// Get human-readable pattern description
 	const getPatternDescription = () => {
-		if (!form.recurring) return "One-time payment";
-		if (!form.recurrence_pattern?.start_date) return "Please set a start date";
+		if (!form.isRecurring) return "One-time payment";
+		if (!form.recurrencePattern?.startDate) return "Please set a start date";
 
-		try {
-			// Create a safe copy of the pattern with proper types
-			const safePattern = {
-				frequency: form.recurrence_pattern.frequency as Frequency,
-				interval: form.recurrence_pattern.interval || 1,
-				start_date: form.recurrence_pattern.start_date,
-				end_date:
-					form.recurrence_pattern.end_date && form.recurrence_pattern.end_date !== null
-						? form.recurrence_pattern.end_date
-						: undefined,
-				max_occurrences:
-					form.recurrence_pattern.max_occurrences && form.recurrence_pattern.max_occurrences !== null
-						? form.recurrence_pattern.max_occurrences
-						: undefined,
-				never_ends: form.recurrence_pattern.never_ends || false,
-				days_of_week: (form.recurrence_pattern.days_of_week || []).filter(
-					(d): d is DayOfWeek => d !== null && d !== undefined,
-				),
-				day_of_month: (form.recurrence_pattern.day_of_month || []).filter(
-					(d): d is number => d !== null && d !== undefined,
-				),
-				month_end: form.recurrence_pattern.month_end ?? undefined,
-				month_position:
-					form.recurrence_pattern?.month_position?.position && form.recurrence_pattern?.month_position?.day_of_week
-						? {
-								position: form.recurrence_pattern.month_position.position,
-								day_of_week: form.recurrence_pattern.month_position.day_of_week as DayOfWeek,
-							}
-						: undefined,
-				months: (form.recurrence_pattern.months || []).filter((m): m is number => m !== null && m !== undefined),
-				excluded_dates: (form.recurrence_pattern.excluded_dates || []).filter(
-					(d): d is string => d !== null && d !== undefined,
-				),
-				description: form.recurrence_pattern.description ?? undefined,
-			};
+		const parts = [];
 
-			return generateRecurrenceDescription(safePattern);
-		} catch (error) {
-			console.error("Error generating description:", error);
-			return "Invalid recurrence pattern";
+		// Add frequency and interval
+		if (form.recurrencePattern?.frequency && form.recurrencePattern?.interval) {
+			parts.push(`Every ${form.recurrencePattern.interval} ${form.recurrencePattern.frequency.toLowerCase()}`);
 		}
+
+		// Add start date
+		if (form.recurrencePattern?.startDate) {
+			parts.push(`starting ${new Date(form.recurrencePattern.startDate).toLocaleDateString()}`);
+		}
+
+		return parts.join(" ");
 	};
 
 	// Initialize recurrence pattern if needed
 	const initializeRecurrencePattern = () => {
-		if (!form.recurrence_pattern) {
+		if (!form.recurrencePattern) {
 			const today = new Date().toISOString().split("T")[0];
 
-			handleFormChange("recurrence_pattern", {
+			handleFormChange("recurrencePattern", {
 				frequency: "MONTHLY" as const,
 				interval: 1,
-				start_date: today,
-				never_ends: true,
-				days_of_week: [] as DayOfWeek[],
-				day_of_month: [1] as number[],
+				startDate: today,
+				neverEnds: true,
+				daysOfWeek: [] as DayOfWeek[],
+				dayOfMonth: [1] as number[],
 				months: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as number[],
 			});
 		}
@@ -308,10 +245,15 @@ export function RecurringPaymentSection({ form, handleFormChange, disabled }: Re
 
 	// Toggle recurring payment
 	const handleRecurringToggle = (value: boolean) => {
-		handleFormChange("recurring", value);
-		if (value && !form.recurrence_pattern) {
+		handleFormChange("isRecurring", value);
+		if (value && !form.recurrencePattern) {
 			initializeRecurrencePattern();
 		}
+	};
+
+	// Handle changes to recurrence pattern fields
+	const handlePatternChange = (field: string, value: unknown) => {
+		handleFormChange(`recurrencePattern.${field}`, value);
 	};
 
 	return (
@@ -324,10 +266,10 @@ export function RecurringPaymentSection({ form, handleFormChange, disabled }: Re
 						<input
 							className="govuk-radios__input"
 							id="recurring-no"
-							name="recurring"
+							name="isRecurring"
 							type="radio"
-							value="false"
-							checked={form.recurring === false}
+							value="no"
+							checked={form.isRecurring === false}
 							onChange={() => handleRecurringToggle(false)}
 							disabled={disabled}
 						/>
@@ -340,10 +282,10 @@ export function RecurringPaymentSection({ form, handleFormChange, disabled }: Re
 						<input
 							className="govuk-radios__input"
 							id="recurring-yes"
-							name="recurring"
+							name="isRecurring"
 							type="radio"
-							value="true"
-							checked={form.recurring === true}
+							value="yes"
+							checked={form.isRecurring === true}
 							onChange={() => handleRecurringToggle(true)}
 							disabled={disabled}
 						/>
@@ -354,7 +296,7 @@ export function RecurringPaymentSection({ form, handleFormChange, disabled }: Re
 				</div>
 			</fieldset>
 
-			{form.recurring && (
+			{form.isRecurring && (
 				<>
 					<h3 className="govuk-heading-s">Recurrence Pattern</h3>
 
@@ -366,8 +308,8 @@ export function RecurringPaymentSection({ form, handleFormChange, disabled }: Re
 							className="govuk-select"
 							id="frequency"
 							name="frequency"
-							value={form.recurrence_pattern?.frequency || "MONTHLY"}
-							onChange={(e) => handleFormChange("recurrence_pattern.frequency", e.target.value)}
+							value={form.recurrencePattern?.frequency || "MONTHLY"}
+							onChange={(e) => handlePatternChange("frequency", e.target.value)}
 							disabled={disabled}
 						>
 							<option value="DAILY">Daily</option>
@@ -387,33 +329,33 @@ export function RecurringPaymentSection({ form, handleFormChange, disabled }: Re
 							name="interval"
 							type="number"
 							min="1"
-							value={form.recurrence_pattern?.interval || 1}
-							onChange={(e) => handleFormChange("recurrence_pattern.interval", Number.parseInt(e.target.value, 10))}
+							value={form.recurrencePattern?.interval || 1}
+							onChange={(e) => handlePatternChange("interval", Number.parseInt(e.target.value, 10))}
 							disabled={disabled}
 						/>
 						<span className="govuk-hint">
-							{form.recurrence_pattern?.interval === 1
-								? `Every ${(form.recurrence_pattern?.frequency || "MONTHLY").toLowerCase().slice(0, -2)}y`
-								: `Every ${form.recurrence_pattern?.interval} ${(form.recurrence_pattern?.frequency || "MONTHLY").toLowerCase()}s`}
+							{form.recurrencePattern?.interval === 1
+								? `Every ${(form.recurrencePattern?.frequency || "MONTHLY").toLowerCase().slice(0, -2)}y`
+								: `Every ${form.recurrencePattern?.interval} ${(form.recurrencePattern?.frequency || "MONTHLY").toLowerCase()}s`}
 						</span>
 					</div>
 
 					<div className="govuk-form-group">
-						<label className="govuk-label" htmlFor="start_date">
+						<label className="govuk-label" htmlFor="startDate">
 							Start date
 						</label>
 						<input
 							className="govuk-input govuk-input--width-10"
-							id="start_date"
-							name="start_date"
+							id="startDate"
+							name="startDate"
 							type="date"
-							value={form.recurrence_pattern?.start_date || ""}
-							onChange={(e) => handleFormChange("recurrence_pattern.start_date", e.target.value)}
+							value={form.recurrencePattern?.startDate || ""}
+							onChange={(e) => handlePatternChange("startDate", e.target.value)}
 							disabled={disabled}
 						/>
 					</div>
 
-					{form.recurrence_pattern?.frequency === "WEEKLY" && (
+					{form.recurrencePattern?.frequency === "WEEKLY" && (
 						<div className="govuk-form-group">
 							<fieldset className="govuk-fieldset">
 								<legend className="govuk-fieldset__legend govuk-fieldset__legend--s">Days of week</legend>
@@ -424,7 +366,7 @@ export function RecurringPaymentSection({ form, handleFormChange, disabled }: Re
 												className="govuk-checkboxes__input"
 												id={`day-${day.value}`}
 												type="checkbox"
-												checked={(form.recurrence_pattern?.days_of_week || []).includes(day.value)}
+												checked={(form.recurrencePattern?.daysOfWeek || []).includes(day.value)}
 												onChange={() => handleDayOfWeekChange(day.value)}
 												disabled={disabled}
 											/>
@@ -438,7 +380,7 @@ export function RecurringPaymentSection({ form, handleFormChange, disabled }: Re
 						</div>
 					)}
 
-					{form.recurrence_pattern?.frequency === "MONTHLY" && (
+					{form.recurrencePattern?.frequency === "MONTHLY" && (
 						<div className="govuk-form-group">
 							<fieldset className="govuk-fieldset">
 								<legend className="govuk-fieldset__legend govuk-fieldset__legend--s">Monthly options</legend>
@@ -450,7 +392,7 @@ export function RecurringPaymentSection({ form, handleFormChange, disabled }: Re
 											id="monthly-day"
 											name="monthlyType"
 											type="radio"
-											checked={!useMonthPosition && !(form.recurrence_pattern?.month_end || false)}
+											checked={!useMonthPosition && !(form.recurrencePattern?.monthEnd || false)}
 											onChange={() => handleMonthlyTypeChange("day")}
 											disabled={disabled}
 										/>
@@ -459,7 +401,7 @@ export function RecurringPaymentSection({ form, handleFormChange, disabled }: Re
 										</label>
 									</div>
 
-									{!useMonthPosition && !(form.recurrence_pattern?.month_end || false) && (
+									{!useMonthPosition && !(form.recurrencePattern?.monthEnd || false) && (
 										<div className="govuk-radios__conditional">
 											<div className="govuk-form-group">
 												<fieldset className="govuk-fieldset">
@@ -473,7 +415,7 @@ export function RecurringPaymentSection({ form, handleFormChange, disabled }: Re
 																	className="govuk-checkboxes__input"
 																	id={`day-of-month-${day}`}
 																	type="checkbox"
-																	checked={(form.recurrence_pattern?.day_of_month || []).includes(day)}
+																	checked={(form.recurrencePattern?.dayOfMonth || []).includes(day)}
 																	onChange={() => handleDayOfMonthChange(day)}
 																	disabled={disabled}
 																/>
@@ -509,7 +451,7 @@ export function RecurringPaymentSection({ form, handleFormChange, disabled }: Re
 												<div style={{ display: "flex", gap: "10px" }}>
 													<select
 														className="govuk-select"
-														value={form.recurrence_pattern?.month_position?.position || "FIRST"}
+														value={form.recurrencePattern?.monthPosition?.position || "FIRST"}
 														onChange={(e) => handleMonthPositionChange("position", e.target.value)}
 														disabled={disabled}
 													>
@@ -521,8 +463,8 @@ export function RecurringPaymentSection({ form, handleFormChange, disabled }: Re
 													</select>
 													<select
 														className="govuk-select"
-														value={form.recurrence_pattern?.month_position?.day_of_week || "MONDAY"}
-														onChange={(e) => handleMonthPositionChange("day_of_week", e.target.value)}
+														value={form.recurrencePattern?.monthPosition?.dayOfWeek || "MONDAY"}
+														onChange={(e) => handleMonthPositionChange("dayOfWeek", e.target.value)}
 														disabled={disabled}
 													>
 														{daysOfWeek.map((day) => (
@@ -543,7 +485,7 @@ export function RecurringPaymentSection({ form, handleFormChange, disabled }: Re
 											id="monthly-end"
 											name="monthlyType"
 											type="radio"
-											checked={form.recurrence_pattern?.month_end || false}
+											checked={form.recurrencePattern?.monthEnd || false}
 											onChange={() => handleMonthlyTypeChange("end")}
 											disabled={disabled}
 										/>
@@ -556,11 +498,11 @@ export function RecurringPaymentSection({ form, handleFormChange, disabled }: Re
 						</div>
 					)}
 
-					{(form.recurrence_pattern?.frequency === "MONTHLY" || form.recurrence_pattern?.frequency === "YEARLY") && (
+					{(form.recurrencePattern?.frequency === "MONTHLY" || form.recurrencePattern?.frequency === "YEARLY") && (
 						<div className="govuk-form-group">
 							<fieldset className="govuk-fieldset">
 								<legend className="govuk-fieldset__legend govuk-fieldset__legend--s">
-									{form.recurrence_pattern?.frequency === "MONTHLY" ? "Specific months" : "Months"}
+									{form.recurrencePattern?.frequency === "MONTHLY" ? "Specific months" : "Months"}
 								</legend>
 								<div className="govuk-checkboxes govuk-checkboxes--small">
 									{months.map((month) => (
@@ -569,7 +511,7 @@ export function RecurringPaymentSection({ form, handleFormChange, disabled }: Re
 												className="govuk-checkboxes__input"
 												id={`month-${month.value}`}
 												type="checkbox"
-												checked={(form.recurrence_pattern?.months || []).includes(month.value)}
+												checked={(form.recurrencePattern?.months || []).includes(month.value)}
 												onChange={() => handleMonthChange(month.value)}
 												disabled={disabled}
 											/>
@@ -579,7 +521,7 @@ export function RecurringPaymentSection({ form, handleFormChange, disabled }: Re
 										</div>
 									))}
 								</div>
-								{form.recurrence_pattern?.frequency === "YEARLY" && (
+								{form.recurrencePattern?.frequency === "YEARLY" && (
 									<div className="govuk-hint">Select one or more months</div>
 								)}
 							</fieldset>
@@ -625,16 +567,16 @@ export function RecurringPaymentSection({ form, handleFormChange, disabled }: Re
 								{endCondition === "date" && (
 									<div className="govuk-radios__conditional">
 										<div className="govuk-form-group">
-											<label className="govuk-label" htmlFor="end_date">
+											<label className="govuk-label" htmlFor="endDate">
 												End date
 											</label>
 											<input
 												className="govuk-input govuk-input--width-10"
-												id="end_date"
-												name="end_date"
+												id="endDate"
+												name="endDate"
 												type="date"
-												value={form.recurrence_pattern?.end_date || ""}
-												onChange={(e) => handleFormChange("recurrence_pattern.end_date", e.target.value)}
+												value={form.recurrencePattern?.endDate || ""}
+												onChange={(e) => handlePatternChange("endDate", e.target.value)}
 												disabled={disabled}
 											/>
 										</div>
@@ -660,19 +602,17 @@ export function RecurringPaymentSection({ form, handleFormChange, disabled }: Re
 								{endCondition === "occurrences" && (
 									<div className="govuk-radios__conditional">
 										<div className="govuk-form-group">
-											<label className="govuk-label" htmlFor="max_occurrences">
+											<label className="govuk-label" htmlFor="maxOccurrences">
 												Number of occurrences
 											</label>
 											<input
 												className="govuk-input govuk-input--width-4"
-												id="max_occurrences"
-												name="max_occurrences"
+												id="maxOccurrences"
+												name="maxOccurrences"
 												type="number"
 												min="1"
-												value={form.recurrence_pattern?.max_occurrences || 12}
-												onChange={(e) =>
-													handleFormChange("recurrence_pattern.max_occurrences", Number.parseInt(e.target.value, 10))
-												}
+												value={form.recurrencePattern?.maxOccurrences || 12}
+												onChange={(e) => handlePatternChange("maxOccurrences", Number.parseInt(e.target.value, 10))}
 												disabled={disabled}
 											/>
 										</div>
@@ -705,11 +645,11 @@ export function RecurringPaymentSection({ form, handleFormChange, disabled }: Re
 								</button>
 							</div>
 
-							{(form.recurrence_pattern?.excluded_dates || []).length > 0 && (
+							{(form.recurrencePattern?.excludedDates || []).length > 0 && (
 								<div className="govuk-inset-text">
 									<h4 className="govuk-heading-s">Excluded dates:</h4>
 									<ul className="govuk-list">
-										{(form.recurrence_pattern?.excluded_dates || [])
+										{(form.recurrencePattern?.excludedDates || [])
 											.filter((date): date is string => !!date)
 											.map((date) => {
 												// Safely create a date object
@@ -750,8 +690,8 @@ export function RecurringPaymentSection({ form, handleFormChange, disabled }: Re
 							id="description"
 							name="description"
 							type="text"
-							value={form.recurrence_pattern?.description || ""}
-							onChange={(e) => handleFormChange("recurrence_pattern.description", e.target.value)}
+							value={form.recurrencePattern?.description || ""}
+							onChange={(e) => handlePatternChange("description", e.target.value)}
 							disabled={disabled}
 						/>
 					</div>

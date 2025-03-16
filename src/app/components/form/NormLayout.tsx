@@ -67,7 +67,7 @@ export function NormLayout({
 		currentForm: Partial<Schema["Form"]["type"]>,
 		updatedForm: Partial<Schema["Form"]["type"]>,
 	): boolean => {
-		return currentForm.paymentMethod !== updatedForm.paymentMethod;
+		return currentForm.expenseType !== updatedForm.expenseType;
 	};
 
 	const handleNormMessageSubmit = async (e: React.FormEvent) => {
@@ -135,8 +135,6 @@ export function NormLayout({
 				formID: formId,
 				currentFormState: JSON.stringify({
 					...currentForm,
-					// Ensure payment method is explicitly included
-					paymentMethod: currentForm.paymentMethod || "PREPAID_CARD",
 				}),
 			});
 

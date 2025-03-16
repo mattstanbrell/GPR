@@ -35,12 +35,55 @@ export const isFormValid = (form: Partial<Schema["Form"]["type"]> | null): boole
 	if (!form.dateRequired?.day || !form.dateRequired?.month || !form.dateRequired?.year) return false;
 
 	// Check payment method specific fields
-	if (form.paymentMethod === "PURCHASE_ORDER") {
+	if (form.expenseType === "PURCHASE_ORDER") {
 		// Check business details for purchase orders
 		if (!form.businessDetails?.name?.trim()) return false;
 		if (!form.businessDetails?.address?.lineOne?.trim()) return false;
 		if (!form.businessDetails?.address?.townOrCity?.trim()) return false;
 		if (!form.businessDetails?.address?.postcode?.trim()) return false;
+
+		// Only check recurring payment fields for purchase orders
+		if (form.isRecurring) {
+			// Check required recurrence pattern fields
+			if (!form.recurrencePattern) return false;
+			if (!form.recurrencePattern.frequency) return false;
+			if (!form.recurrencePattern.interval || form.recurrencePattern.interval < 1) return false;
+			if (!form.recurrencePattern.startDate) return false;
+
+			// Check frequency-specific fields
+			if (
+				form.recurrencePattern.frequency === "WEEKLY" &&
+				(!form.recurrencePattern.daysOfWeek || form.recurrencePattern.daysOfWeek.length === 0)
+			) {
+				return false;
+			}
+
+			if (form.recurrencePattern.frequency === "MONTHLY") {
+				// For monthly, we need either dayOfMonth, monthPosition, or monthEnd
+				const hasDayOfMonth = form.recurrencePattern.dayOfMonth && form.recurrencePattern.dayOfMonth.length > 0;
+				const hasMonthPosition = !!form.recurrencePattern.monthPosition;
+				const hasMonthEnd = !!form.recurrencePattern.monthEnd;
+
+				if (!hasDayOfMonth && !hasMonthPosition && !hasMonthEnd) {
+					return false;
+				}
+			}
+
+			if (form.recurrencePattern.frequency === "YEARLY") {
+				// For yearly, we need months
+				if (!form.recurrencePattern.months || form.recurrencePattern.months.length === 0) {
+					return false;
+				}
+			}
+
+			// Check end conditions
+			if (!form.recurrencePattern.neverEnds) {
+				// If not never-ending, we need either endDate or maxOccurrences
+				if (!form.recurrencePattern.endDate && !form.recurrencePattern.maxOccurrences) {
+					return false;
+				}
+			}
+		}
 	} else {
 		// Default to PREPAID_CARD validation if not specified or explicitly PREPAID_CARD
 		// Check recipient details - name
@@ -51,49 +94,9 @@ export const isFormValid = (form: Partial<Schema["Form"]["type"]> | null): boole
 		if (!form.recipientDetails?.address?.lineOne?.trim()) return false;
 		if (!form.recipientDetails?.address?.townOrCity?.trim()) return false;
 		if (!form.recipientDetails?.address?.postcode?.trim()) return false;
-	}
 
-	// Check recurring payment fields if recurring is enabled
-	if (form.recurring) {
-		// Check required recurrence pattern fields
-		if (!form.recurrence_pattern) return false;
-		if (!form.recurrence_pattern.frequency) return false;
-		if (!form.recurrence_pattern.interval || form.recurrence_pattern.interval < 1) return false;
-		if (!form.recurrence_pattern.start_date) return false;
-
-		// Check frequency-specific fields
-		if (
-			form.recurrence_pattern.frequency === "WEEKLY" &&
-			(!form.recurrence_pattern.days_of_week || form.recurrence_pattern.days_of_week.length === 0)
-		) {
-			return false;
-		}
-
-		if (form.recurrence_pattern.frequency === "MONTHLY") {
-			// For monthly, we need either day_of_month, month_position, or month_end
-			const hasDayOfMonth = form.recurrence_pattern.day_of_month && form.recurrence_pattern.day_of_month.length > 0;
-			const hasMonthPosition = !!form.recurrence_pattern.month_position;
-			const hasMonthEnd = !!form.recurrence_pattern.month_end;
-
-			if (!hasDayOfMonth && !hasMonthPosition && !hasMonthEnd) {
-				return false;
-			}
-		}
-
-		if (form.recurrence_pattern.frequency === "YEARLY") {
-			// For yearly, we need months
-			if (!form.recurrence_pattern.months || form.recurrence_pattern.months.length === 0) {
-				return false;
-			}
-		}
-
-		// Check end conditions
-		if (!form.recurrence_pattern.never_ends) {
-			// If not never-ending, we need either end_date or max_occurrences
-			if (!form.recurrence_pattern.end_date && !form.recurrence_pattern.max_occurrences) {
-				return false;
-			}
-		}
+		// Ensure recurring payment is disabled for prepaid cards
+		if (form.isRecurring) return false;
 	}
 
 	return true;

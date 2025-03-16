@@ -133,17 +133,17 @@ export function FormLayout({
 							<legend className="govuk-fieldset__legend govuk-fieldset__legend--m">
 								<h2 className="govuk-fieldset__heading">Payment Method</h2>
 							</legend>
-							<div className={`govuk-form-group ${updatedFields.has("paymentMethod") ? "form-group-updated" : ""}`}>
+							<div className={`govuk-form-group ${updatedFields.has("expenseType") ? "form-group-updated" : ""}`}>
 								<div className="govuk-radios">
 									<div className="govuk-radios__item">
 										<input
-											className={`govuk-radios__input ${updatedFields.has("paymentMethod") ? "field-updated" : ""}`}
+											className={`govuk-radios__input ${updatedFields.has("expenseType") ? "field-updated" : ""}`}
 											id="payment-method-prepaid"
 											name="payment-method"
 											type="radio"
 											value="PREPAID_CARD"
-											checked={form.paymentMethod === "PREPAID_CARD" || !form.paymentMethod}
-											onChange={() => handleFormChange("paymentMethod", "PREPAID_CARD", true)}
+											checked={form.expenseType === "PREPAID_CARD" || !form.expenseType}
+											onChange={() => handleFormChange("expenseType", "PREPAID_CARD", true)}
 											disabled={disabled}
 										/>
 										<label className="govuk-label govuk-radios__label" htmlFor="payment-method-prepaid">
@@ -152,13 +152,13 @@ export function FormLayout({
 									</div>
 									<div className="govuk-radios__item">
 										<input
-											className={`govuk-radios__input ${updatedFields.has("paymentMethod") ? "field-updated" : ""}`}
+											className={`govuk-radios__input ${updatedFields.has("expenseType") ? "field-updated" : ""}`}
 											id="payment-method-purchase-order"
 											name="payment-method"
 											type="radio"
 											value="PURCHASE_ORDER"
-											checked={form.paymentMethod === "PURCHASE_ORDER"}
-											onChange={() => handleFormChange("paymentMethod", "PURCHASE_ORDER", true)}
+											checked={form.expenseType === "PURCHASE_ORDER"}
+											onChange={() => handleFormChange("expenseType", "PURCHASE_ORDER", true)}
 											disabled={disabled}
 										/>
 										<label className="govuk-label govuk-radios__label" htmlFor="payment-method-purchase-order">
@@ -256,7 +256,7 @@ export function FormLayout({
 							<div className={`govuk-form-group ${updatedFields.has("dateRequired") ? "form-group-updated" : ""}`}>
 								<fieldset className="govuk-fieldset" aria-describedby="date-required-hint">
 									<legend className="govuk-fieldset__legend">
-										{form.paymentMethod === "PURCHASE_ORDER"
+										{form.expenseType === "PURCHASE_ORDER"
 											? "Date purchase order is needed by"
 											: "Date prepaid card is needed by"}
 									</legend>
@@ -381,7 +381,7 @@ export function FormLayout({
 						</fieldset>
 
 						{/* Conditional rendering based on payment method */}
-						{form.paymentMethod !== "PURCHASE_ORDER" && (
+						{form.expenseType !== "PURCHASE_ORDER" && (
 							<fieldset className="govuk-fieldset">
 								<legend className="govuk-fieldset__legend govuk-fieldset__legend--m">
 									<h2 className="govuk-fieldset__heading">Card recipient details</h2>
@@ -627,7 +627,7 @@ export function FormLayout({
 						)}
 
 						{/* Business details section for purchase orders */}
-						{form.paymentMethod === "PURCHASE_ORDER" && (
+						{form.expenseType === "PURCHASE_ORDER" && (
 							<fieldset className="govuk-fieldset">
 								<legend className="govuk-fieldset__legend govuk-fieldset__legend--m">
 									<h2 className="govuk-fieldset__heading">Business details</h2>
@@ -818,8 +818,10 @@ export function FormLayout({
 							</fieldset>
 						)}
 
-						{/* Add the RecurringPaymentSection component here */}
-						<RecurringPaymentSection form={form} handleFormChange={handleFormChange} disabled={disabled} />
+						{/* Only show recurring payment options for purchase orders */}
+						{form.expenseType === "PURCHASE_ORDER" && (
+							<RecurringPaymentSection form={form} handleFormChange={handleFormChange} disabled={disabled} />
+						)}
 					</form>
 				</div>
 				<div className="button-container">

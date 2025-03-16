@@ -99,34 +99,34 @@ const schema = a
 				financeCode: a.belongsTo("FinanceCode", "financeCodeID"),
 				suggestedFinanceCodeID: a.string(),
 				suggestedFinanceCode: a.belongsTo("FinanceCode", "suggestedFinanceCodeID"),
-				recurring: a.boolean(),
-				recurrence_pattern: a.customType({
+				isRecurring: a.boolean(),
+				recurrencePattern: a.customType({
 					// REQUIRED FIELDS
 					frequency: a.enum(["DAILY", "WEEKLY", "MONTHLY", "YEARLY"]),
 					interval: a.integer(),
-					start_date: a.string(), // ISO date string
+					startDate: a.string(), // ISO date string
 
 					// OPTIONAL END CONDITIONS
-					end_date: a.string(), // ISO date string
-					max_occurrences: a.integer(),
-					never_ends: a.boolean(),
+					endDate: a.string(), // ISO date string
+					maxOccurrences: a.integer(),
+					neverEnds: a.boolean(),
 
 					// WEEKLY RECURRENCE SPECIFIERS
-					days_of_week: a.string().array(), // Values should be: "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"
+					daysOfWeek: a.string().array(), // Values should be: "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"
 
 					// MONTHLY RECURRENCE SPECIFIERS
-					day_of_month: a.integer().array(), // 1-31, supports multiple days
-					month_end: a.boolean(),
-					month_position: a.customType({
+					dayOfMonth: a.integer().array(), // 1-31, supports multiple days
+					monthEnd: a.boolean(),
+					monthPosition: a.customType({
 						position: a.enum(["FIRST", "SECOND", "THIRD", "FOURTH", "LAST"]),
-						day_of_week: a.string(), // Values should be: "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"
+						dayOfWeek: a.string(), // Values should be: "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"
 					}),
 
 					// YEARLY RECURRENCE SPECIFIERS
 					months: a.integer().array(), // 1-12 representing JANUARY through DECEMBER
 
 					// EXCLUDED DATES
-					excluded_dates: a.string().array(), // ISO date strings
+					excludedDates: a.string().array(), // ISO date strings
 
 					// METADATA
 					description: a.string(),

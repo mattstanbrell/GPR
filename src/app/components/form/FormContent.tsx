@@ -27,7 +27,7 @@ export function FormContent() {
 		reason: "",
 		amount: null,
 		section17: false,
-		paymentMethod: "PREPAID_CARD", // Default payment method
+		expenseType: "PREPAID_CARD",
 		dateRequired: {
 			day: null,
 			month: null,
@@ -59,14 +59,14 @@ export function FormContent() {
 		// Use undefined instead of null for businessID to avoid DynamoDB GSI errors
 		businessID: undefined,
 		// Initialize recurring payment fields
-		recurring: false,
-		recurrence_pattern: {
+		isRecurring: false,
+		recurrencePattern: {
 			frequency: "MONTHLY",
 			interval: 1,
-			start_date: new Date().toISOString().split("T")[0],
-			never_ends: true,
-			days_of_week: [],
-			day_of_month: [1],
+			startDate: new Date().toISOString().split("T")[0],
+			neverEnds: true,
+			daysOfWeek: [],
+			dayOfMonth: [1],
 			months: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
 		},
 	});
@@ -81,8 +81,17 @@ export function FormContent() {
 
 	// Get the form fields directly from the schema
 	const formFields = {
-		simple: ["title", "caseNumber", "reason", "amount", "section17", "paymentMethod", "businessID"] as const,
-		nested: ["dateRequired", "recipientDetails", "businessDetails"] as const,
+		simple: [
+			"title",
+			"caseNumber",
+			"reason",
+			"amount",
+			"section17",
+			"expenseType",
+			"businessID",
+			"isRecurring",
+		] as const,
+		nested: ["dateRequired", "recipientDetails", "businessDetails", "recurrencePattern"] as const,
 	};
 
 	const loadConversation = useCallback(
@@ -191,19 +200,19 @@ export function FormContent() {
 		(field: string, value: unknown, updateDb = false) => {
 			if (!form) return;
 
-			// Handle nested properties in recurrence_pattern
-			if (field.includes("recurrence_pattern.")) {
-				const nestedField = field.split("recurrence_pattern.")[1];
+			// Handle nested properties in recurrencePattern
+			if (field.includes("recurrencePattern.")) {
+				const nestedField = field.split("recurrencePattern.")[1];
 
 				setForm((prevForm) => {
 					const updatedPattern = {
-						...(prevForm.recurrence_pattern || {}),
+						...(prevForm.recurrencePattern || {}),
 						[nestedField]: value,
 					};
 
 					return {
 						...prevForm,
-						recurrence_pattern: updatedPattern,
+						recurrencePattern: updatedPattern,
 					};
 				});
 
@@ -211,9 +220,9 @@ export function FormContent() {
 					// Update the database with the new form data
 					updateFormInDatabase({
 						id: form.id,
-						recurrence_pattern: {
-							...(form.recurrence_pattern || {}),
-							[field.split("recurrence_pattern.")[1]]: value,
+						recurrencePattern: {
+							...(form.recurrencePattern || {}),
+							[field.split("recurrencePattern.")[1]]: value,
 						},
 					});
 				}
@@ -222,7 +231,17 @@ export function FormContent() {
 			}
 
 			setForm((prevForm: Partial<Schema["Form"]["type"]>) => {
-				const newForm = { ...prevForm, [field]: value };
+				let newForm = { ...prevForm, [field]: value };
+
+				// Reset recurring payment fields when switching to prepaid card
+				if (field === "expenseType" && value === "PREPAID_CARD") {
+					newForm = {
+						...newForm,
+						isRecurring: false,
+						recurrencePattern: undefined,
+					};
+				}
+
 				if (updateDb && newForm.id) {
 					updateFormInDatabase(newForm);
 				}
@@ -240,11 +259,30 @@ export function FormContent() {
 			// Create a clean version of the form data without null businessID
 			const { businessID, ...restOfForm } = formToUpdate;
 
-			// Only include businessID if it's not null
+			// Convert form data to update, ensuring all fields are included
 			const formDataToUpdate = {
 				...restOfForm,
 				creatorID: userModel.id,
 				...(businessID !== null && { businessID }),
+				// Ensure recurring fields are included
+				isRecurring: formToUpdate.isRecurring ?? false,
+				...(formToUpdate.recurrencePattern && {
+					recurrencePattern: {
+						frequency: formToUpdate.recurrencePattern.frequency || "MONTHLY",
+						interval: formToUpdate.recurrencePattern.interval || 1,
+						startDate: formToUpdate.recurrencePattern.startDate || "",
+						endDate: formToUpdate.recurrencePattern.endDate,
+						maxOccurrences: formToUpdate.recurrencePattern.maxOccurrences,
+						neverEnds: formToUpdate.recurrencePattern.neverEnds ?? false,
+						daysOfWeek: formToUpdate.recurrencePattern.daysOfWeek || [],
+						dayOfMonth: formToUpdate.recurrencePattern.dayOfMonth || [],
+						monthEnd: formToUpdate.recurrencePattern.monthEnd ?? false,
+						monthPosition: formToUpdate.recurrencePattern.monthPosition,
+						months: formToUpdate.recurrencePattern.months || [],
+						excludedDates: formToUpdate.recurrencePattern.excludedDates || [],
+						description: formToUpdate.recurrencePattern.description || "",
+					},
+				}),
 			};
 
 			await updateForm(formToUpdate.id, formDataToUpdate);
@@ -277,7 +315,7 @@ export function FormContent() {
 
 			// Start business creation in parallel if needed
 			let businessPromise: Promise<{ id: string } | null> = Promise.resolve(null);
-			if (!form.businessID && form.paymentMethod === "PURCHASE_ORDER" && form.businessDetails?.name) {
+			if (!form.businessID && form.expenseType === "PURCHASE_ORDER" && form.businessDetails?.name) {
 				businessPromise = createBusiness(
 					form.businessDetails.name,
 					{

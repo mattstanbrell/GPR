@@ -21,23 +21,23 @@ const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
 const recurrencePatternSchema = z.object({
 	frequency: z.enum(["DAILY", "WEEKLY", "MONTHLY", "YEARLY"]),
 	interval: z.number(),
-	start_date: z.string(),
-	end_date: z.string().optional(),
-	max_occurrences: z.number().optional(),
-	never_ends: z.boolean().optional(),
-	days_of_week: z
+	startDate: z.string(),
+	endDate: z.string().optional(),
+	maxOccurrences: z.number().optional(),
+	neverEnds: z.boolean().optional(),
+	daysOfWeek: z
 		.array(z.enum(["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]))
 		.optional(),
-	day_of_month: z.array(z.number()).optional(),
-	month_end: z.boolean().optional(),
-	month_position: z
+	dayOfMonth: z.array(z.number()).optional(),
+	monthEnd: z.boolean().optional(),
+	monthPosition: z
 		.object({
 			position: z.enum(["FIRST", "SECOND", "THIRD", "FOURTH", "LAST"]),
-			day_of_week: z.enum(["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]),
+			dayOfWeek: z.enum(["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]),
 		})
 		.optional(),
 	months: z.array(z.number()).optional(),
-	excluded_dates: z.array(z.string()).optional(),
+	excludedDates: z.array(z.string()).optional(),
 	description: z.string().optional(),
 });
 
@@ -141,12 +141,12 @@ const tools = [
 						type: "string",
 						description: "The natural language description of the recurring schedule",
 					},
-					start_date: {
+					startDate: {
 						type: "string",
 						description: "The start date in YYYY-MM-DD format",
 					},
 				},
-				required: ["description", "start_date"],
+				required: ["description", "startDate"],
 				additionalProperties: false,
 			},
 			strict: true,
@@ -200,7 +200,7 @@ async function lookupCaseNumber(name: string, userID: string) {
 	return foundChild;
 }
 
-async function parseRecurring(description: string, start_date: string) {
+async function parseRecurring(description: string, startDate: string) {
 	const completion = await openai.beta.chat.completions.parse({
 		model: "gpt-4o",
 		messages: [
@@ -219,8 +219,8 @@ async function parseRecurring(description: string, start_date: string) {
    - End conditions (specific end date or number of occurrences)
 
 Rules:
-- Always use the provided start_date without modification
-- Set never_ends to true unless an end_date or max_occurrences is specified
+- Always use the provided startDate without modification
+- Set neverEnds to true unless an endDate or maxOccurrences is specified
 - Include the original description in the response
 - For month positions, only use FIRST, SECOND, THIRD, FOURTH, or LAST
 - Days of week must be uppercase (MONDAY, TUESDAY, etc.)
@@ -235,9 +235,9 @@ Input: "every Monday and Wednesday"
 {
   "frequency": "WEEKLY",
   "interval": 1,
-  "start_date": "2024-03-15",
-  "days_of_week": ["MONDAY", "WEDNESDAY"],
-  "never_ends": true,
+  "startDate": "2024-03-15",
+  "daysOfWeek": ["MONDAY", "WEDNESDAY"],
+  "neverEnds": true,
   "description": "every Monday and Wednesday"
 }
 
@@ -246,9 +246,9 @@ Input: "on the 1st and 15th of each month"
 {
   "frequency": "MONTHLY",
   "interval": 1,
-  "start_date": "2024-04-01",
-  "day_of_month": [1, 15],
-  "never_ends": true,
+  "startDate": "2024-04-01",
+  "dayOfMonth": [1, 15],
+  "neverEnds": true,
   "description": "on the 1st and 15th of each month"
 }
 
@@ -257,12 +257,12 @@ Input: "last Friday of every month"
 {
   "frequency": "MONTHLY",
   "interval": 1,
-  "start_date": "2024-03-29",
-  "month_position": {
+  "startDate": "2024-03-29",
+  "monthPosition": {
     "position": "LAST",
-    "day_of_week": "FRIDAY"
+    "dayOfWeek": "FRIDAY"
   },
-  "never_ends": true,
+  "neverEnds": true,
   "description": "last Friday of every month"
 }
 
@@ -271,9 +271,9 @@ Input: "on the last day of each month"
 {
   "frequency": "MONTHLY",
   "interval": 1,
-  "start_date": "2024-03-31",
-  "month_end": true,
-  "never_ends": true,
+  "startDate": "2024-03-31",
+  "monthEnd": true,
+  "neverEnds": true,
   "description": "on the last day of each month"
 }
 
@@ -282,9 +282,9 @@ Input: "January and September each year"
 {
   "frequency": "YEARLY",
   "interval": 1,
-  "start_date": "2024-01-01",
+  "startDate": "2024-01-01",
   "months": [1, 9],
-  "never_ends": true,
+  "neverEnds": true,
   "description": "January and September each year"
 }
 
@@ -293,9 +293,9 @@ Input: "every weekday"
 {
   "frequency": "DAILY",
   "interval": 1,
-  "start_date": "2024-03-12",
-  "days_of_week": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"],
-  "never_ends": true,
+  "startDate": "2024-03-12",
+  "daysOfWeek": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"],
+  "neverEnds": true,
   "description": "every weekday"
 }
 
@@ -304,8 +304,8 @@ Input: "weekly until December 31st"
 {
   "frequency": "WEEKLY",
   "interval": 1,
-  "start_date": "2024-03-15",
-  "end_date": "2024-12-31",
+  "startDate": "2024-03-15",
+  "endDate": "2024-12-31",
   "description": "weekly until December 31st"
 }
 
@@ -314,8 +314,8 @@ Input: "every two weeks for 10 payments"
 {
   "frequency": "WEEKLY",
   "interval": 2,
-  "start_date": "2024-03-18",
-  "max_occurrences": 10,
+  "startDate": "2024-03-18",
+  "maxOccurrences": 10,
   "description": "every two weeks for 10 payments"
 }
 
@@ -324,10 +324,10 @@ Input: "weekly on Mondays, skip March 25th and April 1st"
 {
   "frequency": "WEEKLY",
   "interval": 1,
-  "start_date": "2024-03-15",
-  "days_of_week": ["MONDAY"],
-  "never_ends": true,
-  "excluded_dates": ["2024-03-25", "2024-04-01"],
+  "startDate": "2024-03-15",
+  "daysOfWeek": ["MONDAY"],
+  "neverEnds": true,
+  "excludedDates": ["2024-03-25", "2024-04-01"],
   "description": "weekly on Mondays, skip March 25th and April 1st"
 }
 
@@ -336,10 +336,10 @@ Input: "15th of March, June, September, and December"
 {
   "frequency": "YEARLY",
   "interval": 1,
-  "start_date": "2024-03-15",
+  "startDate": "2024-03-15",
   "months": [3, 6, 9, 12],
-  "day_of_month": [15],
-  "never_ends": true,
+  "dayOfMonth": [15],
+  "neverEnds": true,
   "description": "15th of March, June, September, and December"
 }
 
@@ -348,12 +348,12 @@ Input: "first Monday of every month"
 {
   "frequency": "MONTHLY",
   "interval": 1,
-  "start_date": "2024-04-01",
-  "month_position": {
+  "startDate": "2024-04-01",
+  "monthPosition": {
     "position": "FIRST",
-    "day_of_week": "MONDAY"
+    "dayOfWeek": "MONDAY"
   },
-  "never_ends": true,
+  "neverEnds": true,
   "description": "first Monday of every month"
 }
 
@@ -362,9 +362,9 @@ Input: "every other week on Tuesday and Thursday"
 {
   "frequency": "WEEKLY",
   "interval": 2,
-  "start_date": "2024-03-12",
-  "days_of_week": ["TUESDAY", "THURSDAY"],
-  "never_ends": true,
+  "startDate": "2024-03-12",
+  "daysOfWeek": ["TUESDAY", "THURSDAY"],
+  "neverEnds": true,
   "description": "every other week on Tuesday and Thursday"
 }
 
@@ -373,9 +373,9 @@ Input: "every Monday and Wednesday until June 30th"
 {
   "frequency": "WEEKLY",
   "interval": 1,
-  "start_date": "2024-03-13",
-  "days_of_week": ["MONDAY", "WEDNESDAY"],
-  "end_date": "2024-06-30",
+  "startDate": "2024-03-13",
+  "daysOfWeek": ["MONDAY", "WEDNESDAY"],
+  "endDate": "2024-06-30",
   "description": "every Monday and Wednesday until June 30th"
 }
 
@@ -384,18 +384,18 @@ Input: "first and last Friday of every month"
 {
   "frequency": "MONTHLY",
   "interval": 1,
-  "start_date": "2024-03-01",
-  "month_position": [
+  "startDate": "2024-03-01",
+  "monthPosition": [
     {
       "position": "FIRST",
-      "day_of_week": "FRIDAY"
+      "dayOfWeek": "FRIDAY"
     },
     {
       "position": "LAST",
-      "day_of_week": "FRIDAY"
+      "dayOfWeek": "FRIDAY"
     }
   ],
-  "never_ends": true,
+  "neverEnds": true,
   "description": "first and last Friday of every month"
 }
 
@@ -404,13 +404,13 @@ Input: "first Monday of January, April, July, and October"
 {
   "frequency": "YEARLY",
   "interval": 1,
-  "start_date": "2024-01-01",
+  "startDate": "2024-01-01",
   "months": [1, 4, 7, 10],
-  "month_position": {
+  "monthPosition": {
     "position": "FIRST",
-    "day_of_week": "MONDAY"
+    "dayOfWeek": "MONDAY"
   },
-  "never_ends": true,
+  "neverEnds": true,
   "description": "first Monday of January, April, July, and October"
 }
 
@@ -419,7 +419,7 @@ The response must strictly conform to the schema provided.`,
 			{
 				role: "user",
 				content: `Description: "${description}"
-Start date: "${start_date}"`,
+Start date: "${startDate}"`,
 			},
 		],
 		response_format: zodResponseFormat(recurrencePatternSchema, "schema"),
@@ -466,8 +466,8 @@ async function handleToolCalls(
 				break;
 			}
 			case "parseRecurring": {
-				const { description, start_date } = args;
-				const result = await parseRecurring(description, start_date);
+				const { description, startDate } = args;
+				const result = await parseRecurring(description, startDate);
 
 				messages.push({
 					role: "tool",
@@ -879,8 +879,8 @@ User: "I need to set up monthly payments of £85 to ABC Therapy Services for Dan
 [Tool response: {
   "frequency": "MONTHLY",
   "interval": 1,
-  "start_date": "2025-04-05",
-  "never_ends": true,
+  "startDate": "2025-04-05",
+  "neverEnds": true,
   "description": "monthly payments starting April 5th"
 }]
 
@@ -907,8 +907,8 @@ Response:
     "recurrencePattern": {
       "frequency": "MONTHLY",
       "interval": 1,
-      "start_date": "2025-04-05",
-      "never_ends": true,
+      "startDate": "2025-04-05",
+      "neverEnds": true,
       "description": "monthly payments starting April 5th"
     }
   },
@@ -999,14 +999,14 @@ Supported recurrence patterns:
 * Yearly patterns:
   * Specific months (e.g., January and July each year)
   * Can combine with specific dates or relative positions (e.g., first Monday of January)
-* End conditions: can specify an end date, maximum number of occurrences, or never-ending
+* End conditions: can specify an endDate, maxOccurrences, or neverEnds
 * Exclusions: can specify dates to skip
 
 Always ask clarifying questions when:
 * The frequency is unclear (daily, weekly, monthly, yearly)
 * For weekly patterns, which specific days are needed (if applicable)
 * For monthly patterns, whether it's specific dates or relative positions
-* Whether there's an end date or maximum number of occurrences
+* Whether there's an endDate or maxOccurrences
 * Whether any dates should be excluded
 
 Explain limitations if the social worker requests:
