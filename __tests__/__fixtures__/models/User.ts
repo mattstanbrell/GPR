@@ -9,7 +9,7 @@ const makeUserModelFixture = ( options: {
     assistantManagerId?: string, 
     managerId?: string
 }) => {
-    return {}
+    return options
 }
 
 export const social_worker = makeUserModelFixture({
