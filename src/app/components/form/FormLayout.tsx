@@ -4,7 +4,7 @@ import type { Schema } from "../../../../amplify/data/resource";
 import FeedbackContainer from "./feedback/FeedbackContainer";
 import { useContext } from "react";
 import { AppContext } from "@/app/layout";
-import { SocialWorkerFormButtonContainer } from "./feedback/ButtonsContainer";
+import { SocialWorkerFormButtonContainer } from "./ButtonsContainer";
 
 interface FormLayoutProps {
 	form: Partial<Schema["Form"]["type"]>;

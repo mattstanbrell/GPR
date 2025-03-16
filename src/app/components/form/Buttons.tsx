@@ -7,7 +7,7 @@ import { getThreadByFormId, updateForm } from "@/utils/apis"
 import { FORM, FORM_BOARD, THREADS } from "@/app/constants/urls"
 import { FORM_STATUS } from "@/app/constants/models"
 import { useEffect, useState } from "react"
-import { threads } from "../../threads/dummy"
+import { threads } from "../threads/dummy"
 
 const handleApproveForm = async (form: Partial<Form>) => {
     await updateForm(form.id ? form.id : "", { ...form, status: "AUTHORISED" });
