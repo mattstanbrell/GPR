@@ -18,6 +18,29 @@ const client = generateClient<Schema>();
 
 const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
 
+const recurrencePatternSchema = z.object({
+	frequency: z.enum(["DAILY", "WEEKLY", "MONTHLY", "YEARLY"]),
+	interval: z.number(),
+	start_date: z.string(),
+	end_date: z.string().optional(),
+	max_occurrences: z.number().optional(),
+	never_ends: z.boolean().optional(),
+	days_of_week: z
+		.array(z.enum(["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]))
+		.optional(),
+	day_of_month: z.array(z.number()).optional(),
+	month_end: z.boolean().optional(),
+	month_position: z
+		.object({
+			position: z.enum(["FIRST", "SECOND", "THIRD", "FOURTH", "LAST"]),
+			day_of_week: z.enum(["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]),
+		})
+		.optional(),
+	months: z.array(z.number()).optional(),
+	excluded_dates: z.array(z.string()).optional(),
+	description: z.string().optional(),
+});
+
 const llmResponseSchema = z.object({
 	form: z.object({
 		title: z.string(),
@@ -30,6 +53,9 @@ const llmResponseSchema = z.object({
 			year: z.number(),
 		}),
 		paymentMethod: z.enum(["PREPAID_CARD", "PURCHASE_ORDER"]).optional(),
+		// Add recurring payment fields
+		recurring: z.boolean().optional(),
+		recurrence_pattern: recurrencePatternSchema.optional(),
 		// Conditional fields based on payment method
 		recipientDetails: z
 			.object({
@@ -102,6 +128,30 @@ const tools = [
 			strict: true,
 		},
 	},
+	{
+		type: "function" as const,
+		function: {
+			name: "parseRecurringPayment",
+			description:
+				"Parse a natural language description into a structured recurrence pattern, using a provided start date",
+			parameters: {
+				type: "object",
+				properties: {
+					description: {
+						type: "string",
+						description: "Natural language description of a recurring payment schedule",
+					},
+					start_date: {
+						type: "string",
+						description: "The start date for the recurring pattern in YYYY-MM-DD format",
+					},
+				},
+				required: ["description", "start_date"],
+				additionalProperties: false,
+			},
+			strict: true,
+		},
+	},
 ];
 
 async function lookupCaseNumber(name: string, userID: string) {
@@ -150,6 +200,65 @@ async function lookupCaseNumber(name: string, userID: string) {
 	return foundChild;
 }
 
+async function parseRecurringPayment(description: string, start_date: string) {
+	// Create a prompt for GPT to parse the description
+	const messages = [
+		{
+			role: "system" as const,
+			content: `You are a specialized assistant that converts natural language descriptions of recurring payment schedules into structured JSON objects. Your task is to accurately extract frequency, interval, dates, and other recurrence pattern details from the given text.
+
+Current London time: ${formatLondonTime()}
+
+You will be provided with a start date - use this as the basis for the recurrence pattern. Do not calculate or change the start date.
+
+Examples:
+1. "every 2 weeks" with start_date "2024-03-18" ->
+{
+  "frequency": "WEEKLY",
+  "interval": 2,
+  "start_date": "2024-03-18",
+  "never_ends": true
+}
+
+2. "monthly on the first Thursday until end of year" with start_date "2024-03-07" ->
+{
+  "frequency": "MONTHLY",
+  "interval": 1,
+  "start_date": "2024-03-07",
+  "end_date": "2024-12-31",
+  "month_position": {
+    "position": "FIRST",
+    "day_of_week": "THURSDAY"
+  }
+}
+
+3. "every day except weekends for 30 occurrences" with start_date "2024-03-12" ->
+{
+  "frequency": "DAILY",
+  "interval": 1,
+  "start_date": "2024-03-12",
+  "max_occurrences": 30,
+  "days_of_week": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"]
+}
+
+Please parse the following description into a valid recurrence pattern, using the provided start date.`,
+		},
+		{
+			role: "user" as const,
+			content: `Parse this recurring payment description into a valid recurrence pattern, using start date "${start_date}": "${description}"`,
+		},
+	];
+
+	// Call OpenAI with a specific schema for recurrence patterns
+	const completion = await openai.beta.chat.completions.parse({
+		model: "gpt-4o",
+		messages,
+		response_format: zodResponseFormat(recurrencePatternSchema, "schema"),
+	});
+
+	return completion.choices[0].message.parsed;
+}
+
 async function handleToolCalls(
 	toolCalls: Array<{
 		function: { name: string; arguments: string };
@@ -179,6 +288,17 @@ async function handleToolCalls(
 				const name = args.name;
 				console.log("Current messages:", messages);
 				const result = await searchBusinesses(name);
+
+				messages.push({
+					role: "tool",
+					content: JSON.stringify(result),
+					tool_call_id: toolCall.id,
+				});
+				break;
+			}
+			case "parseRecurringPayment": {
+				const { description, start_date } = args;
+				const result = await parseRecurringPayment(description, start_date);
 
 				messages.push({
 					role: "tool",
@@ -406,6 +526,8 @@ Common form fields for both payment methods:
   - month
   - year
 - paymentMethod (either "PREPAID_CARD" or "PURCHASE_ORDER")
+- recurring (boolean indicating if this is a recurring payment)
+- recurrence_pattern (optional, required if recurring is true)
 
 For PREPAID_CARD payment method, also complete:
 - recipientDetails:
@@ -417,9 +539,6 @@ For PREPAID_CARD payment method, also complete:
     - lineTwo (optional)
     - townOrCity
     - postcode
-
-- Always politely confirm who will receive the prepaid card—never assume it's the child unless clearly stated.
-- If the social worker clearly states they're the recipient, immediately auto-fill their details from the provided social worker information.
 
 For PURCHASE_ORDER payment method, also complete:
 - businessDetails:
@@ -435,6 +554,47 @@ Guidelines for payment method selection:
 - Forms default to PREPAID_CARD. Immediately set the payment method to PURCHASE_ORDER if the social worker explicitly requests or clearly indicates ordering from a business or supplier.
 - If the payment method isn't clear from the initial request, politely ask the social worker to clarify their preferred payment method.
 - Never ask about payment method if the social worker's intended method is already obvious.
+
+Guidelines for recurring payments:
+1. If the social worker mentions any recurring schedule (e.g., "every week", "monthly", "twice a month"), set recurring to true.
+2. For the start date:
+   a. If a clear date is provided (e.g., "March 15th", "next Tuesday", "first Monday of April"), use it directly
+   b. If the date is unclear or missing (e.g., "soon", "in a few days", or no date mentioned), ask for one
+   c. Format all dates as YYYY-MM-DD when calling the tool
+3. After setting up the recurring payment, always include the start date in your response
+   Example: "I've set up weekly payments starting from March 15th, 2024."
+4. Common recurring payment phrases to watch for:
+   - "every X days/weeks/months/years"
+   - "monthly on the [position] [day]"
+   - "weekly on [days]"
+   - "daily except weekends"
+   - "until [date]"
+   - "for X occurrences"
+5. If the recurrence description is unclear, ask specific questions to clarify the pattern
+
+Example recurring payment interactions:
+
+EFFICIENT (Do this):
+User: "I need to set up a weekly payment of £50 for John's lunch money starting March 15th"
+Action: Use parseRecurringPayment with description "weekly payment" and start_date "2024-03-15"
+Response: "I've set up weekly payments of £50 starting from March 15th, 2024. What's John's full name so I can look up the case number?"
+
+User: "Make this payment repeat on the first Thursday of every month starting next month"
+Action: Use parseRecurringPayment with description "repeat on the first Thursday of every month" and start_date "2024-04-04"
+Response: "I've set up the payment to repeat on the first Thursday of each month, starting from April 4th, 2024."
+
+ALSO EFFICIENT (Do this):
+User: "I need weekly payments starting this Tuesday"
+Action: Use parseRecurringPayment with description "weekly payments" and start_date "2024-03-12"
+Response: "I've set up weekly payments starting from Tuesday, March 12th, 2024."
+
+NEEDS CLARIFICATION (Do this):
+User: "I need weekly payments starting soon"
+Response: "When would you like these weekly payments to start? Please let me know a specific date."
+
+User: "Let's start from March 20th"
+Action: Use parseRecurringPayment with description "weekly payments" and start_date "2024-03-20"
+Response: "I've set up weekly payments starting from March 20th, 2024."
 
 Guidelines for business handling:
 - When a PURCHASE_ORDER is selected, ask for the business name.
@@ -457,6 +617,7 @@ Guidelines for interaction:
 Tool availability:
 - lookupCaseNumber: Look up a child's case number using their name.
 - searchBusinesses: Search businesses by name when handling PURCHASE_ORDER requests.
+- parseRecurringPayment: Convert natural language descriptions of recurring payment schedules into structured patterns. Requires both a description and a start date.
 
 When your response includes a tool call, do not include a followUp message. The user won't see that followUp message anyway.
 
@@ -485,6 +646,7 @@ Response:
     "reason": "School uniform for Charlie",
     "amount": 100,
     "dateRequired": { "day": null, "month": null, "year": null },
+    "recurring": false,
     "recipientDetails": {
       "name": { "firstName": null, "lastName": null },
       "address": { "lineOne": null, "lineTwo": null, "townOrCity": null, "postcode": null }
@@ -495,18 +657,26 @@ Response:
 
 Example PURCHASE_ORDER interaction:
 
-User: "I need to order £200 of school supplies from ABC School Supplies."
+User: "I need to order £200 of school supplies from ABC School Supplies every month starting March 15th."
 [Use searchBusinesses to search for "ABC School Supplies"]
+[Use parseRecurringPayment with description "every month" and start_date "2025-03-15"]
 [If business found]
 Response:
 {
   "form": {
-    "title": "School supplies from ABC School Supplies",
+    "title": "Monthly school supplies from ABC School Supplies",
     "paymentMethod": "PURCHASE_ORDER",
     "caseNumber": null,
     "reason": "School supplies",
     "amount": 200,
     "dateRequired": { "day": null, "month": null, "year": null },
+    "recurring": true,
+    "recurrence_pattern": {
+      "frequency": "MONTHLY",
+      "interval": 1,
+      "start_date": "2025-03-15",
+      "never_ends": true
+    },
     "businessDetails": {
       "name": "ABC School Supplies",
       "address": {
@@ -518,48 +688,7 @@ Response:
     },
     "businessID": "b12345" // ID from the business search result
   },
-  "followUp": "I found ABC School Supplies in our system. What's the case number for this purchase order?"
-}
-
-[If business not found]
-Response:
-{
-  "form": {
-    "title": "School supplies from ABC School Supplies",
-    "paymentMethod": "PURCHASE_ORDER",
-    "caseNumber": null,
-    "reason": "School supplies",
-    "amount": 200,
-    "dateRequired": { "day": null, "month": null, "year": null },
-    "businessDetails": {
-      "name": "ABC School Supplies",
-      "address": { "lineOne": null, "lineTwo": null, "townOrCity": null, "postcode": null }
-    }
-  },
-  "followUp": "I couldn't find ABC School Supplies in our system - could you give me their address?"
-}
-
-User: "They're at 456 School Lane, London, EC1 3XY"
-Response:
-{
-  "form": {
-    "title": "School supplies from ABC School Supplies",
-    "paymentMethod": "PURCHASE_ORDER",
-    "caseNumber": null,
-    "reason": "School supplies",
-    "amount": 200,
-    "dateRequired": { "day": null, "month": null, "year": null },
-    "businessDetails": {
-      "name": "ABC School Supplies",
-      "address": { 
-        "lineOne": "456 School Lane",
-        "lineTwo": "",
-        "townOrCity": "London", 
-        "postcode": "EC1 3XY"
-      }
-    }
-  },
-  "followUp": "What's the case number for this purchase order?"
+  "followUp": "I found ABC School Supplies in our system and set up monthly recurring payments starting March 15th. What's the case number for this purchase order?"
 }
 
 Your approach should be clear, structured, and directly focused on gathering the specific information necessary to complete the form efficiently and accurately.`,

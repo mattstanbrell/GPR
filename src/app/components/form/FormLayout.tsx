@@ -1,4 +1,5 @@
 import type { Schema } from "../../../../amplify/data/resource";
+import { RecurringPaymentSection } from "./RecurringPaymentSection";
 
 interface FormLayoutProps {
 	form: Partial<Schema["Form"]["type"]>;
@@ -816,6 +817,9 @@ export function FormLayout({
 								</div>
 							</fieldset>
 						)}
+
+						{/* Add the RecurringPaymentSection component here */}
+						<RecurringPaymentSection form={form} handleFormChange={handleFormChange} disabled={disabled} />
 					</form>
 				</div>
 				<div className="button-container">

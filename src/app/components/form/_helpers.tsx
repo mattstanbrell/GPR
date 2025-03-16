@@ -53,5 +53,48 @@ export const isFormValid = (form: Partial<Schema["Form"]["type"]> | null): boole
 		if (!form.recipientDetails?.address?.postcode?.trim()) return false;
 	}
 
+	// Check recurring payment fields if recurring is enabled
+	if (form.recurring) {
+		// Check required recurrence pattern fields
+		if (!form.recurrence_pattern) return false;
+		if (!form.recurrence_pattern.frequency) return false;
+		if (!form.recurrence_pattern.interval || form.recurrence_pattern.interval < 1) return false;
+		if (!form.recurrence_pattern.start_date) return false;
+
+		// Check frequency-specific fields
+		if (
+			form.recurrence_pattern.frequency === "WEEKLY" &&
+			(!form.recurrence_pattern.days_of_week || form.recurrence_pattern.days_of_week.length === 0)
+		) {
+			return false;
+		}
+
+		if (form.recurrence_pattern.frequency === "MONTHLY") {
+			// For monthly, we need either day_of_month, month_position, or month_end
+			const hasDayOfMonth = form.recurrence_pattern.day_of_month && form.recurrence_pattern.day_of_month.length > 0;
+			const hasMonthPosition = !!form.recurrence_pattern.month_position;
+			const hasMonthEnd = !!form.recurrence_pattern.month_end;
+
+			if (!hasDayOfMonth && !hasMonthPosition && !hasMonthEnd) {
+				return false;
+			}
+		}
+
+		if (form.recurrence_pattern.frequency === "YEARLY") {
+			// For yearly, we need months
+			if (!form.recurrence_pattern.months || form.recurrence_pattern.months.length === 0) {
+				return false;
+			}
+		}
+
+		// Check end conditions
+		if (!form.recurrence_pattern.never_ends) {
+			// If not never-ending, we need either end_date or max_occurrences
+			if (!form.recurrence_pattern.end_date && !form.recurrence_pattern.max_occurrences) {
+				return false;
+			}
+		}
+	}
+
 	return true;
 };

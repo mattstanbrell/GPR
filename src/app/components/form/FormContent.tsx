@@ -58,6 +58,17 @@ export function FormContent() {
 		},
 		// Use undefined instead of null for businessID to avoid DynamoDB GSI errors
 		businessID: undefined,
+		// Initialize recurring payment fields
+		recurring: false,
+		recurrence_pattern: {
+			frequency: "MONTHLY",
+			interval: 1,
+			start_date: new Date().toISOString().split("T")[0],
+			never_ends: true,
+			days_of_week: [],
+			day_of_month: [1],
+			months: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+		},
 	});
 	const userModel = useUserModel();
 	const [message, setMessage] = useState("");
@@ -176,17 +187,50 @@ export function FormContent() {
 	}, [searchParams, loadExistingForm, createFormSilently, userModel]);
 
 	// Handle form field changes
-	const handleFormChange = (field: string, value: unknown, updateDb = false) => {
-		if (!form) return;
+	const handleFormChange = useCallback(
+		(field: string, value: unknown, updateDb = false) => {
+			if (!form) return;
 
-		setForm((prevForm: Partial<Schema["Form"]["type"]>) => {
-			const newForm = { ...prevForm, [field]: value };
-			if (updateDb && newForm.id) {
-				updateFormInDatabase(newForm);
+			// Handle nested properties in recurrence_pattern
+			if (field.includes("recurrence_pattern.")) {
+				const nestedField = field.split("recurrence_pattern.")[1];
+
+				setForm((prevForm) => {
+					const updatedPattern = {
+						...(prevForm.recurrence_pattern || {}),
+						[nestedField]: value,
+					};
+
+					return {
+						...prevForm,
+						recurrence_pattern: updatedPattern,
+					};
+				});
+
+				if (updateDb && form.id) {
+					// Update the database with the new form data
+					updateFormInDatabase({
+						id: form.id,
+						recurrence_pattern: {
+							...(form.recurrence_pattern || {}),
+							[field.split("recurrence_pattern.")[1]]: value,
+						},
+					});
+				}
+
+				return;
 			}
-			return newForm;
-		});
-	};
+
+			setForm((prevForm: Partial<Schema["Form"]["type"]>) => {
+				const newForm = { ...prevForm, [field]: value };
+				if (updateDb && newForm.id) {
+					updateFormInDatabase(newForm);
+				}
+				return newForm;
+			});
+		},
+		[form],
+	);
 
 	// Update the form in the database
 	const updateFormInDatabase = async (formToUpdate = form) => {
