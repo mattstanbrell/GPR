@@ -2,6 +2,7 @@
 'use client'
 
 import { ApproveButton, FormAttachmentsButton, FormThreadsButton, RejectButton } from "@/app/components/form/Buttons"
+import { FORM_STATUS } from "@/app/constants/models"
 import type { Form } from "@/app/types/models"
 
 export const AuthorisationButtonsContainer = (
@@ -30,11 +31,15 @@ export const SubmitFeedbackButtonContainer = () => {
 
 export const SocialWorkerFormButtonContainer = ({form} : {form: Form}) => {
     return (
-        <div className="w-full flex justify-left">
-            <div className="govuk-button-group mt-4">
-                <FormThreadsButton form={ form } />
-                <FormAttachmentsButton form={ form } /> 
-            </div>
-        </div>
+        <>
+            { form.status != FORM_STATUS.DRAFT && 
+                <div className="w-full flex justify-left">
+                    <div className="govuk-button-group mt-4">
+                        <FormThreadsButton form={ form } />
+                        <FormAttachmentsButton form={ form } /> 
+                    </div>
+                </div>
+            }
+        </>
     )
 }

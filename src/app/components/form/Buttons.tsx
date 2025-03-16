@@ -41,7 +41,9 @@ export const FormThreadsButton = ({form} : {form: Form}) => {
     }, [form])
     
     const url = threadsId ? `${ THREADS }/${ threadsId }` : THREADS;
-    return <button type="button" className="govuk-button" onClick={() => redirect(url)}>Contact Manager</button>
+    const hasBeenAuthorised = form.status !== FORM_STATUS.SUBMITTED;
+
+    return <button type="button" className="govuk-button" disabled={ hasBeenAuthorised } onClick={() => redirect(url)}>Contact Manager</button>
 }
 
 export const FormAttachmentsButton = ({form} : {form: Form}) => {
