@@ -72,7 +72,7 @@ const Upload = ({ params }: { params: Promise<{ slug: string }> }) => {
 
   return (
     <div className="overflow-scroll">
-      <Title text={name} />
+      <Title text={name ? name : ""} />
       <Form
         receiptData={receiptData}
         handleAddItem={handleAddItem}
