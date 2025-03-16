@@ -34,8 +34,6 @@ type UserUpdates = {
 		bgColour: string;
 		spacing: number;
 	};
-	managerUserId: string;
-	assistantManagerUserId: string; 
 };
 
 type ChildUpdates = {
@@ -135,6 +133,27 @@ export async function createTeam(managerUserID: string, assistantManagerUserID: 
 		throw new Error(errors[0].message);
 	}
 	return data;
+}
+
+export async function addUserToTeam(userID: string, teamID: string) {
+	const data = await updateUser(userID, {teamID: teamID});
+	return data;
+}
+
+export async function removeUserFromTeam(userID: string) {
+	const data = await updateUser(userID, {teamID: ""});
+	return data;
+}
+
+export async function listUsersInTeam(teamID: string) {
+	const { data: users, errors } = await client.models.User.list({
+		filter: { teamID: { eq: teamID } },
+	});
+
+	if (errors) {
+		throw new Error(errors[0].message);
+	}
+	return users;
 }
 
 // Get a team by ID
