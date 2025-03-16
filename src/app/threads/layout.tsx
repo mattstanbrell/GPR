@@ -8,10 +8,12 @@ import { ThreadType } from "../types/threads";
 export const ThreadsContext = createContext<
     { 
         threads: ThreadType[],
+        setThreads?: React.Dispatch<React.SetStateAction<ThreadType[]>>,
         loading: boolean,
     }>({
         threads: [],
-        loading: true, 
+        setThreads: () => {},
+        loading: true,
     });
 
 interface ThreadsLayoutProps {
@@ -22,7 +24,6 @@ export default function ThreadsLayout({ children } : ThreadsLayoutProps) {
     const { currentUser } = useContext(AppContext);
     const [threads, setThreads] = useState<ThreadType[]>([]);
     const [loading, setLoading] = useState(true);
-
 
     useEffect(() => {
         async function fetchThreads() {
@@ -78,7 +79,7 @@ export default function ThreadsLayout({ children } : ThreadsLayoutProps) {
     }, [currentUser]);
 
     return (
-        <ThreadsContext.Provider value={{ threads, loading }}>
+        <ThreadsContext.Provider value={{ threads, setThreads, loading }}>
             {children}
         </ThreadsContext.Provider>
     );

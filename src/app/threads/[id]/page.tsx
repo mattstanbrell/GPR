@@ -36,8 +36,6 @@ const ThreadPage = ({ params }: { params: Promise<{ id: string }> }) => {
 
 				if (!thread) return;
 
-				// set thread to read
-				await setThreadMessagesToRead(thread.id, currentUser.id);
 
 				// Fetch the thread details
 				const [name, allUsers, formId] = await Promise.all([
