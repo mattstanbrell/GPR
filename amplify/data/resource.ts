@@ -32,8 +32,6 @@ const schema = a
 					bgColour: a.string(),
 					spacing: a.integer(),
 				}),
-				managerUserId: a.string(),
-				assistantManagerUserId: a.string(), 
 			})
 			.authorization((allow) => [allow.publicApiKey(), allow.authenticated()]),
 
