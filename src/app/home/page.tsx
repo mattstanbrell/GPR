@@ -22,10 +22,9 @@ const renderButtons = (permissionGroup: "ADMIN" | "MANAGER" | "SOCIAL_WORKER" | 
 
 const Home = () => {
 	const { currentUser, isLoading, isSignedIn } = useContext(AppContext);
-	
 	useEffect(() => {
 	}, [currentUser, isSignedIn, isLoading]);
-	console.log(currentUser);
+	
 	return (
 		<>
 			
