@@ -12,7 +12,7 @@ const makeUserModelFixture = ( options: {
     return options
 }
 
-export const social_worker = makeUserModelFixture({
+export const socialWorkerUserModel = makeUserModelFixture({
     id: "1", 
     fName: "Greg", 
     lName: "Green", 
@@ -22,7 +22,7 @@ export const social_worker = makeUserModelFixture({
     managerId: "3",
 });
 
-export const manager = makeUserModelFixture({
+export const managerUserModel = makeUserModelFixture({
     id: "2", 
     fName: "Joy", 
     lName: "Johnson", 
@@ -31,7 +31,7 @@ export const manager = makeUserModelFixture({
     managerId: "3",
 });
 
-export const admin = makeUserModelFixture({
+export const adminUserModel = makeUserModelFixture({
     id: "3", 
     fName: "William", 
     lName: "Wonker", 
