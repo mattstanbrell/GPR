@@ -8,10 +8,7 @@ import { GovUKFrontend } from "./components/GovUKInitialiser";
 import Header from "@/app/components/Header";
 import FullscreenMenu from "@/app/components/navigation/FullscreenMenu";
 import { useState, useEffect, createContext } from "react";
-import { Hub } from "aws-amplify/utils";
 import { fetchUserAttributes, getCurrentUser } from "aws-amplify/auth";
-import { HOME } from "@/app/constants/urls";
-import { useRouter } from "next/navigation";
 import { signInWithRedirect, signOut } from "aws-amplify/auth";
 import useIsMobileWindowSize, { useResponsiveMenu } from "@/utils/responsivenessHelpers";
 import { User } from "./types/models";
@@ -33,38 +30,52 @@ export const AppContext = createContext<
 		isSignedIn: boolean,
 		setUser: (user: User) => void,
 		isMobile: boolean,
+		isLoading: boolean
 	}>({
 		currentUser: null,
 		isSignedIn: false,
 		setUser: () => {},
-		isMobile: false
+		isMobile: false,
+		isLoading: true
 	});
 
 
 export default function RootLayout({
 	children,
 }: Readonly<{ children: React.ReactNode }>) {
-	const router = useRouter();
 	const { isMenuOpen, toggleMobileMenu } = useResponsiveMenu(false);
 	const [currentUser, setUser] = useState<User | null>(null);
 	const isMobile = useIsMobileWindowSize();
 	const [isSignedIn, setIsSignedIn] = useState(false);
+	const [isLoading, setIsLoading] = useState(true);
 
 	useEffect(() => {
 		const fetchUserModel = async () => {
-			const userAttributes = await fetchUserAttributes();
-			const data = await getUserByEmail(userAttributes ? userAttributes.email : ""); 
-			setUser(data);
+			try{
+				const userAttributes = await fetchUserAttributes();
+				const data = await getUserByEmail(userAttributes ? userAttributes.email : ""); 
+				setUser(data);
+				setIsSignedIn(true);
+			} catch (error) {
+				console.error("Error fetching user model:", error);
+				setUser(null);
+				setIsSignedIn(false);
+			} finally {
+				setIsLoading(false);
+			}
 		}
 
 		getCurrentUser()
 			.then(() => {
 				fetchUserModel();
-				setIsSignedIn(true);
 			})
-			.catch(() => setIsSignedIn(false));
-			
-	}, [router]);
+			.catch(() => {
+				setIsSignedIn(false);
+				setIsLoading(false);
+			}
+		);
+
+	}, []);
 
 	const handleClick = async () => {
 		try {
@@ -81,7 +92,7 @@ export default function RootLayout({
 	};
 
 	return (
-		<AppContext.Provider value={{ currentUser, isSignedIn, setUser, isMobile }}>
+		<AppContext.Provider value={{ currentUser, isSignedIn, setUser, isMobile, isLoading }}>
 			<html
 				lang="en"
 				className={`${lexend.className} antialiased govuk-template`}

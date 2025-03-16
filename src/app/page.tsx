@@ -4,19 +4,16 @@ import HomeSignInButton from "./components/HomeSignInButton";
 import { HOME } from "./constants/urls";
 import { useRouter } from "next/navigation";
 import { AppContext } from "./layout";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect } from "react";
 
 
 export default function Home() {
-	const { currentUser: user } = useContext(AppContext);
-	const [isLoading, setIsLoading] = useState<boolean>(true);
+	const { currentUser: user, isLoading } = useContext(AppContext);
 	const router = useRouter();
 
 	useEffect(() => {
 		if (user) {
 			router.push(HOME);
-		} else {
-			setIsLoading(false);
 		}
 	}, [user, router]);
 
