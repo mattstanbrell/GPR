@@ -56,7 +56,7 @@ const schema = a
 				reason: a.string(),
 				amount: a.float(),
 				section17: a.boolean(),
-				paymentMethod: a.enum(["PREPAID_CARD", "PURCHASE_ORDER"]),
+				expenseType: a.enum(["PREPAID_CARD", "PURCHASE_ORDER"]),
 				businessDetails: a.customType({
 					name: a.string(),
 					address: a.customType({
