@@ -9,12 +9,15 @@
   // Because we are not an official GOV.UK service, we can't use GDS Transport
   $govuk-font-family: var(--font-lexend),
   // Disable the default GDS Transport font-face
-  $govuk-include-default-font-face: false,
+  $govuk-include-default-font-face: "legacy-organisation-colours",
   $govuk-assets-path: "/govuk-assets/",
+  $govuk-new-organisation-colours: true,
   $govuk-page-width: 1200px  // Increase the default page width from 960px to 1200px
 );
 
-@use "node_modules/govuk-frontend/dist/govuk/helpers";
+@use "node_modules/govuk-frontend/dist/govuk/helpers" with (
+    $govuk-new-organisation-colours: true,
+);
 
 h1 {
     @extend .govuk-heading-xl;
