@@ -16,7 +16,7 @@ const renderButtons = (permissionGroup: "ADMIN" | "MANAGER" | "SOCIAL_WORKER" | 
 		case "ADMIN":
 			return <AdminButtons />;
 		default:
-			return <h3>Error: Permission group not found. Please contact your IT to check you are in the correct group in Microsoft Entra.</h3>;
+			setTimeout(() => {return <h3>Error: Permission group not found. Please contact your IT to check you are in the correct group in Microsoft Entra.</h3>;},500)
 	}
 };
 
