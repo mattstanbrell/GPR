@@ -526,7 +526,9 @@ export async function deleteReceipt(receiptId: string) {
 // -------------- AuditLog APIs --------------
 
 // Create a new audit log
-export async function createAuditLog(action: string, date: string, userID: string, formID: string) {
+export async function createAuditLog(action: string, userID: string, formID: string) {
+	const date = new Date().toISOString();
+
 	const { data, errors } = await client.models.AuditLog.create({
 		action,
 		date,
