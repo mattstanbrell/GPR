@@ -121,98 +121,6 @@ export interface RecurringPayment {
 	created_by?: string;
 }
 
-// Helper function to generate a human-readable description of a recurrence pattern
-export function generateRecurrenceDescription(pattern: RecurrencePattern): string {
-	let description = "";
-
-	// Add frequency and interval
-	const frequency = pattern.frequency.toLowerCase();
-	if (pattern.interval === 1) {
-		description = `Every ${frequency.slice(0, -2)}y`;
-	} else {
-		description = `Every ${pattern.interval} ${frequency}s`;
-	}
-
-	// Add day specifics for weekly
-	if (pattern.frequency === "WEEKLY" && pattern.daysOfWeek && pattern.daysOfWeek.length > 0) {
-		const daysCapitalized = pattern.daysOfWeek.map((day) => day.charAt(0) + day.slice(1).toLowerCase());
-
-		if (pattern.daysOfWeek.length === 7) {
-			description += " on every day";
-		} else if (
-			pattern.daysOfWeek.length === 5 &&
-			pattern.daysOfWeek.includes("MONDAY") &&
-			pattern.daysOfWeek.includes("TUESDAY") &&
-			pattern.daysOfWeek.includes("WEDNESDAY") &&
-			pattern.daysOfWeek.includes("THURSDAY") &&
-			pattern.daysOfWeek.includes("FRIDAY")
-		) {
-			description += " on weekdays";
-		} else if (
-			pattern.daysOfWeek.length === 2 &&
-			pattern.daysOfWeek.includes("SATURDAY") &&
-			pattern.daysOfWeek.includes("SUNDAY")
-		) {
-			description += " on weekends";
-		} else {
-			description += ` on ${daysCapitalized.join(", ")}`;
-		}
-	}
-
-	// Add day specifics for monthly
-	if (pattern.frequency === "MONTHLY") {
-		if (pattern.dayOfMonth && pattern.dayOfMonth.length > 0) {
-			if (pattern.dayOfMonth.length === 1) {
-				description += ` on day ${pattern.dayOfMonth[0]}`;
-			} else {
-				description += ` on days ${pattern.dayOfMonth.join(", ")}`;
-			}
-		}
-
-		if (pattern.monthEnd) {
-			description += " on the last day";
-		}
-
-		if (pattern.monthPosition) {
-			const { position, dayOfWeek } = pattern.monthPosition;
-			const positionText = position.toLowerCase();
-			const dayText = dayOfWeek.charAt(0) + dayOfWeek.slice(1).toLowerCase();
-			description += ` on the ${positionText} ${dayText}`;
-		}
-	}
-
-	// Add month specifics for yearly
-	if (pattern.frequency === "YEARLY" && pattern.months && pattern.months.length > 0) {
-		const monthNames = pattern.months
-			.map((m) => {
-				const date = new Date(2000, m - 1, 1);
-				return date.toLocaleString("default", { month: "long" });
-			})
-			.join(", ");
-		description += ` in ${monthNames}`;
-	}
-
-	// Add start date
-	if (pattern.startDate) {
-		const startDate = new Date(pattern.startDate);
-		const formattedDate = startDate.toLocaleDateString();
-		description += `, starting ${formattedDate}`;
-	}
-
-	// Add end condition
-	if (pattern.endDate) {
-		const endDate = new Date(pattern.endDate);
-		const formattedDate = endDate.toLocaleDateString();
-		description += ` until ${formattedDate}`;
-	} else if (pattern.maxOccurrences) {
-		description += ` for ${pattern.maxOccurrences} occurrences`;
-	} else if (pattern.neverEnds) {
-		description += " with no end date";
-	}
-
-	return description;
-}
-
 // Function to calculate the next N occurrences of a recurrence pattern
 export function calculateNextOccurrences(pattern: RecurrencePattern, count = 5): Date[] {
 	const occurrences: Date[] = [];
@@ -222,7 +130,7 @@ export function calculateNextOccurrences(pattern: RecurrencePattern, count = 5):
 		throw new Error("Invalid start date");
 	}
 
-	let currentDate = new Date(startDate);
+	const currentDate = new Date(startDate);
 
 	// Map day numbers to day names for weekly recurrence
 	const dayOfWeekMap: Record<number, DayOfWeek> = {
@@ -301,8 +209,6 @@ export function calculateNextOccurrences(pattern: RecurrencePattern, count = 5):
 							SATURDAY: 6,
 						};
 
-						// Get all dates in the current month that match the day of week
-						const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
 						const lastDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
 						const matchingDates: number[] = [];
 
@@ -367,12 +273,4 @@ export function calculateNextOccurrences(pattern: RecurrencePattern, count = 5):
 	}
 
 	return occurrences;
-}
-
-// Helper function to get the day of the year (1-366)
-function getDayOfYear(date: Date): number {
-	const start = new Date(date.getFullYear(), 0, 0);
-	const diff = date.getTime() - start.getTime();
-	const oneDay = 1000 * 60 * 60 * 24;
-	return Math.floor(diff / oneDay);
 }

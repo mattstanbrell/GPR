@@ -103,6 +103,50 @@ export function FormContent() {
 		nested: ["dateRequired", "recipientDetails", "businessDetails", "recurrencePattern"] as const,
 	};
 
+	// Update the form in the database
+	const updateFormInDatabase = useCallback(
+		async (formToUpdate = form) => {
+			if (!formToUpdate.id || !userModel?.id) return;
+
+			try {
+				// Create a clean version of the form data without null businessID
+				const { businessID, ...restOfForm } = formToUpdate;
+
+				// Convert form data to update, ensuring all fields are included
+				const formDataToUpdate = {
+					...restOfForm,
+					creatorID: userModel.id,
+					...(businessID !== null && { businessID }),
+					// Ensure recurring fields are included
+					isRecurring: formToUpdate.isRecurring ?? false,
+					...(formToUpdate.recurrencePattern && {
+						recurrencePattern: {
+							frequency: formToUpdate.recurrencePattern.frequency || "MONTHLY",
+							interval: formToUpdate.recurrencePattern.interval || 1,
+							startDate: formToUpdate.recurrencePattern.startDate || "",
+							endDate: formToUpdate.recurrencePattern.endDate,
+							maxOccurrences: formToUpdate.recurrencePattern.maxOccurrences,
+							neverEnds: formToUpdate.recurrencePattern.neverEnds ?? false,
+							daysOfWeek: formToUpdate.recurrencePattern.daysOfWeek || [],
+							dayOfMonth: formToUpdate.recurrencePattern.dayOfMonth || [],
+							monthEnd: formToUpdate.recurrencePattern.monthEnd ?? false,
+							monthPosition: formToUpdate.recurrencePattern.monthPosition,
+							months: formToUpdate.recurrencePattern.months || [],
+							excludedDates: formToUpdate.recurrencePattern.excludedDates || [],
+							description: formToUpdate.recurrencePattern.description || "",
+						},
+					}),
+				};
+
+				await updateForm(formToUpdate.id, formDataToUpdate);
+			} catch (error) {
+				console.error("Form update error:", error);
+				setErrorMessage(`Failed to update form: ${error instanceof Error ? error.message : String(error)}`);
+			}
+		},
+		[form, userModel?.id],
+	);
+
 	const loadConversation = useCallback(
 		async (formId: string) => {
 			try {
@@ -257,49 +301,8 @@ export function FormContent() {
 				return newForm;
 			});
 		},
-		[form],
+		[form, updateFormInDatabase],
 	);
-
-	// Update the form in the database
-	const updateFormInDatabase = async (formToUpdate = form) => {
-		if (!formToUpdate.id || !userModel?.id) return;
-
-		try {
-			// Create a clean version of the form data without null businessID
-			const { businessID, ...restOfForm } = formToUpdate;
-
-			// Convert form data to update, ensuring all fields are included
-			const formDataToUpdate = {
-				...restOfForm,
-				creatorID: userModel.id,
-				...(businessID !== null && { businessID }),
-				// Ensure recurring fields are included
-				isRecurring: formToUpdate.isRecurring ?? false,
-				...(formToUpdate.recurrencePattern && {
-					recurrencePattern: {
-						frequency: formToUpdate.recurrencePattern.frequency || "MONTHLY",
-						interval: formToUpdate.recurrencePattern.interval || 1,
-						startDate: formToUpdate.recurrencePattern.startDate || "",
-						endDate: formToUpdate.recurrencePattern.endDate,
-						maxOccurrences: formToUpdate.recurrencePattern.maxOccurrences,
-						neverEnds: formToUpdate.recurrencePattern.neverEnds ?? false,
-						daysOfWeek: formToUpdate.recurrencePattern.daysOfWeek || [],
-						dayOfMonth: formToUpdate.recurrencePattern.dayOfMonth || [],
-						monthEnd: formToUpdate.recurrencePattern.monthEnd ?? false,
-						monthPosition: formToUpdate.recurrencePattern.monthPosition,
-						months: formToUpdate.recurrencePattern.months || [],
-						excludedDates: formToUpdate.recurrencePattern.excludedDates || [],
-						description: formToUpdate.recurrencePattern.description || "",
-					},
-				}),
-			};
-
-			await updateForm(formToUpdate.id, formDataToUpdate);
-		} catch (error) {
-			console.error("Form update error:", error);
-			setErrorMessage(`Failed to update form: ${error instanceof Error ? error.message : String(error)}`);
-		}
-	};
 
 	// Handle form submission
 	const handleSubmit = async (e: React.FormEvent) => {
@@ -358,11 +361,11 @@ export function FormContent() {
 			}
 
 			// Create a clean version of the form data without null businessID
-			const { businessID: _, ...restOfForm } = form;
+			const { ...formDataToUpdate } = form;
 
 			// Only include businessID if it's not null
-			const formDataToUpdate: Partial<Schema["Form"]["type"]> = {
-				...restOfForm,
+			const formDataToSubmit: Partial<Schema["Form"]["type"]> = {
+				...formDataToUpdate,
 				status: "SUBMITTED" as FormStatus,
 				creatorID: userModel.id,
 				...(businessID && { businessID }),
@@ -370,15 +373,15 @@ export function FormContent() {
 				...(financeCodeResponse && { suggestedFinanceCodeID: financeCodeResponse }),
 			};
 
-			await updateForm(form.id, formDataToUpdate);
+			await updateForm(form.id, formDataToSubmit);
 
-			let assigneeId;
+			let assigneeId: string;
 			if (form.amount > 5000) {
 				if (!team?.managerUserID) return;
-				assigneeId = team?.managerUserID;
+				assigneeId = team.managerUserID;
 			} else {
 				if (!team?.assistantManagerUserID) return;
-				assigneeId = team?.assistantManagerUserID;
+				assigneeId = team.assistantManagerUserID;
 			}
 			await assignUserToForm(form.id, assigneeId);
 

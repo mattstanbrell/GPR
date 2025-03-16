@@ -1,13 +1,6 @@
-import { useState, ChangeEvent } from "react";
+import { useState } from "react";
 import type { Schema } from "../../../../amplify/data/resource";
-import {
-	calculateNextOccurrences,
-	generateRecurrenceDescription,
-	type DayOfWeek,
-	type Position,
-	type Month,
-	type Frequency,
-} from "@/app/types/recurrence";
+import { calculateNextOccurrences, type DayOfWeek, type Position, type Frequency } from "@/app/types/recurrence";
 
 interface RecurringPaymentSectionProps {
 	form: Partial<Schema["Form"]["type"]>;
@@ -489,7 +482,7 @@ export function RecurringPaymentSection({ form, handleFormChange, disabled }: Re
 														))}
 													</select>
 												</div>
-												<span className="govuk-hint">Example: "First Monday" of each month</span>
+												<span className="govuk-hint">{'Example: "First Monday" of each month'}</span>
 											</div>
 										</div>
 									)}

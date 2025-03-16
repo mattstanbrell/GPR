@@ -25,18 +25,14 @@ export async function middleware(request: NextRequest) {
 		return NextResponse.redirect(new URL("/", request.url));
 	}
 
-<<<<<<< HEAD
-	return NextResponse.redirect(new URL("/", request.url));
-=======
 	if (authenticated && isHomePage) {
 		// Redirect to /home if authenticated and on the "/" page
 		return NextResponse.redirect(new URL("/home", request.url));
 	}
 
-	// Continue to the requested page. 
+	// Continue to the requested page.
 	// If user is not authenticated, this is the sign in page.
 	return response;
->>>>>>> origin/main
 }
 
 export const config = {

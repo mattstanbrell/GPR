@@ -1,11 +1,7 @@
-
 import { FORM_STATUS } from "@/app/constants/models";
 import type { Schema } from "../../../../amplify/data/resource";
-<<<<<<< HEAD
 import { RecurringPaymentSection } from "./RecurringPaymentSection";
-=======
 import FeedbackContainer from "./feedback/FeedbackContainer";
->>>>>>> origin/main
 
 interface FormLayoutProps {
 	form: Partial<Schema["Form"]["type"]>;
@@ -135,10 +131,10 @@ export function FormLayout({
 					{form.title || "Form"}
 				</h1>
 
-				<FeedbackContainer form={ form } /> 
+				<FeedbackContainer form={form} />
 
 				<div style={{ flexGrow: 1, overflowY: "auto", paddingRight: "0" }}>
-					<form onSubmit={ handleSubmit } style={{ paddingRight: "20px", paddingLeft: "3px" }}>
+					<form onSubmit={handleSubmit} style={{ paddingRight: "20px", paddingLeft: "3px" }}>
 						<fieldset className="govuk-fieldset">
 							<legend className="govuk-fieldset__legend govuk-fieldset__legend--m">
 								<h2 className="govuk-fieldset__heading">Payment Method</h2>
@@ -834,7 +830,7 @@ export function FormLayout({
 						)}
 					</form>
 				</div>
-				{ form?.status === FORM_STATUS.DRAFT && 
+				{form?.status === FORM_STATUS.DRAFT && (
 					<div className="button-container">
 						<button
 							type="submit"
@@ -852,7 +848,7 @@ export function FormLayout({
 							{loading ? "Submitting..." : "Submit"}
 						</button>
 					</div>
-				}
+				)}
 			</div>
 		</>
 	);

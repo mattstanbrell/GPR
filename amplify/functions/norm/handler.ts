@@ -588,39 +588,40 @@ function formatLondonTime() {
 }
 
 async function getUserDetails(userID: string) {
-	/* 
-	// Commented out until User objects are actually being used
 	try {
-		const { data: userData } = await client.models.User.get({ id: userID });
-		if (!userData) {
+		// Query the User model using the profileOwner field which contains the sub ID
+		const { data: users, errors } = await client.models.User.list({
+			// @ts-ignore - The type definitions don't match the actual API
+			filter: { profileOwner: { beginsWith: userID } },
+			limit: 1,
+		});
+
+		if (errors) {
+			console.error("Error querying User model:", errors);
 			return null;
 		}
-		
+
+		const userData = users?.[0];
+		console.log("Found user data:", userData);
+
+		if (!userData) {
+			console.warn("No user found with ID:", userID);
+			return null;
+		}
+
 		return {
 			name: `${userData.firstName} ${userData.lastName}`,
-			email: userData.email,
-			// Add address fields if they exist in your User model
+			// This will never work as we aren't storing User address
 			address: {
-				line1: "", // Replace with actual field from your User model
-				town: "",  // Replace with actual field from your User model
-				postcode: "" // Replace with actual field from your User model
-			}
+				line1: userData.address?.lineOne || "123 Fake St",
+				townOrCity: userData.address?.townOrCity || "London",
+				postcode: userData.address?.postcode || "SW1A 1AA",
+			},
 		};
 	} catch (error) {
 		console.error("Error fetching user details:", error);
 		return null;
 	}
-	*/
-
-	// Return hardcoded data for Matt Stanbrell
-	return {
-		name: "Matt Stanbrell",
-		address: {
-			line1: "123 Fake Street",
-			townOrCity: "London",
-			postcode: "SW1A 1AA",
-		},
-	};
 }
 
 async function searchBusinesses(name: string) {
@@ -653,6 +654,7 @@ async function searchBusinesses(name: string) {
 
 export const handler: Schema["Norm"]["functionHandler"] = async (event) => {
 	// Extract user ID directly from Cognito identity
+	console.log("event identity: ", event.identity);
 	const userIdFromIdentity = (event.identity as { sub: string }).sub;
 	console.log("Handler started with userID:", userIdFromIdentity);
 	console.log("Event arguments:", JSON.stringify(event.arguments, null, 2));
@@ -671,29 +673,39 @@ export const handler: Schema["Norm"]["functionHandler"] = async (event) => {
 	console.log("Form ID from arguments:", formID);
 	console.log("Current form state from arguments:", currentFormState);
 
-	// Get user details for the system prompt
-	const userDetails = await getUserDetails(userIdFromIdentity);
+	// Parse the messages from the request
+	const messagesJSON = JSON.parse(messages ?? "[]");
+	const currentFormStateJSON = JSON.parse(currentFormState ?? "{}");
+	console.log("Parsed current form state:", JSON.stringify(currentFormStateJSON, null, 2));
 
-	// Create system message
-	const systemMessage = {
-		role: "system" as const,
-		content: `# Norm: Assistant for Expense Requests
+	// Check if first message is a system message
+	let messagesWithSystem = messagesJSON;
+	if (!messagesJSON.length || messagesJSON[0].role !== "system") {
+		// Only fetch user details if we need to create a system message
+		const userDetails = await getUserDetails(userIdFromIdentity);
 
-  You are Norm, a friendly and efficient assistant designed to help social workers at Hounslow Council in London fill out expense requests. You fill out the structured form on their behalf based on a natural-language conversation.
+		const systemMessage = {
+			role: "system" as const,
+			content: `# Norm: Assistant for Expense Requests
+
+You are Norm, a friendly and efficient assistant designed to help social workers at Hounslow Council in London fill out expense requests. You fill out the structured form on their behalf based on a natural-language conversation.
 
 Your primary goal is to gather information step-by-step to fully complete each required form field.
 
-  Try to ask just one clear, friendly question at a time so the process is simple for the social worker.
+Try to ask just one clear, friendly question at a time so the process is simple for the social worker.
 
-  London time: TODO
-  SW info: TODO
+Social worker details:
+* Name: ${userDetails?.name}
+* Address: ${userDetails?.address?.line1}, ${userDetails?.address?.townOrCity}, ${userDetails?.address?.postcode}
+
+London time: ${formatLondonTime()}
 
 ## Expense Types
 
-  There are two expense types: 
+There are two expense types: 
 
-  1. Prepaid cards - for providing funds directly to recipients via a prepaid card
-  2. Purchase orders - for purchasing directly from a business
+1. Prepaid cards - for providing funds directly to recipients via a prepaid card
+2. Purchase orders - for purchasing directly from a business
 
 * Forms default to PREPAID_CARD as this is most common. You must change it to PURCHASE_ORDER when appropriate.
 * It is important to identify the expense type early in the conversation and set expenseType accordingly.
@@ -1044,17 +1056,7 @@ Explain limitations if the social worker requests:
 * Address the social worker by their first name where appropriate.
 * Your only role is to fill out the form for the social worker, you cannot submit the form, do not offer any services beyond simply filling out the form.
 `,
-	};
-
-	// Parse the messages from the request
-	const messagesJSON = JSON.parse(messages ?? "[]");
-	const currentFormStateJSON = JSON.parse(currentFormState ?? "{}");
-	console.log("Parsed current form state:", JSON.stringify(currentFormStateJSON, null, 2));
-
-	// Add system message to the beginning of the messages array if it's not already there
-	// This ensures the system message is always part of the conversation
-	let messagesWithSystem = messagesJSON;
-	if (messagesJSON.length === 1 || !messagesJSON.some((m: ChatCompletionMessageParam) => m.role === "system")) {
+		};
 		messagesWithSystem = [systemMessage, ...messagesJSON];
 	}
 
@@ -1193,6 +1195,8 @@ Explain limitations if the social worker requests:
 		const finalFormState = typeof updatedForm === "string" ? updatedForm : JSON.stringify(updatedForm);
 
 		console.log("Final form state to return:", finalFormState);
+
+		console.log("event identity: ", event.identity);
 
 		// Return the conversation ID and a simple follow-up message
 		return {
