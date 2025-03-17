@@ -136,7 +136,7 @@ export default function SettingsClient() {
   
   return (
     <>
-      <Abc fontColour={fontColour}/>
+      <Abc fontSize={fontSize} font={font} fontColour={fontColour} bgColour={bgColour} spacing={spacing}/>
       {loaded ? (
         <div>
           <h1 className="govuk-heading-xl" style={{ backgroundColor: '#e5f2eb' }} >Settings</h1>

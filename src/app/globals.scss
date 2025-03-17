@@ -62,3 +62,13 @@ background-color: color.adjust($color-accent, $lightness: -15%);  // Darken on h
     margin-bottom: 10px; // Adds spacing between buttons
   }
 }
+
+$font-size: 1;
+$font-family: "lexend";
+$spacing: 0;
+
+:root {
+  --font-size: #{$font-size};
+  --font-family: #{$font-family};
+  --spacing: #{$spacing};
+}
