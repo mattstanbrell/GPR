@@ -11,6 +11,8 @@ import { useState, useEffect } from 'react';
 import { updateUserSettings, getUserSettingsByUserId } from '@/utils/apis';
 import { useUserModel } from '@/utils/authenticationUtils';
 
+import Abc from '../components/settings/Abcd';
+
 const DEFAULT_FONT_SIZE = 1;
 const DEFAULT_FONT = 'lexend';
 const DEFAULT_FONT_COLOUR = '#000000';
@@ -134,6 +136,7 @@ export default function SettingsClient() {
   
   return (
     <>
+      <Abc fontColour={fontColour}/>
       {loaded ? (
         <div>
           <h1 className="govuk-heading-xl" style={{ backgroundColor: '#e5f2eb' }} >Settings</h1>
@@ -197,7 +200,7 @@ export default function SettingsClient() {
           </div>
         </div> 
       ) : (
-        <h3>Loading Logs...</h3>
+        <h3>Loading Settings...</h3>
       )}
     </>
   )
