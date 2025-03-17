@@ -7,8 +7,8 @@ import { listTeams, getManagers } from "@/utils/apis"
 import { useEffect, useState } from "react"
 import { redirect } from "next/navigation"
 import { ADMIN } from "@/app/constants/urls"
-import { InputTextTableRow, InputDateTableRow, InputSelectTableRow } from "@/app/components/admin/FormElements"
-import { handleUserFormSubmit, handleChildFormSubmit } from "@/app/components/admin/FormHandlers"
+import { InputTextTableRow, InputDateTableRow, InputSelectTableRow, InputHiddenTableRow } from "@/app/components/admin/FormElements"
+import { handleUserFormSubmit, handleChildFormSubmit, handlTeamFormSubmit } from "@/app/components/admin/FormHandlers"
 
 export const UserForm = ({data} : {data: User | null}) => {
     const [teamNames, setTeamNames] = useState<string[]>([]);
@@ -36,7 +36,7 @@ export const UserForm = ({data} : {data: User | null}) => {
                 </tr>
             </thead>
             <tbody>
-                <tr className="hidden"><td className="hidden"><input name="userId" value={ data && data.id ? data.id : "" } readOnly /></td></tr>
+                <InputHiddenTableRow name="userId" value={data && data.id ? data.id : ""} />
                 <InputSelectTableRow fieldName="Team" inputName="team" defaultValue={ defaultTeam } options={ teamNames } />
                 <tr className="text-center">
                     <th colSpan={2}>Address</th>
@@ -56,7 +56,7 @@ export const ChildForm = ({data} : {data: Child | null}) => {
 
     const formElements = (
         <tbody>
-            <tr className="hidden"><td className="hidden"><input name="childId" value={ data && data.id ? data.id : "" } readOnly /></td></tr>
+            <InputHiddenTableRow name="childId" value={data && data.id ? data.id : ""} />
             <InputTextTableRow fieldName="Case Number" inputName="casenumber" defaultValue={ data?.caseNumber ? data.caseNumber : "" } isRequired={ true } />
             <InputTextTableRow fieldName="First Name" inputName="firstname" defaultValue={ data?.firstName ? data.firstName : "" } isRequired={ true } />
             <InputTextTableRow fieldName="Last Name" inputName="lastname" defaultValue={ data?.lastName ? data.lastName : "" } isRequired={ true } />
@@ -70,10 +70,6 @@ export const ChildForm = ({data} : {data: Child | null}) => {
 }
 
 export const TeamForm = ({data} : {data: Team | null}) => {
-    const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-        redirect(ADMIN)
-    }
-
     const [managers, setManagers] = useState<User[]>([]);
     const [currentManager, setCurrentManager] = useState<string>("");
     const [currentAssistantManager, setCurrentAssistantManager] = useState<string>("");
@@ -102,13 +98,14 @@ export const TeamForm = ({data} : {data: Team | null}) => {
 
     const formElements = (
         <tbody>
+            <InputHiddenTableRow name="teamId" value={data && data.id ? data.id : ""} />
             <InputTextTableRow fieldName="Team Name" inputName="teamname" defaultValue={ data?.name ? data.name : "" } />
             <InputSelectTableRow fieldName="Assistant Manager" inputName="assistmanager" defaultValue={ currentAssistantManager } options={ managerNames } />
             <InputSelectTableRow fieldName="Team Manager" inputName="manager" defaultValue={ currentManager } options={ managerNames } />
         </tbody>
     )
 
-    return <Form components={ formElements } handleSubmit={ handleSubmit } />
+    return <Form components={ formElements } handleSubmit={ handlTeamFormSubmit } />
 }
 
 const Form = (

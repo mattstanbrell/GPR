@@ -3,7 +3,7 @@
 import React from "react"
 import { ADMIN } from "@/app/constants/urls";
 import { redirect } from "next/navigation";
-import { createChild, listTeams, updateChild, updateUser } from "@/utils/apis";
+import { createChild, createTeam, getManagers, listTeams, updateChild, updateTeam, updateUser } from "@/utils/apis";
 
 export const handleUserFormSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault(); 
@@ -75,4 +75,44 @@ export const handleChildFormSubmit = async (event: React.FormEvent<HTMLFormEleme
     }
 
     redirect(ADMIN);
+}
+
+export const handlTeamFormSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    // get form date
+    const formData = new FormData(event.currentTarget); 
+    const teamId = formData.get("teamId") as string;
+    const assistantManager = formData.get("assistmanager") as string;
+    const manager = formData.get("manager") as string;
+    
+    // find manager ids
+    let assistantManagerID = "null";
+    let managerID = "";
+    const managers = await getManagers(); 
+    for (const user of managers) {
+        const fullName = `${user.firstName} ${user.lastName}`;
+
+        if (fullName === assistantManager) {
+            assistantManagerID = user.id
+        } 
+        
+        if (fullName === manager) {
+            managerID = user.id
+        }
+    }
+
+    const data = {
+        name: formData.get("teamname") as string,
+        managerUserID: assistantManagerID, 
+        assistantManagerUserID: managerID,
+    }
+
+    // create or update team 
+    if (teamId) {
+        await updateTeam(teamId, data);
+    } else {
+        await createTeam(data.name, data.managerUserID, data.assistantManagerUserID); 
+    }
+
+    redirect(ADMIN)
 }

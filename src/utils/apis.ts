@@ -153,8 +153,8 @@ export async function getManagers() {
 
 
 // ------------Team APIs -------------
-export async function createTeam(managerUserID: string, assistantManagerUserID: string) {
-	const { data, errors } = await client.models.Team.create({managerUserID: managerUserID, assistantManagerUserID: assistantManagerUserID});
+export async function createTeam(name: string, managerUserID: string, assistantManagerUserID: string) {
+	const { data, errors } = await client.models.Team.create({name, managerUserID: managerUserID, assistantManagerUserID: assistantManagerUserID});
 	if (errors) {
 		throw new Error(errors[0].message);
 	}

@@ -57,3 +57,7 @@ export const InputSelectTableRow = (
         </tr>
     )
 }
+
+export const InputHiddenTableRow = ({name, value} : {name: string, value: string}) => {
+    return <tr className="hidden"><td className="hidden"><input name={name} value={ value } readOnly /></td></tr>
+}
