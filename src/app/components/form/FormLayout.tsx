@@ -33,7 +33,7 @@ export function FormLayout({
 		try {
 			await handleSubmit(e);
 			setSubmitError(null);
-		} catch (error: any) {
+		} catch (error) {
 			setSubmitError(error.message || "An error occurred while submitting.");
 		}
 	};
