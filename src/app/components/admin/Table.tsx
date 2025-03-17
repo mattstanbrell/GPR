@@ -5,7 +5,13 @@ import { Child, User, Team } from "@/app/types/models"
 import { redirect } from "next/navigation"
 
 const NoDataMessage = ({colspan} : {colspan: number}) => {
-    return <tr><td colSpan={ colspan }>No data to show</td></tr>
+    return (
+        <tbody>
+            <tr>
+                <td colSpan={ colspan }>No data to show.</td>
+            </tr>
+        </tbody>
+    )
 }
 
 export const UserTable = ({users} : { users: User[]}) => {
@@ -33,7 +39,7 @@ export const UserTable = ({users} : { users: User[]}) => {
                 </tr>
             ))}
         </tbody>
-    ) : <NoDataMessage colspan={ 3 } /> 
+    ) : (<NoDataMessage colspan={ 3 } />) 
 
     // render table with elements
     return <Table header={ header } body={ body } />

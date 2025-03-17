@@ -1,6 +1,6 @@
 'use client'
 
-import { listUsers, listUsersInTeam, listChildren, listTeams } from "@/utils/apis"
+import { listUsers, listUsersInTeam, listChildren, listTeams, getTeamByID } from "@/utils/apis"
 import { useEffect, useState } from "react"
 import { Child, Team, User } from "@/app/types/models"
 import { UserTable, ChildTable, TeamTable } from "@/app/components/admin/Table"
@@ -57,14 +57,22 @@ export const AllUsersView = () => {
 export const AllTeamMembersView = ({teamId} : {teamId: string}) => {
     const [teamMembers, setTeamMembers] = useState<User[]>([]); 
     const [isLoading, setIsLoading] = useState<boolean>(true); 
+    const [teamName, setTeamName] = useState<string>(""); 
 
     useEffect(() => {
         const fetchTeamMembers = async () => {
             setTeamMembers(await listUsersInTeam(teamId)); 
-            setIsLoading(false); 
+            setIsLoading(false);
+            const team = await getTeamByID(teamId);
+            setTeamName(team?.name ? team?.name : "No Team Name");
         }
         fetchTeamMembers();
     }, [teamId])
 
-    return isLoading ? <LoadingMessage /> : <UserTable users={ teamMembers } /> 
+    return isLoading ? <LoadingMessage /> : (
+        <>
+            <h2>{ teamName ? teamName : "CRITICAL Channel" }</h2>
+            <UserTable users={ teamMembers } />
+        </>
+    ) 
 }
