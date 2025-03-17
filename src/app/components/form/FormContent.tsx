@@ -247,7 +247,6 @@ export function FormContent() {
 
 	// Handle form submission
 	const handleSubmit = async (e: React.FormEvent) => {
-		console.log("handleSubmit called");
 		e.preventDefault();
 
 		if (!userModel) return;
@@ -260,8 +259,6 @@ export function FormContent() {
 
 			// Call the financeCode function with the UI messages and current form state
 			const client = generateClient<Schema>();
-			console.log("submission messages", messages);
-			console.log("submission form", form);
 
 			// Start finance code generation in background - don't await it
 			void client.queries
@@ -300,7 +297,6 @@ export function FormContent() {
 			let businessID = form.businessID;
 			if (newBusiness) {
 				businessID = newBusiness.id;
-				console.log("Created new business with ID:", businessID);
 			}
 
 			// Create a clean version of the form data without null businessID
