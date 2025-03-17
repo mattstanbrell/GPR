@@ -13,15 +13,6 @@ type AuditLog = Schema["AuditLog"]["type"];
 
 const AuditLogsPage = () => {
 
-  // const [isComplete, setIsComplete] = useState(false); 
-  // useEffect(() => {
-  //   const fetchCreateUser = async () => {
-  //     seedDummyData();
-  //   setIsComplete(true);
-  // }
-  //   fetchCreateUser();
-  // }, [])
-
   const [auditLogs, setAuditLogs] = useState<AuditLog[] | null>(null)
   const [loaded, setLoaded] = useState(false);
 

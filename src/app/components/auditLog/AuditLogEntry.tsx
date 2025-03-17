@@ -21,8 +21,6 @@ const AuditLogEntry = ({ log }: {log : AuditLog} ) => {
   const [loaded, setLoaded] = useState(false);
   const router = useRouter();
 
-  console.log(log)
-
   useEffect(() => {
     const getUser = async () => {
       try {
