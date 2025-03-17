@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { getAuditLogById, getUserById } from "@/utils/apis"
 import { useRouter } from "next/navigation";
 import { type Schema } from "../../../../amplify/data/resource";
+import { FORM } from "@/app/constants/urls"
 
 type AuditLog = Schema["AuditLog"]["type"];
 type User = Schema['User']['type'];
@@ -43,7 +44,7 @@ const AuditLogDetail = ({ params }: { params: Promise<{ id: string }> }) => {
   }, [params]);
 
   const handleViewForm = () => {
-    router.push(`/form/${auditLog?.formID}`);
+    router.push(`${FORM}?id=${auditLog?.formID}`);
   };
 
   return (
@@ -55,6 +56,7 @@ const AuditLogDetail = ({ params }: { params: Promise<{ id: string }> }) => {
           <p className="govuk-body">Date & Time of Audit: {formatDate(auditLog?.date ?? "")}</p>
           <p className="govuk-body">Audit action: {auditLog?.action}</p>
           <p className="govuk-body">Action performed by: {user?.firstName} {user?.lastName}</p>
+          <p className="govuk-body">User group: {user?.permissionGroup}</p>
           <p className="govuk-body">User id: {auditLog?.userID}</p>
           <p className="govuk-body">ID of Form affected: {auditLog?.formID}</p>
           <button className="govuk-button govuk-button--secondary" onClick={handleViewForm}>View form</button>

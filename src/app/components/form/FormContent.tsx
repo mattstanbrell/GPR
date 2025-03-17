@@ -220,7 +220,7 @@ export function FormContent() {
  				assigneeId = team?.assistantManagerUserID;
  			}
 			await assignUserToForm(form.id, assigneeId);
-			addAuditLog(form.id, "submitted");
+			addAuditLog(form.id, `${userModel.firstName} ${userModel.lastName} submitted a form`);
 			
 			router.push(FORM_BOARD);
 		} catch (_error: unknown) {

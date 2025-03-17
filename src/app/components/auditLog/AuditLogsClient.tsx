@@ -4,9 +4,7 @@ import { useState } from "react";
 import { type Schema } from "../../../../amplify/data/resource";
 import AuditLogEntry from "./AuditLogEntry";
 import AuditLogsPagination from "./AuditLogsPagination";
-import LogsPerPageSelector from "./LogsPerPageSelector";
-import FilterByDateSelector from "./FilterByDateSelector";
-import FilterByActionSelector from "./FilterByActionSelector";
+import AuditLogsFilters from "./AuditLogsFilters";
 
 type AuditLog = Schema["AuditLog"]["type"];
 
@@ -15,8 +13,6 @@ const AuditLogsClient = ({ logs }: { logs: AuditLog[] }) => {
   const [logsPerPage, setLogsPerPage] = useState(20);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedAction, setSelectedAction] = useState("ALL");
-
-  console.log("length",logs.length);
 
   // Apply filter to logs
   const filteredLogs = logs.filter((log) => {
@@ -53,6 +49,14 @@ const AuditLogsClient = ({ logs }: { logs: AuditLog[] }) => {
     setCurrentPage(page);
   };
 
+  const updateLogsPerPage = (newLogsPerPage: number) => {
+    // Calculate the new page number to display the logs displayed before LogsPerPage update
+    const newPage = Math.ceil((currentPage * logsPerPage) / newLogsPerPage);
+  
+    setLogsPerPage(newLogsPerPage);
+    setCurrentPage(newPage);
+  };
+
   const updateDate = (date: Date | null) => {
     setSelectedDate(date);
     setCurrentPage(1);
@@ -65,9 +69,17 @@ const AuditLogsClient = ({ logs }: { logs: AuditLog[] }) => {
 
   return (
     <>
-      <LogsPerPageSelector logsPerPage={logsPerPage} updateLogsPerPage={setLogsPerPage} />
-      <FilterByDateSelector logDatesSet={validLogDates} selectedDate={selectedDate} updateDate={updateDate} />
-      <FilterByActionSelector action={selectedAction} updateAction={updateAction} />
+      <AuditLogsFilters
+        logsPerPage={logsPerPage}
+        updateLogsPerPage={updateLogsPerPage}
+
+        selectedAction={selectedAction}
+        updateAction={updateAction}
+
+        validLogDates={validLogDates}
+        selectedDate={selectedDate}
+        updateDate={updateDate}
+      />
       <table className="govuk-table">
         <caption className="govuk-table__caption govuk-table__caption--xl">Audit Logs</caption>
         <thead className="govuk-table__head">

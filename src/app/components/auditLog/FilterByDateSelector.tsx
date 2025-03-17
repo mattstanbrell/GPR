@@ -15,27 +15,35 @@ const FilterByDateSelector = ({ logDatesSet, selectedDate, updateDate}: FilterBy
   };
 
   return (
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }} className="form__control">
+    <div className="form__control flex justify-between items-center md:gap-3">
       <label className="govuk-label">Select Date</label>
+      <div className="flex items-center">
       <DatePicker
         selected={selectedDate}
         onChange={updateDate}
         filterDate={isDateValid}
         dateFormat="yyyy-MM-dd"
         placeholderText="Select a date"
-        className="govuk-select"
+        className="govuk-select w-32"
         wrapperClassName="date-picker-wrapper"
       />
       <button
         type="button"
         onClick={() => updateDate(null)}
         className="govuk-button govuk-button--secondary"
-        style={{ marginLeft: "10px" }}
+        style={{marginBottom: 2}}
       >
-        Clear Date
+        Clear
       </button>
+      </div>
     </div>
   );
 };
 
 export default FilterByDateSelector;
+/*
+      className="govuk-select text-sm md:text-base py-1 md:py-2 w-32 md:w-auto" // Adjust size for mobile
+
+      className="govuk-button govuk-button--secondary text-sm md:text-base py-1 md:py-2 px-2 md:px-4"
+
+*/

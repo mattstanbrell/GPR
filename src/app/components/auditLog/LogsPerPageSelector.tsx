@@ -11,9 +11,9 @@ const LogsPerPageSelector = ({ logsPerPage, updateLogsPerPage }: LogsPerPageSele
   };
 
   return (
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }} className="form__control">
+    <div className="form__control flex justify-between items-center md:gap-3">
       <label className="govuk-label">LogsPerPage</label>
-      <select style={{ width: "min(700px, 60%)" }} className="govuk-select" value={logsPerPage} onChange={handleLogsPerPageChange}>
+      <select className="govuk-select" value={logsPerPage} onChange={handleLogsPerPageChange}>
         <option value={5}>5</option>
         <option value={10}>10</option>
         <option value={20}>20</option>
