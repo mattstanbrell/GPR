@@ -8,7 +8,7 @@ import { useEffect, useState } from "react"
 import { redirect } from "next/navigation"
 import { ADMIN } from "@/app/constants/urls"
 import { InputTextTableRow, InputDateTableRow, InputSelectTableRow } from "@/app/components/admin/FormElements"
-import { handleUserFormSubmit } from "@/app/components/admin/FormHandlers"
+import { handleUserFormSubmit, handleChildFormSubmit } from "@/app/components/admin/FormHandlers"
 
 export const UserForm = ({data} : {data: User | null}) => {
     const [teamNames, setTeamNames] = useState<string[]>([]);
@@ -36,7 +36,7 @@ export const UserForm = ({data} : {data: User | null}) => {
                 </tr>
             </thead>
             <tbody>
-                <tr className="hidden"><td className="hidden"><input name="userId" value={ data && data.id ? data.id : "" } /></td></tr>
+                <tr className="hidden"><td className="hidden"><input name="userId" value={ data && data.id ? data.id : "" } readOnly /></td></tr>
                 <InputSelectTableRow fieldName="Team" inputName="team" defaultValue={ defaultTeam } options={ teamNames } />
                 <tr className="text-center">
                     <th colSpan={2}>Address</th>
@@ -53,23 +53,20 @@ export const UserForm = ({data} : {data: User | null}) => {
 }
 
 export const ChildForm = ({data} : {data: Child | null}) => {
-    const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-        redirect(ADMIN)
-    }
 
-    // build form specifically for editing/creating children
     const formElements = (
         <tbody>
+            <tr className="hidden"><td className="hidden"><input name="childId" value={ data && data.id ? data.id : "" } readOnly /></td></tr>
             <InputTextTableRow fieldName="Case Number" inputName="casenumber" defaultValue={ data?.caseNumber ? data.caseNumber : "" } isRequired={ true } />
             <InputTextTableRow fieldName="First Name" inputName="firstname" defaultValue={ data?.firstName ? data.firstName : "" } isRequired={ true } />
             <InputTextTableRow fieldName="Last Name" inputName="lastname" defaultValue={ data?.lastName ? data.lastName : "" } isRequired={ true } />
-            <InputDateTableRow fieldName="DoB" inputName="dob" defaultValue={ data?.dateOfBirth ? new Date(data?.dateOfBirth) : new Date() } isRequired={ true } />
+            <InputDateTableRow fieldName="DoB" inputName="dob" defaultValue={ data?.dateOfBirth ? data?.dateOfBirth : null } isRequired={ true } />
             <InputSelectTableRow fieldName="Sex" inputName="sex" defaultValue={ data?.sex ? data.sex : "Select" } options={["Male", "Female"]} />
             <InputSelectTableRow fieldName="Gender" inputName="gender" defaultValue={ data?.gender ? data.gender : "Select" } options={["Male", "Female"]} />
         </tbody>
     )
 
-    return <Form components={ formElements } handleSubmit={ handleSubmit } />
+    return <Form components={ formElements } handleSubmit={ handleChildFormSubmit } />
 }
 
 export const TeamForm = ({data} : {data: Team | null}) => {
