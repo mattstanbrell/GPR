@@ -16,11 +16,11 @@ import {
 	getFormById,
 	getTeamByID,
 	assignUserToForm,
-	getNormConversationByFormId
+	getNormConversationByFormId,
+	createAuditLog
 } from "../../../utils/apis";
 import { useUserModel } from "../../../utils/authenticationUtils";
 import type { FormStatus } from "@/app/types/models";
-import { useGenerateAuditLog } from "@/utils/auditLogUtils";
 import { FORM_STATUS, PERMISSIONS } from "@/app/constants/models";
 
 export function FormContent() {
@@ -220,7 +220,7 @@ export function FormContent() {
  				assigneeId = team?.assistantManagerUserID;
  			}
 			await assignUserToForm(form.id, assigneeId);
-			useGenerateAuditLog(form.id, `${userModel.firstName} ${userModel.lastName} submitted a form`);
+			await createAuditLog(`${userModel.firstName} ${userModel.lastName} submitted a form`, userModel.id, form.id);
 			
 			router.push(FORM_BOARD);
 		} catch (_error: unknown) {
