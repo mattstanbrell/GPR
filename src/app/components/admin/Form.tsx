@@ -8,6 +8,7 @@ import { useEffect, useState } from "react"
 import { redirect } from "next/navigation"
 import { ADMIN } from "@/app/constants/urls"
 import { ButtonGroup } from "@/app/components/admin/ButtonContainer"
+import { InputTextTableRow, InputDateTableRow, InputSelectTableRow } from "./FormElements"
 
 export const UserForm = ({data} : {data: User | null}) => {
     const handleSubmit = () => {
@@ -41,42 +42,14 @@ export const UserForm = ({data} : {data: User | null}) => {
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td>Team</td>
-                    <td>
-                        <select defaultValue={ defaultTeam }>
-                            <option disabled>Select</option>
-                            <>
-                            { 
-                                teamNames.map((teamName, index) => {
-                                    <option key={ index }>{ teamName }</option>
-                                })
-                            } 
-                            </>
-                        </select>
-                    </td>
+                <InputSelectTableRow fieldName="Team" inputName="team" defaultValue={ defaultTeam } options={ teamNames } />
+                <tr className="text-center">
+                    <th colSpan={2}>Address</th>
                 </tr>
-                <tr>
-                    <tr className="text-center">
-                        <th colSpan={2}>Address</th>
-                    </tr>
-                    <tr>
-                        <td>Line 1:</td>
-                        <td><input type="text" defaultValue={ data?.address?.lineOne ? data?.address?.lineOne : "" } /></td>
-                    </tr>
-                    <tr>
-                        <td>Line 2:</td>
-                        <td><input name="line2" type="text" defaultValue={ data?.address?.lineTwo ? data?.address?.lineTwo : "" } /></td>
-                    </tr>
-                    <tr>
-                        <td>Town/City:</td>
-                        <td><input name="towncity" type="text" defaultValue={ data?.address?.townOrCity ? data?.address?.townOrCity : "" } /></td>
-                    </tr>
-                    <tr>
-                        <td>Postcode:</td>
-                        <td><input name="postcode" type="text" defaultValue={ data?.address?.postcode ? data?.address?.postcode : "" } /></td>
-                    </tr>
-                </tr>
+                <InputTextTableRow fieldName="Line 1" inputName="lineone" defaultValue={ data?.address?.lineOne ? data?.address?.lineOne : "" } />
+                <InputTextTableRow fieldName="Line 2" inputName="linetwo" defaultValue={ data?.address?.lineTwo ? data?.address?.lineTwo : "" } />
+                <InputTextTableRow fieldName="Town/City" inputName="towncity" defaultValue={ data?.address?.townOrCity ? data?.address?.townOrCity : "" } />
+                <InputTextTableRow fieldName="Postcode" inputName="postcode" defaultValue={ data?.address?.postcode ? data?.address?.postcode : "" } />
             </tbody>
         </table>
     )
@@ -84,13 +57,29 @@ export const UserForm = ({data} : {data: User | null}) => {
     return <Form components={ formElements } handleSubmit={ handleSubmit } />
 }
 
-export const ChildForm = ({data} : {data: Child}) => {
+export const ChildForm = ({data} : {data: Child | null}) => {
+    const handleSubmit = () => {
+        redirect(ADMIN)
+    }
+
     // build form specifically for editing/creating children
-    return <></>
+    const formElements = (
+        <table className="w-full">
+            <tbody>
+                <InputTextTableRow fieldName="Case Number" inputName="casenumber" defaultValue={ data?.caseNumber ? data.caseNumber : "" } isRequired={ true } />
+                <InputTextTableRow fieldName="First Name" inputName="firstname" defaultValue={ data?.firstName ? data.firstName : "" } isRequired={ true } />
+                <InputTextTableRow fieldName="Last Name" inputName="lastname" defaultValue={ data?.lastName ? data.lastName : "" } isRequired={ true } />
+                <InputDateTableRow fieldName="DoB" inputName="dob" defaultValue={ data?.dateOfBirth ? new Date(data?.dateOfBirth) : new Date() } isRequired={ true } />
+                <InputSelectTableRow fieldName="Sex" inputName="sex" defaultValue={ data?.sex ? data.sex : "Select" } options={["Male", "Female"]} />
+                <InputSelectTableRow fieldName="Gender" inputName="gender" defaultValue={ data?.gender ? data.gender : "Select" } options={["Male", "Female"]} />
+            </tbody>
+        </table>
+    )
+
+    return <Form components={ formElements } handleSubmit={ handleSubmit } />
 }
 
 export const TeamForm = ({data} : {data: Team}) => {
-    // build form specifically for editing/creating a team
     return <></>
 }
 
