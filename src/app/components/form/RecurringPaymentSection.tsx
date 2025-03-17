@@ -1,14 +1,7 @@
 import { useState } from "react";
 import type { Schema } from "../../../../amplify/data/resource";
-import {
-	calculateNextOccurrences,
-	type DayOfWeek,
-	type Frequency,
-	type Month,
-	DAYS_OF_WEEK,
-	POSITIONS,
-	MONTHS,
-} from "@/app/types/recurrence";
+import { type DayOfWeek, type Frequency, type Month, DAYS_OF_WEEK, POSITIONS, MONTHS } from "@/app/types/recurrence";
+import { calculateNextOccurrences } from "./_helpers";
 
 interface RecurringPaymentSectionProps {
 	form: Partial<Schema["Form"]["type"]>;
