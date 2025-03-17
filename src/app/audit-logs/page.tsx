@@ -1,7 +1,7 @@
 'use client'
 
 import AuditLogsClient from "@/app/components/auditLog/AuditLogsClient";
-import { listAuditLogs } from "@/utils/apis";
+import { listAuditLogs} from "@/utils/apis";
 import { useState, useEffect } from "react";
 
 import { type Schema } from "../../../amplify/data/resource";
@@ -27,10 +27,6 @@ const AuditLogsPage = () => {
     fetchAuditLogs();
   }, [])
 
-  // import { useGenerateAuditLog } from "@/utils/auditLogUtils";
-  // useGenerateAuditLog("A123","denied a form")
-  // useGenerateAuditLog("B123","submitted a form")
-  // useGenerateAuditLog("C123","approved a form")
 
   return (
     <>
