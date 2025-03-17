@@ -3,18 +3,24 @@
 import { useContext } from "react"
 import { AppContext } from "@/app/layout"
 import { PERMISSIONS } from "@/app/constants/models"
-import { AllUsersView } from "@/app/components/admin/Views"
+import { AllUsersView, AllChildrenView, AllTeamsView, AllTeamMembersView } from "@/app/components/admin/Views"
 
 const AdministratorPanel = () => {
     // display three panels: list of all users, teams, and children
 
-    return <></>
+    return (
+        <>
+            <AllUsersView /> 
+            <AllChildrenView />
+            <AllTeamsView />
+        </>
+    )
 }
 
-const ManagerPanel = () => {
+const ManagerPanel = ({teamId}: {teamId: string}) => {
     // display team with list of all team members
 
-    return <></>
+    return <AllTeamMembersView teamId={ teamId } /> 
 }
 
 export const AdminPanel = () => {
@@ -25,7 +31,7 @@ export const AdminPanel = () => {
 
     return (
         <>
-            <AllUsersView />
+            <AdministratorPanel />
         </>
     )
 }

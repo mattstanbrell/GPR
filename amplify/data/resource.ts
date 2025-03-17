@@ -40,6 +40,7 @@ const schema = a
 
 		Team: a
 			.model({
+				name: a.string(),
 				managerUserID: a.id(),
 				assistantManagerUserID: a.id(),
 				members: a.hasMany("User", "teamID"),

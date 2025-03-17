@@ -56,6 +56,7 @@ type AuditLogUpdates = {
 };
 
 type TeamUpdates = {
+	name?: string;
 	managerUserID?: string;
 	assistantManagerUserID?: string;
 };

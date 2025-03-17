@@ -4,6 +4,10 @@ import React from "react"
 import { Child, User, Team } from "@/app/types/models"
 import { redirect } from "next/navigation"
 
+const NoDataMessage = ({colspan} : {colspan: number}) => {
+    return <tr><td colSpan={ colspan }>No data to show</td></tr>
+}
+
 export const UserTable = ({users} : { users: User[]}) => {
     const url = "/admin/user";
     console.log(users)
@@ -19,7 +23,7 @@ export const UserTable = ({users} : { users: User[]}) => {
     )
 
     // build body
-    const body = (
+    const body = users.length > 0 ? (
         <tbody>
             { users.map(({id, firstName, lastName, email, permissionGroup}, index) => (
                 <tr key={ index } onClick={ () => redirect(`${url}?id=${id}`) }>
@@ -29,7 +33,7 @@ export const UserTable = ({users} : { users: User[]}) => {
                 </tr>
             ))}
         </tbody>
-    )
+    ) : <NoDataMessage colspan={ 3 } /> 
 
     // render table with elements
     return <Table header={ header } body={ body } />
@@ -58,6 +62,7 @@ export const ChildTable = ({children} : { children: Child[]}) => {
                     <td>{caseNumber}</td>
                 </tr>
             ))}
+            <tr><td colSpan={3} onClick={() => redirect(url) }>Add Child</td></tr>
         </tbody>
     )
 
@@ -66,17 +71,34 @@ export const ChildTable = ({children} : { children: Child[]}) => {
 } 
 
 export const TeamTable = ({teams} : { teams: Team[]}) => {
+    const url = "/admin/teams";
     // build header 
+    const header = (
+        <thead>
+            <tr>
+                <th>Name</th>
+            </tr>
+        </thead>
+    )
 
     // build body
+    const body = teams.length > 0 ? (
+        <tbody>
+            { teams.map(({id, name}, index) => (
+                <tr key={ index } onClick={ () => redirect(`${url}?id=${id}`) }>
+                    <td>{name}</td>
+                </tr>
+            ))}
+        </tbody>
+    ) : <NoDataMessage colspan={1} />
 
     // render table with elements
-    return <></>
+    return <Table header={ header } body={ body } />
 }  
 
 const Table = ({header, body} : {header: React.ReactElement, body: React.ReactElement}) => {
     return (
-        <table>
+        <table className="w-full">
             { header }
             { body }
         </table>
