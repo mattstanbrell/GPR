@@ -5,6 +5,23 @@ import { runWithAmplifyServerContext } from "@/utils/amplifyServerUtils";
 export async function middleware(request: NextRequest) {
 	const response = NextResponse.next();
 	const isHomePage = request.nextUrl.pathname === "/";
+	const isSignOut = request.nextUrl.pathname === "/sign-out";
+
+	if (isSignOut) {
+		console.log("Signing out...");
+		// Clear the session and redirect to the home page
+		await runWithAmplifyServerContext({
+			nextServerContext: { request, response },
+			operation: async (contextSpec) => {
+				try {
+					await fetchAuthSession(contextSpec, { forceRefresh: true });
+				} catch (error: unknown) {
+					console.error("Error in middleware:", error);
+				}
+			},
+		});
+		return NextResponse.redirect(new URL("/", request.url));
+	}
 
 	const authenticated = await runWithAmplifyServerContext({
 		nextServerContext: { request, response },
@@ -12,6 +29,7 @@ export async function middleware(request: NextRequest) {
 			try {
 				const session = await fetchAuthSession(contextSpec, {});
 				const hasTokens = session.tokens !== undefined;
+				console.log("Has tokens:", hasTokens);
 				return hasTokens;
 			} catch (error: unknown) {
 				console.error("Error in middleware:", error);

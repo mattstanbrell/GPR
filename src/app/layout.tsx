@@ -6,13 +6,15 @@ import ConfigureAmplifyClientSide from "./components/ConfigureAmplify";
 import { audilyPrimary } from "./theme";
 import { GovUKFrontend } from "./components/GovUKInitialiser";
 import Header from "@/app/components/Header";
+
 import FullscreenMenu from "@/app/components/navigation/FullscreenMenu";
 import { useState, useEffect, createContext } from "react";
-import { fetchUserAttributes, getCurrentUser } from "aws-amplify/auth";
+import { fetchUserAttributes, getCurrentUser, fetchAuthSession } from "aws-amplify/auth";
 import { signInWithRedirect, signOut } from "aws-amplify/auth";
 import useIsMobileWindowSize, { useResponsiveMenu } from "@/utils/responsivenessHelpers";
 import { User } from "./types/models";
 import { getUserByEmail } from "@/utils/apis";
+import { redirect } from "next/navigation";
 
 
 // Alternative font which was used in the figma design
@@ -87,6 +89,8 @@ export default function RootLayout({
 		try {
 			if (isSignedIn) {
 				await signOut();
+				redirect("/sign-out");
+				
 			} else {
 				await signInWithRedirect({
 					provider: { custom: "MicrosoftEntraID" },
