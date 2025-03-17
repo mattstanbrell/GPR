@@ -35,7 +35,7 @@ export const UserForm = ({data} : {data: User | null}) => {
     }, [])
 
     const formElements = (
-        <table className="w-100 text-left">
+        <>
             <thead>
                 <tr>
                     <th colSpan={2}>{data?.firstName} {data?.lastName}</th>
@@ -51,7 +51,7 @@ export const UserForm = ({data} : {data: User | null}) => {
                 <InputTextTableRow fieldName="Town/City" inputName="towncity" defaultValue={ data?.address?.townOrCity ? data?.address?.townOrCity : "" } />
                 <InputTextTableRow fieldName="Postcode" inputName="postcode" defaultValue={ data?.address?.postcode ? data?.address?.postcode : "" } />
             </tbody>
-        </table>
+        </>
     )
 
     return <Form components={ formElements } handleSubmit={ handleSubmit } />
@@ -64,16 +64,14 @@ export const ChildForm = ({data} : {data: Child | null}) => {
 
     // build form specifically for editing/creating children
     const formElements = (
-        <table className="w-full">
-            <tbody>
-                <InputTextTableRow fieldName="Case Number" inputName="casenumber" defaultValue={ data?.caseNumber ? data.caseNumber : "" } isRequired={ true } />
-                <InputTextTableRow fieldName="First Name" inputName="firstname" defaultValue={ data?.firstName ? data.firstName : "" } isRequired={ true } />
-                <InputTextTableRow fieldName="Last Name" inputName="lastname" defaultValue={ data?.lastName ? data.lastName : "" } isRequired={ true } />
-                <InputDateTableRow fieldName="DoB" inputName="dob" defaultValue={ data?.dateOfBirth ? new Date(data?.dateOfBirth) : new Date() } isRequired={ true } />
-                <InputSelectTableRow fieldName="Sex" inputName="sex" defaultValue={ data?.sex ? data.sex : "Select" } options={["Male", "Female"]} />
-                <InputSelectTableRow fieldName="Gender" inputName="gender" defaultValue={ data?.gender ? data.gender : "Select" } options={["Male", "Female"]} />
-            </tbody>
-        </table>
+        <tbody>
+            <InputTextTableRow fieldName="Case Number" inputName="casenumber" defaultValue={ data?.caseNumber ? data.caseNumber : "" } isRequired={ true } />
+            <InputTextTableRow fieldName="First Name" inputName="firstname" defaultValue={ data?.firstName ? data.firstName : "" } isRequired={ true } />
+            <InputTextTableRow fieldName="Last Name" inputName="lastname" defaultValue={ data?.lastName ? data.lastName : "" } isRequired={ true } />
+            <InputDateTableRow fieldName="DoB" inputName="dob" defaultValue={ data?.dateOfBirth ? new Date(data?.dateOfBirth) : new Date() } isRequired={ true } />
+            <InputSelectTableRow fieldName="Sex" inputName="sex" defaultValue={ data?.sex ? data.sex : "Select" } options={["Male", "Female"]} />
+            <InputSelectTableRow fieldName="Gender" inputName="gender" defaultValue={ data?.gender ? data.gender : "Select" } options={["Male", "Female"]} />
+        </tbody>
     )
 
     return <Form components={ formElements } handleSubmit={ handleSubmit } />
@@ -111,13 +109,11 @@ export const TeamForm = ({data} : {data: Team | null}) => {
     }, [managers])
 
     const formElements = (
-        <table>
-            <tbody>
-                <InputTextTableRow fieldName="Team Name" inputName="teamname" defaultValue={ data?.name ? data.name : "" } />
-                <InputSelectTableRow fieldName="Assistant Manager" inputName="assistmanager" defaultValue={ currentAssistantManager } options={ managerNames } />
-                <InputSelectTableRow fieldName="Team Manager" inputName="manager" defaultValue={ currentManager } options={ managerNames } />
-            </tbody>
-        </table>
+        <tbody>
+            <InputTextTableRow fieldName="Team Name" inputName="teamname" defaultValue={ data?.name ? data.name : "" } />
+            <InputSelectTableRow fieldName="Assistant Manager" inputName="assistmanager" defaultValue={ currentAssistantManager } options={ managerNames } />
+            <InputSelectTableRow fieldName="Team Manager" inputName="manager" defaultValue={ currentManager } options={ managerNames } />
+        </tbody>
     )
 
     return <Form components={ formElements } handleSubmit={ handleSubmit } />
@@ -129,7 +125,9 @@ const Form = (
 ) => {
     return (
         <form onSubmit={ handleSubmit }>
-            { components }
+            <table className="w-full text-left">
+                { components }
+            </table>
             <div className="govuk-button-group">
                 <PrimaryButton name="Submit" /> 
                 <WarningButton name="Cancel" onClick={() => redirect(ADMIN)} />
