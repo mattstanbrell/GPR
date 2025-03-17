@@ -129,7 +129,7 @@ const schema = a
 						position: a.enum(["FIRST", "SECOND", "THIRD", "FOURTH", "LAST"]),
 						dayOfWeek: a.string(), // "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"
 					}),
-					months: a.string().array(), // Values should be Month enum: "JANUARY", "FEBRUARY", etc.
+					months: a.string().array(), // eg ["JANUARY", "MARCH"]
 					excludedDates: a.string().array(),
 					description: a.string(),
 				}),
