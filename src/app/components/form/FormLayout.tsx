@@ -2,6 +2,7 @@
 import { FORM_STATUS } from "@/app/constants/models";
 import type { Schema } from "../../../../amplify/data/resource";
 import FeedbackContainer from "./feedback/FeedbackContainer";
+import { useState } from "react";
 
 interface FormLayoutProps {
 	form: Partial<Schema["Form"]["type"]>;
@@ -23,6 +24,19 @@ export function FormLayout({
 	disabled,
 	updatedFields,
 }: FormLayoutProps) {
+	// State to keep track of any errors during submission
+	const [submitError, setSubmitError] = useState<string | null>(null);
+
+	// Wrapper to catch submission errors
+	const handleSubmitWrapper = async (e: React.FormEvent) => {
+		e.preventDefault();
+		try {
+			await handleSubmit(e);
+			setSubmitError(null);
+		} catch (error: any) {
+			setSubmitError(error.message || "An error occurred while submitting.");
+		}
+	};
 	return (
 		<>
 			<style jsx>{`
@@ -555,25 +569,28 @@ export function FormLayout({
 						</fieldset>
 					</form>
 				</div>
-				{ form?.status === FORM_STATUS.DRAFT && 
-					<div className="button-container">
-						<button
-							type="submit"
-							className="govuk-button"
-							onClick={handleSubmit}
-							disabled={!isFormValid(form) || loading}
-							style={{
-								marginBottom: 0,
-								position: "relative",
-								zIndex: 1,
-								opacity: isFormValid(form) ? 1 : 0.5,
-								cursor: isFormValid(form) ? "pointer" : "not-allowed",
-							}}
-						>
-							{loading ? "Submitting..." : "Submit"}
-						</button>
-					</div>
-				}
+				{form?.status === FORM_STATUS.DRAFT && (
+					<>
+						<div className="button-container">
+							<button
+								type="submit"
+								className="govuk-button"
+								onClick={handleSubmitWrapper}
+								disabled={!isFormValid(form) || loading}
+								style={{
+									marginBottom: 0,
+									position: "relative",
+									zIndex: 1,
+									opacity: isFormValid(form) ? 1 : 0.5,
+									cursor: isFormValid(form) ? "pointer" : "not-allowed",
+								}}
+							>
+								{loading ? "Submitting..." : "Submit"}
+							</button>
+						</div>
+						{submitError && <p className="govuk-error-message">{submitError}</p>}
+					</>
+				)}
 			</div>
 		</>
 	);
