@@ -84,9 +84,11 @@ export const TeamForm = ({data} : {data: Team | null}) => {
         redirect(ADMIN)
     }
 
-    const [managers, setManagers] = useState<User[]>([]])
-    const [currentManager, setCurrentManager] = useState<User | null>(null);
-    const [currentAssistantManager, setCurrentAssistantManager] = useState<User | null>(null);
+    const [managers, setManagers] = useState<User[]>([]);
+    const [currentManager, setCurrentManager] = useState<string>("");
+    const [currentAssistantManager, setCurrentAssistantManager] = useState<string>("");
+    const [managerNames, setManagerNames] = useState<string[]>([]);
+
     useEffect(() => {
         const fetchManagers = async () => {
             setManagers(await getManagers());
@@ -95,22 +97,25 @@ export const TeamForm = ({data} : {data: Team | null}) => {
     }, [])
 
     useEffect(() => {
-        managers && managers.map(({user}, index) => {
-            if (user.id === data?.assistantManagerUserID) {
-                setCurrentAssistantManager(user)
-            } else if (user.id === data?.managerUserID) {
-                setCurrentManager(user)
+        const names: string[] = [];
+        managers && managers.map(({id, firstName, lastName}, index) => {
+            const name: string = `${firstName} ${lastName}`;
+            names.push(name)
+            if (id === data?.assistantManagerUserID) {
+                setCurrentAssistantManager(name);
+            } else if (id === data?.managerUserID) {
+                setCurrentManager(name)
             }
         })
+        setManagerNames(names);
     }, [managers])
 
-    // build form specifically for editing/creating children
     const formElements = (
         <table>
             <tbody>
                 <InputTextTableRow fieldName="Team Name" inputName="teamname" defaultValue={ data?.name ? data.name : "" } />
-                <InputSelectTableRow fieldName="Assistant Manager" inputName="assistmanager" defaultValue={ currentAssistantManager ? currentAssistantManager : "" } options={ managers } />
-                <InputSelectTableRow fieldName="Team Manager" inputName="manager" defaultValue={ currentManager ? currentManager : "" } options={ managers } />
+                <InputSelectTableRow fieldName="Assistant Manager" inputName="assistmanager" defaultValue={ currentAssistantManager } options={ managerNames } />
+                <InputSelectTableRow fieldName="Team Manager" inputName="manager" defaultValue={ currentManager } options={ managerNames } />
             </tbody>
         </table>
     )
@@ -125,12 +130,10 @@ const Form = (
     return (
         <form onSubmit={ handleSubmit }>
             { components }
-            <ButtonGroup 
-                buttons={[
-                    <PrimaryButton name="Submit" />, 
-                    <WarningButton name="Cancel" onClick={() => redirect(ADMIN)} />,
-                ]}
-            /> 
+            <div className="govuk-button-group">
+                <PrimaryButton name="Submit" /> 
+                <WarningButton name="Cancel" onClick={() => redirect(ADMIN)} />
+            </div>
         </form>
     )
 }
