@@ -51,15 +51,42 @@ const AuditLogDetail = ({ params }: { params: Promise<{ id: string }> }) => {
     <>
       {loaded ? (
         <main className="govuk-main-wrapper">
-          <h1 className="govuk-heading-xl">Event Details</h1>
-          <p className="govuk-body"><strong>Audit Log ID:</strong> {auditLog?.id}</p>
-          <p className="govuk-body">Date & Time of Audit: {formatDate(auditLog?.date ?? "")}</p>
-          <p className="govuk-body">Audit action: {auditLog?.action}</p>
-          <p className="govuk-body">Action performed by: {user?.firstName} {user?.lastName}</p>
-          <p className="govuk-body">User group: {user?.permissionGroup}</p>
-          <p className="govuk-body">User id: {auditLog?.userID}</p>
-          <p className="govuk-body">ID of Form affected: {auditLog?.formID}</p>
+          <table className="govuk-table">
+            <caption className="govuk-table__caption govuk-table__caption--xl">Event Details</caption>
+            <tbody className="govuk-table__body">
+              <tr className="govuk-table__row">
+                <th scope="row" className="govuk-table__header">Audit Log ID:</th>
+                <th scope="row" className="govuk-table__header">{auditLog?.id}</th>
+              </tr>
+              <tr className="govuk-table__row">
+                <td className="govuk-table__cell">Date & Time of Audit:</td>
+                <td className="govuk-table__cell">{formatDate(auditLog?.date ?? "")}</td>
+              </tr>
+              <tr className="govuk-table__row">
+                <td className="govuk-table__cell">Audit action:</td>
+                <td className="govuk-table__cell">{auditLog?.action}</td>
+              </tr>
+              <tr className="govuk-table__row">
+                <td className="govuk-table__cell">Action performed by:</td>
+                <td className="govuk-table__cell">{user?.firstName} {user?.lastName}</td>
+              </tr>
+              <tr className="govuk-table__row">
+                <td className="govuk-table__cell">User id:</td>
+                <td className="govuk-table__cell">{auditLog?.userID}</td>
+              </tr>
+              <tr className="govuk-table__row">
+                <td className="govuk-table__cell">User group:</td>
+                <td className="govuk-table__cell">{user?.permissionGroup}</td>
+              </tr>
+              <tr className="govuk-table__row">
+                <td className="govuk-table__cell">ID of Form affected:</td>
+                <td className="govuk-table__cell">{auditLog?.formID}</td>
+              </tr>
+            </tbody>
+          </table>
+
           <button className="govuk-button govuk-button--secondary" onClick={handleViewForm}>View form</button>
+          
         </main>
       ) : (
         <h3>loading audit log</h3>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { type Schema } from "../../../../amplify/data/resource";
 import AuditLogEntry from "./AuditLogEntry";
 import AuditLogsPagination from "./AuditLogsPagination";
@@ -13,6 +13,10 @@ const AuditLogsClient = ({ logs }: { logs: AuditLog[] }) => {
   const [logsPerPage, setLogsPerPage] = useState(20);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedAction, setSelectedAction] = useState("ALL");
+
+  useEffect(() => {
+    }, 
+  [logsPerPage, selectedDate, selectedAction]);
 
   // Apply filter to logs
   const filteredLogs = logs.filter((log) => {
@@ -51,10 +55,21 @@ const AuditLogsClient = ({ logs }: { logs: AuditLog[] }) => {
 
   const updateLogsPerPage = (newLogsPerPage: number) => {
     // Calculate the new page number to display the logs displayed before LogsPerPage update
-    const newPage = Math.ceil((currentPage * logsPerPage) / newLogsPerPage);
-  
-    setLogsPerPage(newLogsPerPage);
-    setCurrentPage(newPage);
+    const newPage = Math.floor(1+ ( (currentPage - 1) * logsPerPage) / newLogsPerPage);
+
+    setLogsPerPage(newLogsPerPage)
+    const newTotalPages = Math.ceil(sortedLogs.length / newLogsPerPage)
+
+    // In case of out of bounds, it sets new page to min or max
+    if (newPage < 1){
+      setCurrentPage(1);
+    }
+    else if (newPage > newTotalPages){
+      setCurrentPage(newTotalPages);
+    }
+    else{
+      setCurrentPage(newPage)
+    }
   };
 
   const updateDate = (date: Date | null) => {
