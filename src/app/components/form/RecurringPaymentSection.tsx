@@ -680,16 +680,14 @@ export function RecurringPaymentSection({ form, handleFormChange, disabled }: Re
 					</div>
 
 					<div className="govuk-inset-text">
-						<h3 className="govuk-heading-s">Pattern summary</h3>
 						<p>{getPatternDescription()}</p>
-
-						<h4 className="govuk-heading-s">Next occurrences:</h4>
+						<br />
+						<h4 className="govuk-heading-s">Next 4 occurrences:</h4>
 						<ul className="govuk-list govuk-list--bullet">
 							{generateNextOccurrencesPreview().map((date) => (
 								<li key={`occurrence-${date}`}>{date}</li>
 							))}
 						</ul>
-						<p className="govuk-hint">(Showing next 4 occurrences)</p>
 					</div>
 				</>
 			)}

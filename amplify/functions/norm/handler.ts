@@ -208,6 +208,8 @@ async function parseRecurring(description: string, startDate: string) {
 				role: "system",
 				content: `You are a specialized parser that converts natural language descriptions of recurring schedules into structured patterns. Your task is to:
 
+Current London time: ${formatLondonTime()}
+
 1. Identify the core frequency (DAILY, WEEKLY, MONTHLY, YEARLY)
 2. Determine the interval (e.g., every 2 weeks = interval: 2)
 3. Extract any specific days, dates, or positions mentioned
@@ -576,6 +578,19 @@ async function processLLMResponse(
 			}
 		: null;
 
+	// Set default end date for recurring patterns with neverEnds: false but no end conditions
+	if (formData?.isRecurring && formData?.recurrencePattern && !formData.recurrencePattern.neverEnds) {
+		if (!formData.recurrencePattern.endDate && !formData.recurrencePattern.maxOccurrences) {
+			// Get current date and add one year
+			const startDate = new Date(formData.recurrencePattern.startDate);
+			const oneYearFromStart = new Date(startDate);
+			oneYearFromStart.setFullYear(oneYearFromStart.getFullYear() + 1);
+
+			// Format as YYYY-MM-DD
+			formData.recurrencePattern.endDate = oneYearFromStart.toISOString().split("T")[0];
+		}
+	}
+
 	// console.log("Processed form data to return:", JSON.stringify(formData, null, 2));
 
 	// Check for any null or undefined fields that might cause issues
@@ -589,7 +604,7 @@ async function processLLMResponse(
 		}
 
 		// Ensure required fields are present
-		const requiredFields = ["title", "caseNumber", "amount", "reason", "dateRequired", "suggestedFinanceCodeID"];
+		const requiredFields = ["title", "caseNumber", "amount", "reason", "dateRequired"];
 		const missingFields = requiredFields.filter((field) => !(field in formData));
 
 		if (missingFields.length > 0) {
@@ -915,23 +930,49 @@ Final response:
 
 ### Example 2: Recurring purchase with existing business
 
-User: "I need to set up monthly payments of £85 to ABC Therapy Services for Daniel Wilson's speech therapy, starting April 5th."
+User: "I need to set up monthly payments of £85 to ABC Therapy Services for Daniel Wilson's speech therapy."
 
-Tool calls (all made together in the same response):
+Tool calls (both made together in the same response):
 1. lookupCaseNumber("Daniel Wilson")
 2. searchBusinesses("ABC Therapy Services")
-3. parseRecurring("monthly payments starting April 5th", "2025-04-05")
 
 After receiving tool responses:
 - lookupCaseNumber returns: {"id": "56789", "firstName": "Daniel", "lastName": "Wilson", "dateOfBirth": "2018-03-15"}
 - searchBusinesses returns: [{"id": "b23456", "name": "ABC Therapy Services", "address": {"lineOne": "123 Health Street", "lineTwo": "Suite 4B", "townOrCity": "London", "postcode": "NW1 6QT"}}]
-- parseRecurring returns: {
+
+First response:
+{
+  "form": {
+    "title": "Monthly speech therapy from ABC Therapy Services for Daniel Wilson",
+    "expenseType": "PURCHASE_ORDER",
+    "caseNumber": "56789",
+    "reason": "Speech therapy sessions",
+    "amount": 85,
+    "businessDetails": {
+      "name": "ABC Therapy Services",
+      "address": {
+        "lineOne": "123 Health Street",
+        "lineTwo": "Suite 4B",
+        "townOrCity": "London",
+        "postcode": "NW1 6QT"
+      }
+    },
+    "businessID": "b23456",
+    "isRecurring": true
+  },
+  "followUp": "I've found ABC Therapy Services in our system. When would you like the monthly payments to start?"
+}
+
+User: "April 5th"
+
+[Tool call: parseRecurring("monthly payments starting April 5th", "2025-04-05")]  
+[Tool response: {
   "frequency": "MONTHLY",
   "interval": 1,
   "startDate": "2025-04-05",
   "neverEnds": true,
   "description": "Monthly payments starting April 5th."
-}
+}]
 
 Final response:
 {
@@ -1035,9 +1076,10 @@ Final response:
 * If the social worker mentions any recurring schedule (eg, "every week", "monthly", "twice a month"), set isRecurring to true.
 * Use the parseRecurring tool to convert a natural language recurrence description into a recurrencePattern. Then include this recurrencePattern in the form response.
 * parseRecurring takes two arguments: description and startDate.
+* The description should include ALL relevant information about the recurrence pattern, including any exclusions or exceptions.
 * For startDate:
   * If a clear date is provided (eg, "March 15th", "next Tuesday", "first Monday of April"), use it directly.
-  * If the date is unclear or missing (eg, "soon", "in a few days", or no date mentioned), ask for one.
+  * If the date is unclear or missing (eg, "soon", "in a few days", or no date mentioned), ALWAYS ask for one before calling the parseRecurring tool.
   * Format all dates as YYYY-MM-DD.
 * When filling out the recurrencePattern field, always include the start date in your response, eg "I've set up weekly payments starting from March 15th, 2024."
 * If the recurrence description is unclear, ask clarifying questions before calling the parseRecurring tool.

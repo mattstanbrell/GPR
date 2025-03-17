@@ -277,6 +277,7 @@ const schema = a
 			.arguments({
 				messages: a.string().required(),
 				currentFormState: a.string().required(),
+				formID: a.id().required(),
 			})
 			.returns(a.string())
 			.authorization((allow) => [allow.authenticated()])

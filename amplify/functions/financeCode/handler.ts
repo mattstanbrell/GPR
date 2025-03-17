@@ -1,6 +1,7 @@
 import { env } from "$amplify/env/financeCode";
 import type { Schema } from "../../data/resource";
 import { Amplify } from "aws-amplify";
+import { generateClient } from "aws-amplify/data";
 import { getAmplifyDataClientConfig } from "@aws-amplify/backend/function/runtime";
 import OpenAI from "openai";
 import { z } from "zod";
@@ -10,6 +11,9 @@ import type { ChatCompletionMessageParam } from "openai/resources/chat/completio
 // Configure Amplify with the proper backend configuration
 const { resourceConfig, libraryOptions } = await getAmplifyDataClientConfig(env);
 Amplify.configure(resourceConfig, libraryOptions);
+
+// Now we can use generateClient
+const client = generateClient<Schema>();
 
 const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
 
@@ -101,10 +105,10 @@ function formatConversation(messages: UIMessage[]): string {
 }
 
 export const handler: Schema["FinanceCodeFunction"]["functionHandler"] = async (event) => {
-	const { messages, currentFormState } = event.arguments;
+	const { messages, currentFormState, formID } = event.arguments;
 
 	try {
-		// Parse the messages and form state
+		// Parse the messages
 		const parsedMessages = JSON.parse(messages) as UIMessage[];
 		const parsedFormState = JSON.parse(currentFormState);
 
@@ -143,6 +147,12 @@ Based on this information, what is the most appropriate finance code?`,
 		if (!financeCode) {
 			throw new Error("No finance code in OpenAI response");
 		}
+
+		// Update the form with the suggested finance code
+		await client.models.Form.update({
+			id: formID,
+			suggestedFinanceCodeID: financeCode,
+		});
 
 		// Return the finance code
 		return financeCode;

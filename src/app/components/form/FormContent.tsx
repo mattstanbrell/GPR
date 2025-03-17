@@ -263,11 +263,16 @@ export function FormContent() {
 			console.log("submission messages", messages);
 			console.log("submission form", form);
 
-			// Start finance code generation in parallel
-			const financeCodePromise = client.queries.FinanceCodeFunction({
-				messages: JSON.stringify(messages),
-				currentFormState: JSON.stringify(form),
-			});
+			// Start finance code generation in background - don't await it
+			const financeCodePromise = client.queries
+				.FinanceCodeFunction({
+					messages: JSON.stringify(messages),
+					currentFormState: JSON.stringify(form),
+					formID: form.id,
+				})
+				.catch((error) => {
+					console.error("Error in finance code generation:", error);
+				});
 
 			// Start business creation in parallel if needed
 			let businessPromise: Promise<{ id: string } | null> = Promise.resolve(null);
@@ -288,11 +293,8 @@ export function FormContent() {
 				});
 			}
 
-			// Wait for both operations to complete in parallel
-			const [financeCodeResult, newBusiness] = await Promise.all([financeCodePromise, businessPromise]);
-
-			// Get the finance code response
-			const financeCodeResponse = financeCodeResult.data;
+			// Wait for business creation to complete
+			const newBusiness = await businessPromise;
 
 			// Get the business ID (either existing or newly created)
 			let businessID = form.businessID;
@@ -310,8 +312,6 @@ export function FormContent() {
 				status: "SUBMITTED" as FormStatus,
 				creatorID: userModel.id,
 				...(businessID && { businessID }),
-				// Add the suggested finance code from the financeCode function
-				...(financeCodeResponse && { suggestedFinanceCodeID: financeCodeResponse }),
 			};
 
 			await updateForm(form.id, formDataToSubmit);
