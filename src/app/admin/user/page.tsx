@@ -1,0 +1,31 @@
+'use client'
+
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { UserForm } from "@/app/components/admin/Form";
+import type { User } from "@/app/types/models";
+import { getUserById } from "@/utils/apis";
+
+const Users = () => {
+    const searchParams = useSearchParams(); 
+    const userId = searchParams.get("id"); 
+    const [user, setUser] = useState<User | null>(null);
+
+    if (userId) {
+        useEffect(() => {
+            const fetchUser = async () => {
+                setUser(await getUserById(userId));
+            }
+            fetchUser();
+        }, [userId])
+    }
+
+    return (
+        <>
+            <h1>Howdy user</h1>
+            <UserForm data={ user } /> 
+        </>
+    )
+}
+
+export default Users;
