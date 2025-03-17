@@ -4,11 +4,6 @@ export type DayOfWeek = "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDA
 export type Position = "FIRST" | "SECOND" | "THIRD" | "FOURTH" | "LAST";
 export type Frequency = "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY";
 
-// Legacy lowercase versions for backward compatibility
-export type DayOfWeekLegacy = "monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday";
-export type PositionLegacy = "first" | "second" | "third" | "fourth" | "last";
-export type FrequencyLegacy = "daily" | "weekly" | "monthly" | "yearly";
-
 // Month enum (1-12)
 export type Month =
 	| "JANUARY"
@@ -24,65 +19,28 @@ export type Month =
 	| "NOVEMBER"
 	| "DECEMBER";
 
-// Helper functions to convert between enum formats
-export function toUpperCaseEnum<T extends string>(value: string, enumType: Record<string, T>): T {
-	const upperValue = value.toUpperCase() as keyof typeof enumType;
-	return enumType[upperValue];
-}
-
-export function toLowerCaseDay(day: DayOfWeek): DayOfWeekLegacy {
-	return day.toLowerCase() as DayOfWeekLegacy;
-}
-
-export function toUpperCaseDay(day: DayOfWeekLegacy): DayOfWeek {
-	return day.toUpperCase() as DayOfWeek;
-}
+const MONTHS: Month[] = [
+	"JANUARY",
+	"FEBRUARY",
+	"MARCH",
+	"APRIL",
+	"MAY",
+	"JUNE",
+	"JULY",
+	"AUGUST",
+	"SEPTEMBER",
+	"OCTOBER",
+	"NOVEMBER",
+	"DECEMBER",
+];
 
 export function monthNumberToEnum(monthNum: number): Month {
-	const months: Month[] = [
-		"JANUARY",
-		"FEBRUARY",
-		"MARCH",
-		"APRIL",
-		"MAY",
-		"JUNE",
-		"JULY",
-		"AUGUST",
-		"SEPTEMBER",
-		"OCTOBER",
-		"NOVEMBER",
-		"DECEMBER",
-	];
-	return months[monthNum - 1]; // Convert 1-based to 0-based index
-}
-
-export function monthEnumToNumber(month: Month): number {
-	const months: Month[] = [
-		"JANUARY",
-		"FEBRUARY",
-		"MARCH",
-		"APRIL",
-		"MAY",
-		"JUNE",
-		"JULY",
-		"AUGUST",
-		"SEPTEMBER",
-		"OCTOBER",
-		"NOVEMBER",
-		"DECEMBER",
-	];
-	return months.indexOf(month) + 1; // Convert 0-based to 1-based index
+	return MONTHS[monthNum - 1]; // Convert 1-based to 0-based index
 }
 
 export interface MonthPosition {
 	position: Position;
 	dayOfWeek: DayOfWeek;
-}
-
-export interface YearPosition {
-	position: Position;
-	day_of_week: DayOfWeek;
-	month: Month | number; // Can be either Month enum or number 1-12
 }
 
 export interface RecurrencePattern {
@@ -112,13 +70,6 @@ export interface RecurrencePattern {
 
 	// METADATA
 	description?: string;
-}
-
-export interface RecurringPayment {
-	recurring: boolean;
-	pattern: RecurrencePattern;
-	created_at?: string;
-	created_by?: string;
 }
 
 // Function to calculate the next N occurrences of a recurrence pattern

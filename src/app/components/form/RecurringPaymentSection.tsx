@@ -105,7 +105,7 @@ export function RecurringPaymentSection({ form, handleFormChange, disabled }: Re
 			setUseMonthPosition(true);
 			handleFormChange("recurrencePattern.monthEnd", false);
 
-			// Ensure month_position is set
+			// Ensure monthPosition is set
 			if (!form.recurrencePattern?.monthPosition) {
 				handleFormChange("recurrencePattern.monthPosition", {
 					position: "FIRST",
