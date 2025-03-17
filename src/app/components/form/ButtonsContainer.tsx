@@ -13,17 +13,17 @@ export const ManagersFormButtonsContainer = (
 
     const isValidated = form.status === FORM_STATUS.VALIDATED;
     const isAuthorised = form.status === FORM_STATUS.AUTHORISED;
-    console.log(form.status)
+    
     return (
         <>
         { form.status !== FORM_STATUS.DRAFT && 
-        <div className="flex justify-left">
-            <div className="govuk-button-group mt-4">
-                <AuthoriseButton form={ form } isDisabled={ isAuthorised || isValidated } />
-                <RejectButton isReject={ isReject } setIsReject={ setIsReject } isDisabled={ isAuthorised || isValidated } />
-                <ValidateButton form={ form } isDisabled={ !(isAuthorised) || isValidated } />
+            <div className="flex justify-left">
+                <div className="govuk-button-group mt-4">
+                    <AuthoriseButton form={ form } isDisabled={ isAuthorised || isValidated } />
+                    <RejectButton isReject={ isReject } setIsReject={ setIsReject } isDisabled={ isAuthorised || isValidated } />
+                    <ValidateButton form={ form } isDisabled={ !(isAuthorised) || isValidated } />
+                </div>
             </div>
-        </div>
         }
         </>
     )
