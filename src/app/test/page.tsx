@@ -970,9 +970,29 @@ export default function NewFormPage() {
 											<>
 												<p>Cognito User ID: {cognitoUserId || "Not signed in"}</p>
 												<p>Database User ID: {userModel?.id || "Not signed in"}</p>
+												<details className="govuk-details" data-module="govuk-details">
+													<summary className="govuk-details__summary">
+														<span className="govuk-details__summary-text">View Raw User Data</span>
+													</summary>
+													<div className="govuk-details__text">
+														<pre className="govuk-body" style={{ whiteSpace: "pre-wrap", wordBreak: "break-all" }}>
+															{JSON.stringify(userModel, null, 2)}
+														</pre>
+													</div>
+												</details>
 											</>
 										)}
 									</div>
+								</div>
+
+								{/* Add User List Section */}
+								<div className="govuk-form-group">
+									<fieldset className="govuk-fieldset">
+										<legend className="govuk-fieldset__legend govuk-fieldset__legend--m">
+											<h2 className="govuk-fieldset__heading">All Users in System</h2>
+										</legend>
+										<UserList />
+									</fieldset>
 								</div>
 
 								{/* Create Test Child Button */}
@@ -1055,5 +1075,117 @@ export default function NewFormPage() {
 				</div>
 			</main>
 		</div>
+	);
+}
+
+function UserList() {
+	const [users, setUsers] = useState<Array<Schema["User"]["type"]>>([]);
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState<string | null>(null);
+	const [rawQueryResults, setRawQueryResults] = useState<{
+		data?: Schema["User"]["type"][];
+		errors?: { message: string }[];
+	} | null>(null);
+	const clientRef = useRef(generateClient<Schema>());
+	const userModel = useUserModel();
+
+	useEffect(() => {
+		async function fetchUsers() {
+			if (!userModel?.id) return;
+			setLoading(true);
+			try {
+				const client = clientRef.current;
+
+				// First, show raw query with just userID
+				const rawQuery = await client.models.User.list({
+					filter: { profileOwner: { eq: userModel.id } },
+					limit: 100,
+				});
+				setRawQueryResults(rawQuery);
+				console.log("Raw query results:", rawQuery);
+
+				// Then get all users as before
+				const { data: usersData, errors } = await client.models.User.list({
+					limit: 100,
+				});
+
+				if (errors) {
+					throw new Error(errors[0].message);
+				}
+
+				setUsers(usersData || []);
+				console.log("All users:", usersData);
+			} catch (err) {
+				console.error("Error fetching users:", err);
+				setError(err instanceof Error ? err.message : String(err));
+			} finally {
+				setLoading(false);
+			}
+		}
+
+		fetchUsers();
+	}, [userModel]);
+
+	if (loading) return <p>Loading users...</p>;
+	if (error) return <p className="govuk-error-message">{error}</p>;
+
+	return (
+		<>
+			{/* Show raw query results first */}
+			<div className="govuk-inset-text">
+				<h3 className="govuk-heading-s">Raw Query Results</h3>
+				<details className="govuk-details" data-module="govuk-details">
+					<summary className="govuk-details__summary">
+						<span className="govuk-details__summary-text">View Raw Query Results</span>
+					</summary>
+					<div className="govuk-details__text">
+						<pre style={{ whiteSpace: "pre-wrap", wordBreak: "break-all" }}>
+							{JSON.stringify(rawQueryResults, null, 2)}
+						</pre>
+					</div>
+				</details>
+			</div>
+
+			{/* Existing users table */}
+			{!users.length ? (
+				<p>No users found in the system.</p>
+			) : (
+				<table className="govuk-table">
+					<thead className="govuk-table__head">
+						<tr className="govuk-table__row">
+							<th className="govuk-table__header">ID</th>
+							<th className="govuk-table__header">Profile Owner</th>
+							<th className="govuk-table__header">First Name</th>
+							<th className="govuk-table__header">Last Name</th>
+							<th className="govuk-table__header">Team ID</th>
+							<th className="govuk-table__header">Raw Data</th>
+						</tr>
+					</thead>
+					<tbody className="govuk-table__body">
+						{users.map((user) => (
+							<tr key={user.id} className="govuk-table__row">
+								<td className="govuk-table__cell">{user.id}</td>
+								<td className="govuk-table__cell">{user.profileOwner}</td>
+								<td className="govuk-table__cell">{user.firstName}</td>
+								<td className="govuk-table__cell">{user.lastName}</td>
+								<td className="govuk-table__cell">{user.teamID || "None"}</td>
+								<td className="govuk-table__cell">
+									<details className="govuk-details" data-module="govuk-details">
+										<summary className="govuk-details__summary">
+											<span className="govuk-details__summary-text">View Raw Data</span>
+										</summary>
+										<div className="govuk-details__text">
+											<pre style={{ whiteSpace: "pre-wrap", wordBreak: "break-all" }}>
+												{JSON.stringify(user, null, 2)}
+											</pre>
+										</div>
+									</details>
+								</td>
+							</tr>
+						))}
+					</tbody>
+				</table>
+			)}
+		</>
 	);
 }

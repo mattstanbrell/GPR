@@ -105,13 +105,14 @@ const tools = [
 				properties: {
 					firstName: {
 						type: "string",
-						description: "The first name of the child (optional)",
+						description: "The first name of the child (can be empty string if unknown)",
 					},
 					lastName: {
 						type: "string",
-						description: "The last name of the child (optional)",
+						description: "The last name of the child (can be empty string if unknown)",
 					},
 				},
+				required: ["firstName", "lastName"],
 				additionalProperties: false,
 			},
 			strict: true,
@@ -162,6 +163,10 @@ const tools = [
 ];
 
 async function lookupCaseNumber(firstName: string | undefined, lastName: string | undefined, userID: string) {
+	// Convert undefined or empty strings to null for consistent handling
+	const firstNameQuery = firstName && firstName.trim() !== "" ? firstName : null;
+	const lastNameQuery = lastName && lastName.trim() !== "" ? lastName : null;
+
 	// First, get all UserChild records for this user
 	const { data: userChildren, errors: userChildErrors } = await client.models.UserChild.list({
 		// @ts-ignore - The type definitions don't match the actual API
@@ -219,7 +224,7 @@ async function lookupCaseNumber(firstName: string | undefined, lastName: string 
 	});
 
 	// If no search parameters provided, return all children
-	if (!firstName && !lastName) {
+	if (!firstNameQuery && !lastNameQuery) {
 		return {
 			message: "Found no exact match, here are all the children associated with the social worker",
 			children: children.map(mapChildToResponse),
@@ -227,11 +232,11 @@ async function lookupCaseNumber(firstName: string | undefined, lastName: string 
 	}
 
 	// Look for exact match first (case insensitive)
-	if (firstName && lastName) {
+	if (firstNameQuery && lastNameQuery) {
 		const exactMatch = children.find(
 			(child) =>
-				child.firstName.toLowerCase() === firstName.toLowerCase() &&
-				child.lastName.toLowerCase() === lastName.toLowerCase(),
+				child.firstName.toLowerCase() === firstNameQuery.toLowerCase() &&
+				child.lastName.toLowerCase() === lastNameQuery.toLowerCase(),
 		);
 
 		if (exactMatch) {
@@ -244,8 +249,8 @@ async function lookupCaseNumber(firstName: string | undefined, lastName: string 
 
 	// If no exact match, look for partial matches
 	const matches = children.filter((child) => {
-		const matchFirstName = firstName ? child.firstName.toLowerCase().includes(firstName.toLowerCase()) : true;
-		const matchLastName = lastName ? child.lastName.toLowerCase().includes(lastName.toLowerCase()) : true;
+		const matchFirstName = firstNameQuery ? child.firstName.toLowerCase().includes(firstNameQuery.toLowerCase()) : true;
+		const matchLastName = lastNameQuery ? child.lastName.toLowerCase().includes(lastNameQuery.toLowerCase()) : true;
 		return matchFirstName && matchLastName;
 	});
 
@@ -698,22 +703,24 @@ function formatLondonTime() {
 	return new Date().toLocaleString("en-GB", options as Intl.DateTimeFormatOptions);
 }
 
+// beginsWith wasn't working
 async function getUserDetails(userID: string) {
 	try {
-		// Query the User model using the profileOwner field which contains the sub ID
-		const { data: users, errors } = await client.models.User.list({
-			// @ts-ignore - The type definitions don't match the actual API
-			filter: { profileOwner: { beginsWith: userID } },
-			limit: 1,
+		// First, get all users to see what we have
+		const { data: allUsers, errors: allUsersErrors } = await client.models.User.list({
+			limit: 100,
 		});
 
-		if (errors) {
-			console.error("Error querying User model:", errors);
+		if (allUsersErrors) {
+			console.error("Error querying all users:", allUsersErrors);
 			return null;
 		}
 
-		const userData = users?.[0];
-		// console.log("Found user data:", userData);
+		console.log("All users in system:", JSON.stringify(allUsers, null, 2));
+
+		// Find the user by checking if their profileOwner starts with the userID
+		const userData = allUsers?.find((user) => user.profileOwner?.startsWith(userID));
+		console.log("Found user data:", userData);
 
 		if (!userData) {
 			console.warn("No user found with ID:", userID);
@@ -942,7 +949,8 @@ Response:
 User: "I need to arrange a £75 prepaid card for Jenny's mother to buy winter clothing."
 
 [Tool call lookupCaseNumber {
-  "firstName": "Jenny"
+  "firstName": "Jenny",
+  "lastName": ""
 }]
 [Tool response {
   "message": "Found possible matches",
@@ -1018,7 +1026,7 @@ Response:
 User: "I need to order school books from BookWorld for Jamie Green's class. It will cost £120 and we need them by April 10th."
 
 Tool calls (both made together in the same response):
-1. lookupCaseNumber("Jamie Green")
+1. lookupCaseNumber({"firstName": "Jamie", "lastName": "Green"})
 2. searchBusinesses("BookWorld")
 
 After receiving tool responses:
@@ -1044,7 +1052,7 @@ Final response:
 User: "I need to set up monthly payments of £85 to ABC Therapy Services for Daniel Wilson's speech therapy."
 
 Tool calls (both made together in the same response):
-1. lookupCaseNumber("Daniel Wilson")
+1. lookupCaseNumber({"firstName": "Daniel", "lastName": "Wilson"})
 2. searchBusinesses("ABC Therapy Services")
 
 After receiving tool responses:
@@ -1124,7 +1132,8 @@ Final response:
 User: "I need to order £250 of furniture from Furniture World for Sophia by May 15th."
 
 [Tool call lookupCaseNumber {
-  "firstName": "Sophia"
+  "firstName": "Sophia",
+  "lastName": ""
 }]
 [Tool response {
   "message": "Found possible matches",
@@ -1207,7 +1216,8 @@ Response:
 User: "I need to place a purchase order for £175 with Rainbow Educational Supplies for art materials for Jakub's school project. We need them by March 30th."
 
 [Tool call lookupCaseNumber {
-  "firstName": "Jakub"
+  "firstName": "Jakub",
+  "lastName": ""
 }]
 [Tool response {
   "message": "Found no exact match, here are all the children associated with the social worker",
@@ -1240,7 +1250,7 @@ User: "I need to place a purchase order for £175 with Rainbow Educational Suppl
   "name": "Rainbow Educational Supplies"
 }]
 [Tool response {
-  "message": "No businesses found matching \"Rainbow Educational Supplies\""
+  "message": "No businesses found matching "Rainbow Educational Supplies""
 }]
 
 Response:
@@ -1341,8 +1351,8 @@ Explain limitations if the social worker requests:
 
 * lookupCaseNumber: Search for children by name, returning their details
   * Parameters:
-    * firstName (string, optional): The first name of the child
-    * lastName (string, optional): The last name of the child
+    * firstName (string, required): The first name of the child (can be empty string if unknown)
+    * lastName (string, required): The last name of the child (can be empty string if unknown)
   * Returns: Object containing message and array of children with caseNumber, firstName, lastName, gender, and age
 
 * searchBusinesses: Search for businesses by name
@@ -1488,7 +1498,7 @@ Explain limitations if the social worker requests:
 	try {
 		// console.log("Starting Promise.all for conversation and form updates");
 		const [conversationResult, formResult] = await Promise.all([conversationUpdatePromise, formUpdatePromise]);
-		// console.log("Conversation update result:", JSON.stringify(conversationResult, null, 2));
+		console.log("Conversation update result:", JSON.stringify(conversationResult, null, 2));
 		// console.log("Form update result:", {
 		// 	data: formResult.data ? "Data present" : "No data",
 		// 	dataType: formResult.data ? typeof formResult.data : "N/A",
