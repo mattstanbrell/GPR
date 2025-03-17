@@ -117,9 +117,7 @@ export async function updateUser(userId: string, updates: UserUpdates) {
 	if (!existingUser) {
 		throw new Error("User not found");
 	}
-	// Merge the updates with the existing data
-	const mergedUser = { ...existingUser, ...updates };
-	const { data, errors } = await client.models.User.update(mergedUser);
+	const { data, errors } = await client.models.User.update({id: userId, ...updates});
 	if (errors) {
 		throw new Error(errors[0].message);
 	}
@@ -184,13 +182,11 @@ export async function listTeams() {
 
 // Update a team
 export async function updateTeam(teamId: string, updates: TeamUpdates) {
-	const existingTeam = await getTeamByID(teamId);
+	const existingTeam = await getUserById(teamId);
 	if (!existingTeam) {
 		throw new Error("Team not found");
 	}
-	// Merge the updates with the existing data
-	const mergedTeam = { ...existingTeam, ...updates };
-	const { data, errors } = await client.models.Team.update(mergedTeam);
+	const { data, errors } = await client.models.Team.update({id: teamId, ...updates});
 	if (errors) {
 		throw new Error(errors[0].message);
 	}
