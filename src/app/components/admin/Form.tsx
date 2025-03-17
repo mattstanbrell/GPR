@@ -3,7 +3,7 @@
 
 import type { Child, Team, User } from "@/app/types/models"
 import { PrimaryButton, WarningButton } from "@/app/components/admin/Buttons"
-import { listTeams } from "@/utils/apis"
+import { listTeams, getManagers } from "@/utils/apis"
 import { useEffect, useState } from "react"
 import { redirect } from "next/navigation"
 import { ADMIN } from "@/app/constants/urls"
@@ -79,8 +79,43 @@ export const ChildForm = ({data} : {data: Child | null}) => {
     return <Form components={ formElements } handleSubmit={ handleSubmit } />
 }
 
-export const TeamForm = ({data} : {data: Team}) => {
-    return <></>
+export const TeamForm = ({data} : {data: Team | null}) => {
+    const handleSubmit = () => {
+        redirect(ADMIN)
+    }
+
+    const [managers, setManagers] = useState<User[]>([]])
+    const [currentManager, setCurrentManager] = useState<User | null>(null);
+    const [currentAssistantManager, setCurrentAssistantManager] = useState<User | null>(null);
+    useEffect(() => {
+        const fetchManagers = async () => {
+            setManagers(await getManagers());
+        }
+        fetchManagers();
+    }, [])
+
+    useEffect(() => {
+        managers && managers.map(({user}, index) => {
+            if (user.id === data?.assistantManagerUserID) {
+                setCurrentAssistantManager(user)
+            } else if (user.id === data?.managerUserID) {
+                setCurrentManager(user)
+            }
+        })
+    }, [managers])
+
+    // build form specifically for editing/creating children
+    const formElements = (
+        <table>
+            <tbody>
+                <InputTextTableRow fieldName="Team Name" inputName="teamname" defaultValue={ data?.name ? data.name : "" } />
+                <InputSelectTableRow fieldName="Assistant Manager" inputName="assistmanager" defaultValue={ currentAssistantManager ? currentAssistantManager : "" } options={ managers } />
+                <InputSelectTableRow fieldName="Team Manager" inputName="manager" defaultValue={ currentManager ? currentManager : "" } options={ managers } />
+            </tbody>
+        </table>
+    )
+
+    return <Form components={ formElements } handleSubmit={ handleSubmit } />
 }
 
 const Form = (

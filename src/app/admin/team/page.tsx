@@ -1,17 +1,32 @@
 'use client'
 
+import { useState, useEffect } from "react";
+import { TeamForm } from "@/app/components/admin/Form";
 import { useSearchParams } from "next/navigation";
+import type { Team } from "@/app/types/models";
+import { getTeamByID } from "@/utils/apis";
 
 const Team = () => {
     // url is admin/team?id=....
     const searchParams = useSearchParams(); 
     const teamId = searchParams.get("id"); 
+    const [team, setTeam] = useState<Team | null>(null); 
 
-    // display members in the team
+    if (teamId) {
+        useEffect(() => {
+            const fetchTeam = async () => {
+                setTeam(await getTeamByID(teamId)); 
+            }
+            fetchTeam();
+        }, [teamId])
+    }
 
-    // show buttons to add/remove team members depending on user
-
-    return <></>
+    return (
+        <>
+            <h1>Howdy, Team</h1>
+            <TeamForm data={team} />
+        </>
+    )
 }
 
 export default Team;
