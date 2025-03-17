@@ -332,6 +332,17 @@ export async function getFormsForChild(childId: string) {
 }
 
 //Add subscribe function that updates when submitted forms for that user are edited.
+export function subscribeToFormStatusUpdates(creatorID: string, handler: (messages: Schema["Form"]["type"][]) => void) {
+	const sub = client.models.Form.onUpdate({
+		filter: { and: [{creatorID: { eq: creatorID}},
+				{status: {eq: "SUBMITTED"}} ,
+			]}}).subscribe({
+		next: (data) => console.log(data),
+		error: (error) => console.warn(error),
+	})
+
+	return sub;
+}
 
 // ------------------ FormAssignee APIs --------------
 // assign a user to a form
@@ -347,6 +358,16 @@ export async function assignUserToForm(formId: string, userId: string) {
 }
 
 //Add subscribe function that updates on creation of new FormAssignee to that manager.
+export function subscribeToFormSubmissions(userID: string, handler: (messages: Schema["FormAssignee"]["type"][]) => void) {
+	const sub = client.models.FormAssignee.onCreate({
+		filter: {status: {eq: "SUBMITTED"}}
+	}).subscribe({
+		next: (data) => console.log(data),
+		error: (error) => console.warn(error),
+	})
+
+	return sub;
+}
 
 export async function assignUserToFormWithThread(formId: string, userId: string) {
 	const formAssignee = await assignUserToForm(formId, userId);
