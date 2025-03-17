@@ -2,11 +2,12 @@
 'use client'
 
 import type { Child, Team, User } from "@/app/types/models"
-import { PrimaryButton } from "@/app/components/admin/Buttons"
+import { PrimaryButton, WarningButton } from "@/app/components/admin/Buttons"
 import { listTeams } from "@/utils/apis"
 import { useEffect, useState } from "react"
 import { redirect } from "next/navigation"
 import { ADMIN } from "@/app/constants/urls"
+import { ButtonGroup } from "@/app/components/admin/ButtonContainer"
 
 export const UserForm = ({data} : {data: User | null}) => {
     const handleSubmit = () => {
@@ -100,7 +101,12 @@ const Form = (
     return (
         <form onSubmit={ handleSubmit }>
             { components }
-            <PrimaryButton name="Submit" /> 
+            <ButtonGroup 
+                buttons={[
+                    <PrimaryButton name="Submit" />, 
+                    <WarningButton name="Cancel" onClick={() => redirect(ADMIN)} />,
+                ]}
+            /> 
         </form>
     )
 }
