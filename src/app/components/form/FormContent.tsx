@@ -16,7 +16,8 @@ import {
 	getFormById,
 	getTeamByID,
 	assignUserToForm,
-	getNormConversationByFormId
+	getNormConversationByFormId,
+	createAuditLog
 } from "../../../utils/apis";
 import { useUserModel } from "../../../utils/authenticationUtils";
 import type { FormStatus } from "@/app/types/models";
@@ -219,6 +220,7 @@ export function FormContent() {
  				assigneeId = team?.assistantManagerUserID;
  			}
 			await assignUserToForm(form.id, assigneeId);
+			await createAuditLog(`${userModel.firstName} ${userModel.lastName} submitted a form`, userModel.id, form.id);
 			
 			router.push(FORM_BOARD);
 		} catch (_error: unknown) {

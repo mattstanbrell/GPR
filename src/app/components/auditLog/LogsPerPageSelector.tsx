@@ -1,0 +1,26 @@
+type LogsPerPageSelectorProps = {
+  logsPerPage: number;
+  updateLogsPerPage: (logsPerPage: number) => void;
+};
+
+const LogsPerPageSelector = ({ logsPerPage, updateLogsPerPage }: LogsPerPageSelectorProps) => {
+
+  const handleLogsPerPageChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedLogsPerPage = parseInt(event.target.value, 10);
+    updateLogsPerPage(selectedLogsPerPage);
+  };
+
+  return (
+    <div className="form__control flex justify-between items-center md:gap-3">
+      <label className="govuk-label">LogsPerPage</label>
+      <select className="govuk-select" value={logsPerPage} onChange={handleLogsPerPageChange}>
+        <option value={5}>5</option>
+        <option value={10}>10</option>
+        <option value={20}>20</option>
+        <option value={50}>50</option>
+      </select>
+    </div>
+  );
+};
+
+export default LogsPerPageSelector;
