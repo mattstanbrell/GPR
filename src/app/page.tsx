@@ -8,14 +8,14 @@ import { useContext, useEffect } from "react";
 
 
 export default function Home() {
-	const { currentUser: user, isLoading } = useContext(AppContext);
+	const { currentUser: user, isLoading, isSignedIn } = useContext(AppContext);
 	const router = useRouter();
 
 	useEffect(() => {
 		if (user) {
 			router.push(HOME);
 		}
-	}, [isLoading, router]);
+	}, [isLoading, user, isSignedIn, router]);
 
 	if (isLoading) {
 		return <h3 className="text-center">Loading...</h3>;

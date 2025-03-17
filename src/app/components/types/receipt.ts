@@ -5,7 +5,7 @@ interface ReceiptItem {
     cost: number, 
 }
 
-interface ReceiptData {
+export interface ReceiptData {
     total: number,
     items: ReceiptItem[]
 }

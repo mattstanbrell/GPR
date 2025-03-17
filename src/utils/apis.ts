@@ -26,13 +26,14 @@ type UserUpdates = {
 	email?: string;
 	permissionGroup?: "ADMIN" | "MANAGER" | "SOCIAL_WORKER" | null;
 	lastLogin?: string;
+	teamID?: string;
 	userSettings?: {
 		fontSize: number;
 		font: string;
 		fontColour: string;
 		bgColour: string;
 		spacing: number;
-	};
+	}; 
 };
 
 type ChildUpdates = {
@@ -60,6 +61,11 @@ type UserSettingsUpdates = {
 	fontColour?: string;
 	bgColour?: string;
 	spacing?: number;
+};
+
+type TeamUpdates = {
+	managerUserID?: string;
+	assistantManagerUserID?: string;
 };
 
 // ----------User APIs-----------
@@ -115,10 +121,13 @@ export async function listUsers() {
 }
 
 export async function updateUser(userId: string, updates: UserUpdates) {
-	const { data, errors } = await client.models.User.update({
-		id: userId,
-		...updates,
-	});
+	const existingUser = await getUserById(userId);
+	if (!existingUser) {
+		throw new Error("User not found");
+	}
+	// Merge the updates with the existing data
+	const mergedUser = { ...existingUser, ...updates };
+	const { data, errors } = await client.models.User.update(mergedUser);
 	if (errors) {
 		throw new Error(errors[0].message);
 	}
@@ -127,6 +136,78 @@ export async function updateUser(userId: string, updates: UserUpdates) {
 
 export async function deleteUser(userId: string) {
 	const { data, errors } = await client.models.User.delete({ id: userId });
+	if (errors) {
+		throw new Error(errors[0].message);
+	}
+	return data;
+}
+
+// ------------Team APIs -------------
+export async function createTeam(managerUserID: string, assistantManagerUserID: string) {
+	const { data, errors } = await client.models.Team.create({managerUserID: managerUserID, assistantManagerUserID: assistantManagerUserID});
+	if (errors) {
+		throw new Error(errors[0].message);
+	}
+	return data;
+}
+
+export async function addUserToTeam(userID: string, teamID: string) {
+	const data = await updateUser(userID, {teamID: teamID});
+	return data;
+}
+
+export async function removeUserFromTeam(userID: string) {
+	const data = await updateUser(userID, {teamID: ""});
+	return data;
+}
+
+export async function listUsersInTeam(teamID: string) {
+	const { data: users, errors } = await client.models.User.list({
+		filter: { teamID: { eq: teamID } },
+	});
+
+	if (errors) {
+		throw new Error(errors[0].message);
+	}
+	return users;
+}
+
+// Get a team by ID
+export async function getTeamByID(teamID: string) {
+	const { data, errors } = await client.models.Team.get({ id: teamID });
+	if (errors) {
+		throw new Error(errors[0].message);
+	}
+	return data;
+}
+
+// List all teams
+export async function listTeams() {
+	const { data, errors } = await client.models.Team.list();
+	if (errors) {
+		throw new Error(errors[0].message);
+	}
+	return data;
+}
+
+// Update a team
+export async function updateTeam(teamId: string, updates: TeamUpdates) {
+	const existingTeam = await getTeamByID(teamId);
+	if (!existingTeam) {
+		throw new Error("Team not found");
+	}
+	// Merge the updates with the existing data
+	const mergedTeam = { ...existingTeam, ...updates };
+	const { data, errors } = await client.models.Team.update(mergedTeam);
+	if (errors) {
+		throw new Error(errors[0].message);
+	}
+	return data;
+}
+
+// Delete a team
+export async function deleteTeam(teamID: string) {
+	const { data, errors } = await client.models.Team.delete({ id: teamID });
 	if (errors) {
 		throw new Error(errors[0].message);
 	}
@@ -520,11 +601,13 @@ export async function deleteChild(childId: string) {
 
 // Create a new receipt
 export async function createReceipt(
+	receiptName: string,
 	formID: string,
 	subtotal: number,
 	s3Key: string
 ) {
 	const { data, errors } = await client.models.Receipt.create({
+		receiptName,
 		formID,
 		subtotal,
 		s3Key

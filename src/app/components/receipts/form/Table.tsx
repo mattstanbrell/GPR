@@ -2,6 +2,7 @@
 import React from "react"
 import { DeleteButton, AddItemTableCellButton } from "@/app/components/receipts/form/Buttons"
 import { InputString, InputNumber } from "@/app/components/receipts/form/FormComponents";
+import { ReceiptData } from "../../types/receipt";
 
 const tableRowStyling = "h-[5vh] border-b-1 border-dashed";
 

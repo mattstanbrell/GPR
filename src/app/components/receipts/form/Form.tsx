@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 import Table from "@/app/components/receipts/form/Table";
 import { Submit } from "@/app/components/receipts/form/Buttons";
 import { createReceipt } from '@/utils/apis'
+import { ReceiptData } from "../../types/receipt";
 
 interface FormProps {
   receiptData: ReceiptData;
@@ -10,9 +11,10 @@ interface FormProps {
   handleDeleteItem: (index: number) => void;
   slug: string;
   uploadPath: string;
+  fileName: string;
 }
 
-const Form = ({ receiptData, handleAddItem, handleDeleteItem, slug, uploadPath }: FormProps) => {
+const Form = ({ receiptData, handleAddItem, handleDeleteItem, slug, uploadPath, fileName }: FormProps) => {
   const router = useRouter();
   const receiptHasItems = receiptData && receiptData.items.length;
 
@@ -31,7 +33,7 @@ const Form = ({ receiptData, handleAddItem, handleDeleteItem, slug, uploadPath }
     console.log(data);
 
     try {
-      const newReceipt = await createReceipt(slug, data.total, uploadPath);
+      const newReceipt = await createReceipt(fileName,slug, data.total, uploadPath);
       console.log("Receipt created:", newReceipt);
       router.push(`/form/${slug}/attachments`);
     } catch (error) {

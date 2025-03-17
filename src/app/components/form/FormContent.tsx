@@ -10,10 +10,18 @@ import type { UIMessage, FormChanges } from "./types";
 import { FormErrorSummary } from "./FormErrorSummary";
 import { FormLayout } from "./FormLayout";
 import { NormLayout } from "./NormLayout";
-import { createForm, updateForm, getFormById, getNormConversationByFormId } from "../../../utils/apis";
+import {
+	createForm,
+	updateForm,
+	getFormById,
+	getTeamByID,
+	assignUserToForm,
+	getNormConversationByFormId
+} from "../../../utils/apis";
 import { useUserModel } from "../../../utils/authenticationUtils";
 import type { FormStatus } from "@/app/types/models";
 import { addAuditLog } from "@/utils/auditLogUtils";
+import { FORM_STATUS, PERMISSIONS } from "@/app/constants/models";
 
 export function FormContent() {
 	const router = useRouter();
@@ -190,8 +198,11 @@ export function FormContent() {
 	// Handle form submission
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
+		
+		if (!userModel) return; 
 
-		if (!form || !form.id || !userModel?.id) return;
+    		const team = await getTeamByID(userModel.teamID || "");
+		if (!form || !form.id || !userModel?.id || !form.amount || !team) return;
 
 		try {
 			setLoading(true);
@@ -200,7 +211,17 @@ export function FormContent() {
 				status: "SUBMITTED",
 				creatorID: userModel.id,
 			});
+			let assigneeId;
+			if (form.amount > 5000) {
+ 				if (!team?.managerUserID) return;
+				assigneeId = team?.managerUserID;
+ 			} else {
+				if (!team?.assistantManagerUserID) return;
+ 				assigneeId = team?.assistantManagerUserID;
+ 			}
+			await assignUserToForm(form.id, assigneeId);
 			addAuditLog(form.id, "submitted");
+			
 			router.push(FORM_BOARD);
 		} catch (_error: unknown) {
 			setErrorMessage(_error instanceof Error ? _error.message : String(_error));
@@ -252,66 +273,76 @@ export function FormContent() {
 		return <FormErrorSummary error={errorMessage} />;
 	}
 
+	const isSocialWorker = userModel?.permissionGroup === PERMISSIONS.SOCIAL_WORKER_GROUP;
+	const isDraft = form.status === FORM_STATUS.DRAFT
+
 	return (
 		<div style={{ height: "calc(100vh - 140px)", overflow: "hidden" }}>
 			<main className="govuk-main-wrapper" style={{ height: "100%", padding: "0" }}>
 				<div className="govuk-width-container" style={{ height: "100%", paddingLeft: "15px", paddingRight: "15px" }}>
-					<div className="govuk-grid-row" style={{ height: "100%", margin: 0 }}>
-						<FormLayout
-							form={form}
-							loading={loading}
-							handleFormChange={handleFormChange}
-							handleSubmit={handleSubmit}
-							isFormValid={isFormValid}
-							disabled={processingMessage}
-							updatedFields={updatedFields}
-						/>
-						<NormLayout
-							messages={messages}
-							message={message}
-							setMessage={setMessage}
-							setMessages={setMessages}
-							formId={form.id}
-							conversationId={conversationId}
-							onConversationIdChange={setConversationId}
-							onFormUpdate={(updatedForm: Partial<Schema["Form"]["type"]>) => {
-								// Find which fields changed
-								const changedFields = new Set<string>();
-								if (!form) return;
+					<div className="govuk-grid-row flex" style={{ height: "100%", margin: 0 }}>
+						<div className={`${ isSocialWorker && isDraft ? "md:w-6/10" : "md:w-full" }`} >
+							<FormLayout
+								form={form}
+								loading={loading}
+								handleFormChange={handleFormChange}
+								handleSubmit={handleSubmit}
+								isFormValid={isFormValid}
+								disabled={processingMessage || !(isDraft)}
+								updatedFields={updatedFields}
+								isSocialWorker={ isSocialWorker }
+							/>
+						</div>
+						{ isDraft && isSocialWorker &&
+							<div className="md:w-4/10">
+								<NormLayout
+									messages={messages}
+									message={message}
+									setMessage={setMessage}
+									setMessages={setMessages}
+									formId={form.id}
+									conversationId={conversationId}
+									onConversationIdChange={setConversationId}
+									onFormUpdate={(updatedForm: Partial<Schema["Form"]["type"]>) => {
+										// Find which fields changed
+										const changedFields = new Set<string>();
+										if (!form) return;
 
-								// Check simple fields
-								for (const field of formFields.simple) {
-									if (form[field] !== updatedForm[field]) {
-										changedFields.add(field);
-									}
-								}
+										// Check simple fields
+										for (const field of formFields.simple) {
+											if (form[field] !== updatedForm[field]) {
+												changedFields.add(field);
+											}
+										}
 
-								// Check nested fields
-								for (const field of formFields.nested) {
-									if (JSON.stringify(form[field]) !== JSON.stringify(updatedForm[field])) {
-										changedFields.add(field);
-									}
-								}
+										// Check nested fields
+										for (const field of formFields.nested) {
+											if (JSON.stringify(form[field]) !== JSON.stringify(updatedForm[field])) {
+												changedFields.add(field);
+											}
+										}
 
-								setUpdatedFields(changedFields);
-								setForm(updatedForm);
-								setLastNormForm(updatedForm);
+										setUpdatedFields(changedFields);
+										setForm(updatedForm);
+										setLastNormForm(updatedForm);
 
-								// Update the form in the database to ensure creatorID is preserved
-								if (updatedForm.id && userModel?.id) {
-									updateForm(updatedForm.id, {
-										...updatedForm,
-										creatorID: userModel.id,
-									}).catch(() => {
-										// Silently handle error
-									});
-								}
-							}}
-							currentForm={form}
-							processingMessage={processingMessage}
-							setProcessingMessage={setProcessingMessage}
-							getFormChanges={getFormChanges}
-						/>
+										// Update the form in the database to ensure creatorID is preserved
+										if (updatedForm.id && userModel?.id) {
+											updateForm(updatedForm.id, {
+												...updatedForm,
+												creatorID: userModel.id,
+											}).catch(() => {
+												// Silently handle error
+											});
+										}
+									}}
+									currentForm={form}
+									processingMessage={processingMessage}
+									setProcessingMessage={setProcessingMessage}
+									getFormChanges={getFormChanges}
+								/>
+							</div>
+						}
 					</div>
 				</div>
 			</main>
