@@ -2,7 +2,7 @@ import ReactMarkdown from "react-markdown";
 import type { UIMessage, FormChanges } from "./types";
 import { generateClient } from "aws-amplify/api";
 import type { Schema } from "../../../../amplify/data/resource";
-import { useState, type Dispatch, type SetStateAction } from "react";
+import { useState, type Dispatch, type SetStateAction, useRef, useEffect } from "react";
 import Image from "next/image";
 
 interface NormLayoutProps {
@@ -20,6 +20,7 @@ interface NormLayoutProps {
 	getFormChanges: () => FormChanges | null;
 	isMobile?: boolean;
 	onToggle?: () => void;
+	isFormValid?: boolean;
 }
 
 interface SystemMessage {
@@ -52,9 +53,26 @@ export function NormLayout({
 	getFormChanges,
 	isMobile,
 	onToggle,
+	isFormValid,
 }: NormLayoutProps) {
 	const [systemPrompt, setSystemPrompt] = useState<string>("");
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
+	const [menuOpen, setMenuOpen] = useState(false);
+	const menuRef = useRef<HTMLDivElement>(null);
+
+	// Close the menu when clicking outside
+	useEffect(() => {
+		const handleClickOutside = (event: MouseEvent) => {
+			if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+				setMenuOpen(false);
+			}
+		};
+
+		document.addEventListener("mousedown", handleClickOutside);
+		return () => {
+			document.removeEventListener("mousedown", handleClickOutside);
+		};
+	}, []);
 
 	const renderMessageContent = (content: string): string => {
 		if (!content) return "";
@@ -333,24 +351,74 @@ export function NormLayout({
 						Norm
 					</h2>
 					{isMobile && onToggle && (
-						<Image
-							src="/file.svg"
-							alt="Switch to Form"
-							width={24}
-							height={24}
-							onClick={onToggle}
-							style={{
-								cursor: "pointer",
-							}}
-							role="button"
-							tabIndex={0}
-							onKeyDown={(e) => {
-								if (e.key === "Enter" || e.key === " ") {
-									e.preventDefault();
-									onToggle();
-								}
-							}}
-						/>
+						<div ref={menuRef} style={{ position: "relative" }}>
+							<Image
+								src="/more-options.svg"
+								alt="Menu"
+								width={24}
+								height={24}
+								onClick={() => setMenuOpen(!menuOpen)}
+								style={{
+									cursor: "pointer",
+									filter: "var(--color-button-primary-filter)",
+								}}
+								role="button"
+								tabIndex={0}
+								onKeyDown={(e) => {
+									if (e.key === "Enter" || e.key === " ") {
+										e.preventDefault();
+										setMenuOpen(!menuOpen);
+									}
+								}}
+							/>
+
+							{menuOpen && (
+								<div
+									style={{
+										position: "absolute",
+										right: 0,
+										top: "100%",
+										marginTop: "5px",
+										backgroundColor: "#fff",
+										border: "1px solid #b1b4b6",
+										borderRadius: "4px",
+										boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+										zIndex: 100,
+										width: "150px",
+									}}
+								>
+									<button
+										type="button"
+										onClick={() => {
+											onToggle();
+											setMenuOpen(false);
+										}}
+										style={{
+											display: "flex",
+											alignItems: "center",
+											padding: "10px 15px",
+											width: "100%",
+											textAlign: "left",
+											border: "none",
+											backgroundColor: "transparent",
+											cursor: "pointer",
+											borderRadius: "4px",
+											gap: "8px",
+										}}
+										aria-label="Switch to Form view"
+									>
+										<Image
+											src="/file.svg"
+											alt=""
+											width={18}
+											height={18}
+											style={{ filter: "var(--color-button-primary-filter)" }}
+										/>
+										<span>Form</span>
+									</button>
+								</div>
+							)}
+						</div>
 					)}
 				</div>
 				{errorMessage && <div className="govuk-error-message error-message">{errorMessage}</div>}
@@ -497,15 +565,36 @@ export function NormLayout({
 						disabled={processingMessage}
 					/>
 					{isMobile && (
-						<button
-							type="button"
-							onClick={handleNormMessageSubmit}
-							className="govuk-button"
-							style={{ marginTop: "10px", width: "100%" }}
-							disabled={processingMessage}
-						>
-							Send
-						</button>
+						<div style={{ display: "flex", gap: "10px" }}>
+							{onToggle && (
+								<button
+									type="button"
+									onClick={onToggle}
+									className="govuk-button govuk-button--secondary"
+									style={{
+										marginTop: "10px",
+										flex: "1",
+										opacity: isFormValid ? 1 : 0.5,
+										backgroundColor: isFormValid ? "var(--color-button-secondary)" : "#dddddd",
+										transition: "background-color 0.3s ease, opacity 0.3s ease",
+										borderColor: isFormValid ? "var(--color-button-secondary)" : "#dddddd",
+									}}
+									disabled={!isFormValid}
+									aria-label="Review form before submitting"
+								>
+									Review Form
+								</button>
+							)}
+							<button
+								type="button"
+								onClick={handleNormMessageSubmit}
+								className="govuk-button"
+								style={{ marginTop: "10px", flex: "1" }}
+								disabled={processingMessage}
+							>
+								Send
+							</button>
+						</div>
 					)}
 				</div>
 			</div>

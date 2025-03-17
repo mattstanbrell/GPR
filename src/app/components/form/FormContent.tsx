@@ -364,7 +364,7 @@ export function FormContent() {
 	return (
 		<div
 			style={{
-				height: isMobile ? "calc(100vh - 80px)" : "calc(100vh - 140px)",
+				height: isMobile ? "calc(100vh - 110px)" : "calc(100vh - 140px)",
 				overflow: "hidden",
 			}}
 		>
@@ -419,6 +419,7 @@ export function FormContent() {
 										getFormChanges={getFormChanges}
 										isMobile={true}
 										onToggle={() => setMobileView("form")}
+										isFormValid={isFormValid(form)}
 									/>
 								) : (
 									<FormLayout
@@ -504,6 +505,7 @@ export function FormContent() {
 										setProcessingMessage={setProcessingMessage}
 										getFormChanges={getFormChanges}
 										isMobile={false}
+										isFormValid={isFormValid(form)}
 									/>
 								</div>
 							)}

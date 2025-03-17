@@ -3,6 +3,7 @@ import type { Schema } from "../../../../amplify/data/resource";
 import { RecurringPaymentSection } from "./RecurringPaymentSection";
 import FeedbackContainer from "./feedback/FeedbackContainer";
 import Image from "next/image";
+import { useState, useRef, useEffect } from "react";
 
 interface FormLayoutProps {
 	form: Partial<Schema["Form"]["type"]>;
@@ -29,6 +30,23 @@ export function FormLayout({
 	isMobile,
 	onToggle,
 }: FormLayoutProps) {
+	const [menuOpen, setMenuOpen] = useState(false);
+	const menuRef = useRef<HTMLDivElement>(null);
+
+	// Close the menu when clicking outside
+	useEffect(() => {
+		const handleClickOutside = (event: MouseEvent) => {
+			if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+				setMenuOpen(false);
+			}
+		};
+
+		document.addEventListener("mousedown", handleClickOutside);
+		return () => {
+			document.removeEventListener("mousedown", handleClickOutside);
+		};
+	}, []);
+
 	return (
 		<>
 			<style jsx>{`
@@ -159,24 +177,74 @@ export function FormLayout({
 						{form.title || "Form"}
 					</h1>
 					{isMobile && onToggle && (
-						<Image
-							src="/polygon.svg"
-							alt="Switch to Norm"
-							width={30}
-							height={30}
-							onClick={onToggle}
-							style={{
-								cursor: "pointer",
-							}}
-							role="button"
-							tabIndex={0}
-							onKeyDown={(e) => {
-								if (e.key === "Enter" || e.key === " ") {
-									e.preventDefault();
-									onToggle();
-								}
-							}}
-						/>
+						<div ref={menuRef} style={{ position: "relative" }}>
+							<Image
+								src="/more-options.svg"
+								alt="Menu"
+								width={24}
+								height={24}
+								onClick={() => setMenuOpen(!menuOpen)}
+								style={{
+									cursor: "pointer",
+									filter: "var(--color-button-primary-filter)",
+								}}
+								role="button"
+								tabIndex={0}
+								onKeyDown={(e) => {
+									if (e.key === "Enter" || e.key === " ") {
+										e.preventDefault();
+										setMenuOpen(!menuOpen);
+									}
+								}}
+							/>
+
+							{menuOpen && (
+								<div
+									style={{
+										position: "absolute",
+										right: 0,
+										top: "100%",
+										marginTop: "5px",
+										backgroundColor: "#fff",
+										border: "1px solid #b1b4b6",
+										borderRadius: "4px",
+										boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+										zIndex: 100,
+										width: "150px",
+									}}
+								>
+									<button
+										type="button"
+										onClick={() => {
+											onToggle();
+											setMenuOpen(false);
+										}}
+										style={{
+											display: "flex",
+											alignItems: "center",
+											padding: "10px 15px",
+											width: "100%",
+											textAlign: "left",
+											border: "none",
+											backgroundColor: "transparent",
+											cursor: "pointer",
+											borderRadius: "4px",
+											gap: "8px",
+										}}
+										aria-label="Switch to Norm view"
+									>
+										<Image
+											src="/polygon.svg"
+											alt=""
+											width={18}
+											height={18}
+											style={{ filter: "var(--color-button-primary-filter)" }}
+										/>
+										<span>Norm</span>
+									</button>
+								</div>
+							)}
+						</div>
 					)}
 				</div>
 
