@@ -3,9 +3,6 @@
 import AuditLogsClient from "@/app/components/auditLog/AuditLogsClient";
 import { listAuditLogs } from "@/utils/apis";
 import { useState, useEffect } from "react";
-import { addAuditLog } from "@/utils/auditLogUtils";
-
-import seedDummyData from "@/seeder";
 
 import { type Schema } from "../../../amplify/data/resource";
 
@@ -30,6 +27,7 @@ const AuditLogsPage = () => {
     fetchAuditLogs();
   }, [])
 
+  // import { addAuditLog } from "@/utils/auditLogUtils";
   // addAuditLog("A123","denied a form")
   // addAuditLog("B123","submitted a form")
   // addAuditLog("C123","approved a form")
