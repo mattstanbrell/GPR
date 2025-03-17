@@ -3,7 +3,7 @@
 import AuditLogsClient from "@/app/components/auditLog/AuditLogsClient";
 import { listAuditLogs } from "@/utils/apis";
 import { useState, useEffect } from "react";
-import { createAuditLog } from "@/utils/apis";
+// import { createAuditLog } from "@/utils/apis";
 
 import { type Schema } from "../../../amplify/data/resource";
 
