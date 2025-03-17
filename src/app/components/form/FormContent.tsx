@@ -251,7 +251,7 @@ export function FormContent() {
 
 		if (!userModel) return;
 
-		const team = await getTeamByID(userModel.teamID || "");
+		const team = await getTeamByID(userModel.teamID || "Placeholder");
 		if (!form || !form.id || !userModel?.id || !form.amount || !team) return;
 
 		try {
