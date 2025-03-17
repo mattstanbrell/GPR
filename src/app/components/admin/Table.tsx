@@ -71,7 +71,7 @@ export const ChildTable = ({children} : { children: Child[]}) => {
 } 
 
 export const TeamTable = ({teams} : { teams: Team[]}) => {
-    const url = "/admin/teams";
+    const url = "/admin/team";
     // build header 
     const header = (
         <thead>
@@ -82,15 +82,16 @@ export const TeamTable = ({teams} : { teams: Team[]}) => {
     )
 
     // build body
-    const body = teams.length > 0 ? (
+    const body = (
         <tbody>
             { teams.map(({id, name}, index) => (
                 <tr key={ index } onClick={ () => redirect(`${url}?id=${id}`) }>
                     <td>{name}</td>
                 </tr>
             ))}
+            <tr><td colSpan={1} onClick={() => redirect(url) }>Add Team</td></tr>
         </tbody>
-    ) : <NoDataMessage colspan={1} />
+    )
 
     // render table with elements
     return <Table header={ header } body={ body } />
