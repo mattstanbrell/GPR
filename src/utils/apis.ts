@@ -26,13 +26,19 @@ type UserUpdates = {
 	email?: string;
 	permissionGroup?: "ADMIN" | "MANAGER" | "SOCIAL_WORKER" | null;
 	lastLogin?: string;
-	teamID?: string;
+	teamID?: string | null;
 	userSettings?: {
 		fontSize: number;
 		font: string;
 		fontColour: string;
 		bgColour: string;
 		spacing: number;
+	},
+	address?: {
+		lineOne?: string, 
+		lineTwo?: string,
+		townOrCity?: string,
+		postcode?: string,
 	}; 
 };
 

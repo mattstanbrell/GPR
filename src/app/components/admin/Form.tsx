@@ -7,23 +7,17 @@ import { listTeams, getManagers } from "@/utils/apis"
 import { useEffect, useState } from "react"
 import { redirect } from "next/navigation"
 import { ADMIN } from "@/app/constants/urls"
-import { ButtonGroup } from "@/app/components/admin/ButtonContainer"
-import { InputTextTableRow, InputDateTableRow, InputSelectTableRow } from "./FormElements"
+import { InputTextTableRow, InputDateTableRow, InputSelectTableRow } from "@/app/components/admin/FormElements"
+import { handleUserFormSubmit } from "@/app/components/admin/FormHandlers"
 
 export const UserForm = ({data} : {data: User | null}) => {
-    const handleSubmit = () => {
-        redirect(ADMIN)
-    }
-    
-    console.log(data?.children)
-
     const [teamNames, setTeamNames] = useState<string[]>([]);
     const [defaultTeam, setDefaultTeam] = useState<string>("Select"); 
     useEffect(() => {
         const fetchTeamNames = async () => {
             const teams = await listTeams();
             const names: string[] = [];
-            teams.map(({name, id}, index) => {
+            teams.map(({name, id}) => {
                 names.push(name ? name : "")
                 if (id === data?.teamID) {
                     setDefaultTeam(name ? name : ""); 
@@ -42,6 +36,7 @@ export const UserForm = ({data} : {data: User | null}) => {
                 </tr>
             </thead>
             <tbody>
+                <tr className="hidden"><td className="hidden"><input name="userId" value={ data && data.id ? data.id : "" } /></td></tr>
                 <InputSelectTableRow fieldName="Team" inputName="team" defaultValue={ defaultTeam } options={ teamNames } />
                 <tr className="text-center">
                     <th colSpan={2}>Address</th>
@@ -54,11 +49,11 @@ export const UserForm = ({data} : {data: User | null}) => {
         </>
     )
 
-    return <Form components={ formElements } handleSubmit={ handleSubmit } />
+    return <Form components={ formElements } handleSubmit={ handleUserFormSubmit } />
 }
 
 export const ChildForm = ({data} : {data: Child | null}) => {
-    const handleSubmit = () => {
+    const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         redirect(ADMIN)
     }
 
@@ -78,7 +73,7 @@ export const ChildForm = ({data} : {data: Child | null}) => {
 }
 
 export const TeamForm = ({data} : {data: Team | null}) => {
-    const handleSubmit = () => {
+    const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         redirect(ADMIN)
     }
 
@@ -121,7 +116,7 @@ export const TeamForm = ({data} : {data: Team | null}) => {
 
 const Form = (
     {components, handleSubmit} : 
-    {components: React.ReactElement, handleSubmit: () => void}
+    {components: React.ReactElement, handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void}
 ) => {
     return (
         <form onSubmit={ handleSubmit }>

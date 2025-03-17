@@ -27,12 +27,11 @@ export const InputSelectTableRow = (
     {fieldName, inputName, defaultValue, options} : 
     {fieldName: string, inputName: string, defaultValue: string, options: string[]}
 ) => {
-    console.log(options)
     return (
         <tr>
             <td>{ fieldName }</td>
             <td>
-                <select name={ inputName }>
+                <select name={ inputName } defaultValue={ defaultValue }>
                     <option value="" disabled>Select</option>
                     <>
                     { 
