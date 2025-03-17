@@ -4,7 +4,7 @@ import { useEffect} from "react";
 import { createAuditLog } from "./apis";
 import { useUserModel } from "./authenticationUtils";
 
-export const addAuditLog = (formID: string, action: string) => {
+export const useGenerateAuditLog = (formID: string, action: string) => {
   useEffect (()=> {
     const generateAuditLog = async () => {
       const currentUser = useUserModel();

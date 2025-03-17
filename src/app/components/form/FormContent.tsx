@@ -20,7 +20,7 @@ import {
 } from "../../../utils/apis";
 import { useUserModel } from "../../../utils/authenticationUtils";
 import type { FormStatus } from "@/app/types/models";
-import { addAuditLog } from "@/utils/auditLogUtils";
+import { useGenerateAuditLog } from "@/utils/auditLogUtils";
 import { FORM_STATUS, PERMISSIONS } from "@/app/constants/models";
 
 export function FormContent() {
@@ -220,7 +220,7 @@ export function FormContent() {
  				assigneeId = team?.assistantManagerUserID;
  			}
 			await assignUserToForm(form.id, assigneeId);
-			addAuditLog(form.id, `${userModel.firstName} ${userModel.lastName} submitted a form`);
+			useGenerateAuditLog(form.id, `${userModel.firstName} ${userModel.lastName} submitted a form`);
 			
 			router.push(FORM_BOARD);
 		} catch (_error: unknown) {

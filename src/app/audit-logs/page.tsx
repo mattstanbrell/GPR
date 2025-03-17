@@ -27,10 +27,10 @@ const AuditLogsPage = () => {
     fetchAuditLogs();
   }, [])
 
-  // import { addAuditLog } from "@/utils/auditLogUtils";
-  // addAuditLog("A123","denied a form")
-  // addAuditLog("B123","submitted a form")
-  // addAuditLog("C123","approved a form")
+  // import { useGenerateAuditLog } from "@/utils/auditLogUtils";
+  // useGenerateAuditLog("A123","denied a form")
+  // useGenerateAuditLog("B123","submitted a form")
+  // useGenerateAuditLog("C123","approved a form")
 
   return (
     <>
