@@ -264,7 +264,7 @@ export function FormContent() {
 			console.log("submission form", form);
 
 			// Start finance code generation in background - don't await it
-			const financeCodePromise = client.queries
+			void client.queries
 				.FinanceCodeFunction({
 					messages: JSON.stringify(messages),
 					currentFormState: JSON.stringify(form),
