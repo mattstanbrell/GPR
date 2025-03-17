@@ -1,15 +1,14 @@
 "use client"
 
-import { useEffect, useContext} from "react";
+import { useEffect, useState} from "react";
 import { createAuditLog } from "./apis";
-import { AppContext } from "@/app/layout";
+import { useUserModel } from "./authenticationUtils";
 
 export const addAuditLog = (formID: string, action: string) => {
-
-  const {currentUser} = useContext(AppContext);
-
   useEffect (()=> {
     const generateAuditLog = async () => {
+      const currentUser = useUserModel();
+        // console.log(currentUser)
       try{
         if (currentUser?.id) {
           await createAuditLog(
