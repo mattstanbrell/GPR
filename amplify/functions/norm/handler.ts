@@ -238,7 +238,7 @@ Input: "every Monday and Wednesday"
   "startDate": "2024-03-15",
   "daysOfWeek": ["MONDAY", "WEDNESDAY"],
   "neverEnds": true,
-  "description": "every Monday and Wednesday"
+  "description": "Every Monday and Wednesday."
 }
 
 2. Monthly on specific dates:
@@ -249,7 +249,7 @@ Input: "on the 1st and 15th of each month"
   "startDate": "2024-04-01",
   "dayOfMonth": [1, 15],
   "neverEnds": true,
-  "description": "on the 1st and 15th of each month"
+  "description": "On the 1st and 15th of each month."
 }
 
 3. Monthly with position:
@@ -263,7 +263,7 @@ Input: "last Friday of every month"
     "dayOfWeek": "FRIDAY"
   },
   "neverEnds": true,
-  "description": "last Friday of every month"
+  "description": "Last Friday of every month."
 }
 
 4. Monthly end of month:
@@ -274,7 +274,7 @@ Input: "on the last day of each month"
   "startDate": "2024-03-31",
   "monthEnd": true,
   "neverEnds": true,
-  "description": "on the last day of each month"
+  "description": "On the last day of each month."
 }
 
 5. Yearly with specific months:
@@ -285,7 +285,7 @@ Input: "January and September each year"
   "startDate": "2024-01-01",
   "months": ["JANUARY", "SEPTEMBER"],
   "neverEnds": true,
-  "description": "January and September each year"
+  "description": "January and September each year."
 }
 
 6. Daily with weekday restriction:
@@ -296,7 +296,7 @@ Input: "every weekday"
   "startDate": "2024-03-12",
   "daysOfWeek": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"],
   "neverEnds": true,
-  "description": "every weekday"
+  "description": "Every weekday."
 }
 
 7. With end date:
@@ -306,7 +306,7 @@ Input: "weekly until December 31st"
   "interval": 1,
   "startDate": "2024-03-15",
   "endDate": "2024-12-31",
-  "description": "weekly until December 31st"
+  "description": "Weekly until December 31st."
 }
 
 8. With max occurrences:
@@ -316,7 +316,7 @@ Input: "every two weeks for 10 payments"
   "interval": 2,
   "startDate": "2024-03-18",
   "maxOccurrences": 10,
-  "description": "every two weeks for 10 payments"
+  "description": "Every two weeks for 10 payments."
 }
 
 9. With excluded dates:
@@ -328,7 +328,7 @@ Input: "weekly on Mondays, skip March 25th and April 1st"
   "daysOfWeek": ["MONDAY"],
   "neverEnds": true,
   "excludedDates": ["2024-03-25", "2024-04-01"],
-  "description": "weekly on Mondays, skip March 25th and April 1st"
+  "description": "Weekly on Mondays, skip March 25th and April 1st."
 }
 
 10. Multiple months with specific days:
@@ -340,7 +340,7 @@ Input: "15th of March, June, September, and December"
   "months": ["MARCH", "JUNE", "SEPTEMBER", "DECEMBER"],
   "dayOfMonth": [15],
   "neverEnds": true,
-  "description": "15th of March, June, September, and December"
+  "description": "15th of March, June, September, and December."
 }
 
 11. First occurrence of month:
@@ -354,7 +354,7 @@ Input: "first Monday of every month"
     "dayOfWeek": "MONDAY"
   },
   "neverEnds": true,
-  "description": "first Monday of every month"
+  "description": "First Monday of every month."
 }
 
 12. Multiple days with interval:
@@ -365,7 +365,7 @@ Input: "every other week on Tuesday and Thursday"
   "startDate": "2024-03-12",
   "daysOfWeek": ["TUESDAY", "THURSDAY"],
   "neverEnds": true,
-  "description": "every other week on Tuesday and Thursday"
+  "description": "Every other week on Tuesday and Thursday."
 }
 
 13. Specific weekdays with end date:
@@ -376,7 +376,7 @@ Input: "every Monday and Wednesday until June 30th"
   "startDate": "2024-03-13",
   "daysOfWeek": ["MONDAY", "WEDNESDAY"],
   "endDate": "2024-06-30",
-  "description": "every Monday and Wednesday until June 30th"
+  "description": "Every Monday and Wednesday until June 30th."
 }
 
 14. Monthly with multiple positions:
@@ -396,7 +396,7 @@ Input: "first and last Friday of every month"
     }
   ],
   "neverEnds": true,
-  "description": "first and last Friday of every month"
+  "description": "First and last Friday of every month."
 }
 
 15. Complex yearly pattern:
@@ -411,7 +411,22 @@ Input: "first Monday of January, April, July, and October"
     "dayOfWeek": "MONDAY"
   },
   "neverEnds": true,
-  "description": "first Monday of January, April, July, and October"
+  "description": "First Monday of January, April, July, and October."
+}
+
+16. Position with excluded month:
+Input: "every second tuesday of the month (except April)"
+{
+  "frequency": "MONTHLY",
+  "interval": 1,
+  "startDate": "2024-02-13",
+  "monthPosition": {
+    "position": "SECOND",
+    "dayOfWeek": "TUESDAY"
+  },
+  "months": ["JANUARY", "FEBRUARY", "MARCH", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"],
+  "neverEnds": true,
+  "description": "Every second Tuesday of the month, except April."
 }
 
 The response must strictly conform to the schema provided.`,
@@ -436,6 +451,13 @@ async function handleToolCalls(
 	messages: ChatCompletionMessageParam[],
 	userID: string,
 ) {
+	// Log all tool calls being made
+	console.log("\n=== Tool Calls Being Made ===");
+	for (const call of toolCalls) {
+		console.log("Tool:", call.function.name);
+		console.log("Arguments:", call.function.arguments);
+	}
+
 	// Process all tool calls in parallel
 	const toolCallPromises = toolCalls.map(async (toolCall) => {
 		const args = JSON.parse(toolCall.function.arguments);
@@ -445,6 +467,9 @@ async function handleToolCalls(
 				const name = args.name;
 				// We can safely use userID here since we check at the handler level
 				const result = await lookupCaseNumber(name, userID);
+				console.log("\n=== Tool Response: lookupCaseNumber ===");
+				console.log("Query:", name);
+				console.log("Response:", JSON.stringify(result, null, 2));
 
 				messages.push({
 					role: "tool",
@@ -455,8 +480,11 @@ async function handleToolCalls(
 			}
 			case "searchBusinesses": {
 				const name = args.name;
-				console.log("Current messages:", messages);
+				// console.log("Current messages:", messages);
 				const result = await searchBusinesses(name);
+				console.log("\n=== Tool Response: searchBusinesses ===");
+				console.log("Query:", name);
+				console.log("Response:", JSON.stringify(result, null, 2));
 
 				messages.push({
 					role: "tool",
@@ -468,6 +496,10 @@ async function handleToolCalls(
 			case "parseRecurring": {
 				const { description, startDate } = args;
 				const result = await parseRecurring(description, startDate);
+				console.log("\n=== Tool Response: parseRecurring ===");
+				console.log("Description:", description);
+				console.log("Start Date:", startDate);
+				console.log("Response:", JSON.stringify(result, null, 2));
 
 				messages.push({
 					role: "tool",
@@ -481,6 +513,7 @@ async function handleToolCalls(
 
 	// Wait for all tool calls to complete
 	await Promise.all(toolCallPromises);
+	console.log("\n=== All Tool Calls Completed ===\n");
 }
 
 async function processLLMResponse(
@@ -504,7 +537,7 @@ async function processLLMResponse(
 		});
 
 		await handleToolCalls(llmMessage.tool_calls, messages, userID);
-		console.log("messages after tool call: ", messages);
+		// console.log("messages after tool call: ", messages);
 
 		const followUpCompletion = await openai.beta.chat.completions.parse({
 			model: "gpt-4o",
@@ -523,8 +556,8 @@ async function processLLMResponse(
 
 	// Process the form data based on expense type
 	const initialFormData = llmMessage.parsed?.form || null;
-	console.log("LLM parsed form data:", JSON.stringify(initialFormData, null, 2));
-	console.log("Current form state:", JSON.stringify(currentFormState, null, 2));
+	// console.log("LLM parsed form data:", JSON.stringify(initialFormData, null, 2));
+	// console.log("Current form state:", JSON.stringify(currentFormState, null, 2));
 
 	// Ensure we're handling both expense types correctly
 	const formData = initialFormData
@@ -543,7 +576,7 @@ async function processLLMResponse(
 			}
 		: null;
 
-	console.log("Processed form data to return:", JSON.stringify(formData, null, 2));
+	// console.log("Processed form data to return:", JSON.stringify(formData, null, 2));
 
 	// Check for any null or undefined fields that might cause issues
 	if (formData) {
@@ -602,7 +635,7 @@ async function getUserDetails(userID: string) {
 		}
 
 		const userData = users?.[0];
-		console.log("Found user data:", userData);
+		// console.log("Found user data:", userData);
 
 		if (!userData) {
 			console.warn("No user found with ID:", userID);
@@ -654,10 +687,10 @@ async function searchBusinesses(name: string) {
 
 export const handler: Schema["Norm"]["functionHandler"] = async (event) => {
 	// Extract user ID directly from Cognito identity
-	console.log("event identity: ", event.identity);
+	// console.log("event identity: ", event.identity);
 	const userIdFromIdentity = (event.identity as { sub: string }).sub;
-	console.log("Handler started with userID:", userIdFromIdentity);
-	console.log("Event arguments:", JSON.stringify(event.arguments, null, 2));
+	// console.log("Handler started with userID:", userIdFromIdentity);
+	// console.log("Event arguments:", JSON.stringify(event.arguments, null, 2));
 
 	if (!userIdFromIdentity) {
 		return {
@@ -670,13 +703,13 @@ export const handler: Schema["Norm"]["functionHandler"] = async (event) => {
 	}
 
 	const { conversationID, messages, formID, currentFormState } = event.arguments;
-	console.log("Form ID from arguments:", formID);
-	console.log("Current form state from arguments:", currentFormState);
+	// console.log("Form ID from arguments:", formID);
+	// console.log("Current form state from arguments:", currentFormState);
 
 	// Parse the messages from the request
 	const messagesJSON = JSON.parse(messages ?? "[]");
 	const currentFormStateJSON = JSON.parse(currentFormState ?? "{}");
-	console.log("Parsed current form state:", JSON.stringify(currentFormStateJSON, null, 2));
+	// console.log("Parsed current form state:", JSON.stringify(currentFormStateJSON, null, 2));
 
 	// Check if first message is a system message
 	let messagesWithSystem = messagesJSON;
@@ -735,6 +768,7 @@ Common fields for both expense types:
 * Use the lookupCaseNumber tool to lookup a child's case number using just their name.
 * If the social worker provides the child's name, immediately use the lookupCaseNumber tool and fill out the caseNumber.
 * Never ask something like "What is the case number for Charlie Bucket?" without first using the lookupCaseNumber tool.
+* The first time the Child's name is mentioned, immediately use the tool to lookup their case number and fill out that field. Never tell the user you are going to lookup the case number, just do it.
 
 ## Title
 
@@ -857,13 +891,15 @@ Response:
 
 User: "I need to order school books from BookWorld for Jamie Green's class. It will cost £120 and we need them by April 10th."
 
-[Tool call: lookupCaseNumber("Jamie Green")]  
-[Tool response: {"id": "34521", "firstName": "Jamie", "lastName": "Green", "dateOfBirth": "2016-07-22"}]
+Tool calls (both made together in the same response):
+1. lookupCaseNumber("Jamie Green")
+2. searchBusinesses("BookWorld")
 
-[Tool call: searchBusinesses("BookWorld")]  
-[Tool response: [{"id": "b78901", "name": "BookWorld Ltd", "address": {"lineOne": "45 Reader Lane", "lineTwo": "", "townOrCity": "London", "postcode": "E14 9WR"}}]]
+After receiving tool responses:
+- lookupCaseNumber returns: {"id": "34521", "firstName": "Jamie", "lastName": "Green", "dateOfBirth": "2016-07-22"}
+- searchBusinesses returns: [{"id": "b78901", "name": "BookWorld Ltd", "address": {"lineOne": "45 Reader Lane", "lineTwo": "", "townOrCity": "London", "postcode": "E14 9WR"}}]
 
-Response:
+Final response:
 {
   "form": {
     "title": "School books from BookWorld for Jamie Green",
@@ -881,22 +917,23 @@ Response:
 
 User: "I need to set up monthly payments of £85 to ABC Therapy Services for Daniel Wilson's speech therapy, starting April 5th."
 
-[Tool call: lookupCaseNumber("Daniel Wilson")]  
-[Tool response: {"id": "56789", "firstName": "Daniel", "lastName": "Wilson", "dateOfBirth": "2018-03-15"}]
+Tool calls (all made together in the same response):
+1. lookupCaseNumber("Daniel Wilson")
+2. searchBusinesses("ABC Therapy Services")
+3. parseRecurring("monthly payments starting April 5th", "2025-04-05")
 
-[Tool call: searchBusinesses("ABC Therapy Services")]  
-[Tool response: [{"id": "b23456", "name": "ABC Therapy Services", "address": {"lineOne": "123 Health Street", "lineTwo": "Suite 4B", "townOrCity": "London", "postcode": "NW1 6QT"}}]]
-
-[Tool call: parseRecurring("monthly payments starting April 5th", "2025-04-05")]  
-[Tool response: {
+After receiving tool responses:
+- lookupCaseNumber returns: {"id": "56789", "firstName": "Daniel", "lastName": "Wilson", "dateOfBirth": "2018-03-15"}
+- searchBusinesses returns: [{"id": "b23456", "name": "ABC Therapy Services", "address": {"lineOne": "123 Health Street", "lineTwo": "Suite 4B", "townOrCity": "London", "postcode": "NW1 6QT"}}]
+- parseRecurring returns: {
   "frequency": "MONTHLY",
   "interval": 1,
   "startDate": "2025-04-05",
   "neverEnds": true,
-  "description": "monthly payments starting April 5th"
-}]
+  "description": "Monthly payments starting April 5th."
+}
 
-Response:
+Final response:
 {
   "form": {
     "title": "Monthly speech therapy from ABC Therapy Services for Daniel Wilson",
@@ -921,7 +958,7 @@ Response:
       "interval": 1,
       "startDate": "2025-04-05",
       "neverEnds": true,
-      "description": "monthly payments starting April 5th"
+      "description": "Monthly payments starting April 5th."
     }
   },
   "followUp": "I've set up monthly recurring payments of £85 to ABC Therapy Services for Daniel's speech therapy, starting April 5th, 2025. Is there anything else you need to add to this purchase order?"
@@ -931,16 +968,18 @@ Response:
 
 User: "I need to order £250 of furniture from Furniture World for Sophia Lee by May 15th."
 
-[Tool call: lookupCaseNumber("Sophia Lee")]  
-[Tool response: {"id": "78123", "firstName": "Sophia", "lastName": "Lee", "dateOfBirth": "2014-10-05"}]
+Tool calls (both made together in the same response):
+1. lookupCaseNumber("Sophia Lee")
+2. searchBusinesses("Furniture World")
 
-[Tool call: searchBusinesses("Furniture World")]  
-[Tool response: [
+After receiving tool responses:
+- lookupCaseNumber returns: {"id": "78123", "firstName": "Sophia", "lastName": "Lee", "dateOfBirth": "2014-10-05"}
+- searchBusinesses returns: [
   {"id": "b34567", "name": "Furniture World - East London", "address": {"lineOne": "87 Commerce Road", "lineTwo": "Industrial Estate", "townOrCity": "London", "postcode": "E3 4TG"}},
   {"id": "b34568", "name": "Furniture World - North London", "address": {"lineOne": "23 Home Avenue", "lineTwo": "", "townOrCity": "London", "postcode": "N17 7QP"}}
-]]
+]
 
-Response:
+Final response:
 {
   "form": {
     "title": "Furniture purchase for Sophia Lee",
@@ -958,13 +997,16 @@ Response:
 
 User: "I need to place a purchase order for £175 with Rainbow Educational Supplies for art materials for Oliver Brown's school project. We need them by March 30th."
 
-[Tool call: lookupCaseNumber("Oliver Brown")]  
-[Tool response: {"id": "45678", "firstName": "Oliver", "lastName": "Brown", "dateOfBirth": "2015-05-18"}]
+Tool calls (both made together in the same response):
+1. lookupCaseNumber("Oliver Brown")
+2. searchBusinesses("Rainbow Educational Supplies")
 
-[Tool call: searchBusinesses("Rainbow Educational Supplies")]  
-[Tool response: {"message": "No businesses found matching \"Rainbow Educational Supplies\""}]
+After receiving tool responses:
+- lookupCaseNumber returns: {"id": "45678", "firstName": "Oliver", "lastName": "Brown", "dateOfBirth": "2015-05-18"}
+- searchBusinesses returns: {"message": "No businesses found matching \"Rainbow Educational Supplies\""}
 
-Response:
+
+Final response:
 {
   "form": {
     "title": "Art materials from Rainbow Educational Supplies for Oliver Brown",
@@ -1008,11 +1050,16 @@ Supported recurrence patterns:
   * Specific dates (e.g., 1st and 15th of each month)
   * Relative positions (e.g., first Monday, last Friday of the month)
   * Month-end option for last day regardless of date
+  * Can include or exclude specific months (e.g., every second Tuesday except in April)
 * Yearly patterns:
   * Specific months (e.g., January and July each year)
   * Can combine with specific dates or relative positions (e.g., first Monday of January)
+  * Can select a subset of months for the pattern to apply (e.g., only in Q1 months)
 * End conditions: can specify an endDate, maxOccurrences, or neverEnds
-* Exclusions: can specify dates to skip
+* Exclusions: 
+  * Can specify dates to skip
+  * Can exclude specific months from monthly or yearly patterns
+  * Can create sophisticated patterns like "second Tuesday of every month except April"
 
 Always ask clarifying questions when:
 * The frequency is unclear (daily, weekly, monthly, yearly)
@@ -1037,6 +1084,7 @@ Explain limitations if the social worker requests:
 ### Guidelines
 
 * When calling a tool, leave the followUp field blank as the social worker won't see it anyway.
+* Where possible, call multiple tools in a single message (eg lookupCaseNumber and searchBusinesses).
 
 ## Manual Editing
 
@@ -1144,7 +1192,7 @@ Explain limitations if the social worker requests:
 							}
 						}
 
-						console.log("Sending form update with data:", JSON.stringify(updateData, null, 2));
+						// console.log("Sending form update with data:", JSON.stringify(updateData, null, 2));
 
 						// Cast to the Form type expected by the update method
 						return await client.models.Form.update(updateData as Schema["Form"]["type"]);
@@ -1163,15 +1211,15 @@ Explain limitations if the social worker requests:
 
 	// Wait for both operations to complete simultaneously
 	try {
-		console.log("Starting Promise.all for conversation and form updates");
+		// console.log("Starting Promise.all for conversation and form updates");
 		const [conversationResult, formResult] = await Promise.all([conversationUpdatePromise, formUpdatePromise]);
-		console.log("Conversation update result:", JSON.stringify(conversationResult, null, 2));
-		console.log("Form update result:", {
-			data: formResult.data ? "Data present" : "No data",
-			dataType: formResult.data ? typeof formResult.data : "N/A",
-			dataKeys: formResult.data ? Object.keys(formResult.data) : [],
-			errors: formResult.errors,
-		});
+		// console.log("Conversation update result:", JSON.stringify(conversationResult, null, 2));
+		// console.log("Form update result:", {
+		// 	data: formResult.data ? "Data present" : "No data",
+		// 	dataType: formResult.data ? typeof formResult.data : "N/A",
+		// 	dataKeys: formResult.data ? Object.keys(formResult.data) : [],
+		// 	errors: formResult.errors,
+		// });
 
 		if (formResult.errors) {
 			console.error("Form update errors:", JSON.stringify(formResult.errors, null, 2));
@@ -1179,24 +1227,24 @@ Explain limitations if the social worker requests:
 
 		// Get the updated form data
 		const updatedForm = formResult.data || currentFormStateJSON;
-		console.log("Final updatedForm type:", typeof updatedForm);
-		console.log("Final updatedForm keys:", Object.keys(updatedForm));
-		console.log("Final updatedForm:", JSON.stringify(updatedForm, null, 2));
+		// console.log("Final updatedForm type:", typeof updatedForm);
+		// console.log("Final updatedForm keys:", Object.keys(updatedForm));
+		// console.log("Final updatedForm:", JSON.stringify(updatedForm, null, 2));
 
 		// Check if updatedForm is empty or missing expected fields
 		if (!updatedForm || Object.keys(updatedForm).length === 0) {
 			console.warn("Warning: updatedForm is empty or null, using currentFormStateJSON as fallback");
 			// Use the original form state as a fallback
 			const fallbackForm = currentFormStateJSON;
-			console.log("Fallback form:", JSON.stringify(fallbackForm, null, 2));
+			// console.log("Fallback form:", JSON.stringify(fallbackForm, null, 2));
 		}
 
 		// Ensure we're returning a valid form state
 		const finalFormState = typeof updatedForm === "string" ? updatedForm : JSON.stringify(updatedForm);
 
-		console.log("Final form state to return:", finalFormState);
+		// console.log("Final form state to return:", finalFormState);
 
-		console.log("event identity: ", event.identity);
+		// console.log("event identity: ", event.identity);
 
 		// Return the conversation ID and a simple follow-up message
 		return {

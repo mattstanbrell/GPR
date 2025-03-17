@@ -160,6 +160,14 @@ export function calculateNextOccurrences(pattern: RecurrencePattern, count = 5):
 				}
 
 				case "MONTHLY": {
+					// First check if this month is allowed
+					if (pattern.months && pattern.months.length > 0) {
+						const currentMonth = monthNumberToEnum(currentDate.getMonth() + 1);
+						if (!pattern.months.includes(currentMonth)) {
+							return false;
+						}
+					}
+
 					// For monthly, check day of month or month position
 					if (pattern.dayOfMonth && pattern.dayOfMonth.length > 0) {
 						return pattern.dayOfMonth.includes(currentDate.getDate());

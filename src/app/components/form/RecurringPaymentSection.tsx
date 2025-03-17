@@ -160,7 +160,19 @@ export function RecurringPaymentSection({ form, handleFormChange, disabled }: Re
 
 		// Add frequency and interval
 		if (pattern.frequency && pattern.interval) {
-			parts.push(`Every ${pattern.interval} ${pattern.frequency.toLowerCase()}`);
+			const frequency = pattern.frequency.toLowerCase();
+			const interval = pattern.interval;
+
+			// Convert frequency to singular form
+			const frequencyMap: { [key: string]: string } = {
+				daily: "day",
+				weekly: "week",
+				monthly: "month",
+				yearly: "year",
+			};
+
+			const baseWord = frequencyMap[frequency] || frequency;
+			parts.push(interval === 1 ? `Every ${baseWord}` : `Every ${interval} ${baseWord}s`);
 		}
 
 		// Add start date
