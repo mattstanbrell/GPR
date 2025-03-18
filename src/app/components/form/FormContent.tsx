@@ -4,22 +4,24 @@ import type React from "react";
 import { useEffect, useState, useCallback, useRef } from "react";
 import type { Schema } from "../../../../amplify/data/resource";
 import { useRouter, useSearchParams } from "next/navigation";
+import { generateClient } from "@aws-amplify/api";
+import { FormLayout } from "./FormLayout";
+import { NormLayout } from "./NormLayout";
 import { FORM_BOARD } from "../../constants/urls";
+import { useUserModel } from "../../../utils/authenticationUtils";
+import type { FormStatus } from "@/app/types/models";
 import { isFormValid, processMessages } from "./_helpers";
 import type { UIMessage, FormChanges } from "./types";
 import { FormErrorSummary } from "./FormErrorSummary";
-import { FormLayout } from "./FormLayout";
-import { NormLayout } from "./NormLayout";
 import {
 	createForm,
 	updateForm,
 	getFormById,
 	getTeamByID,
 	assignUserToForm,
-	getNormConversationByFormId
+	getNormConversationByFormId,
+	createBusiness,
 } from "../../../utils/apis";
-import { useUserModel } from "../../../utils/authenticationUtils";
-import type { FormStatus } from "@/app/types/models";
 import { FORM_STATUS, PERMISSIONS } from "@/app/constants/models";
 
 export function FormContent() {
@@ -33,6 +35,8 @@ export function FormContent() {
 		caseNumber: "",
 		reason: "",
 		amount: null,
+		section17: false,
+		expenseType: "PREPAID_CARD",
 		dateRequired: {
 			day: null,
 			month: null,
@@ -50,6 +54,17 @@ export function FormContent() {
 				postcode: "",
 			},
 		},
+		businessDetails: {
+			name: "",
+			address: {
+				lineOne: "",
+				lineTwo: "",
+				townOrCity: "",
+				postcode: "",
+			},
+		},
+		businessID: undefined,
+		isRecurring: false,
 	});
 	const userModel = useUserModel();
 	const [message, setMessage] = useState("");
@@ -62,9 +77,46 @@ export function FormContent() {
 
 	// Get the form fields directly from the schema
 	const formFields = {
-		simple: ["title", "caseNumber", "reason", "amount"] as const,
-		nested: ["dateRequired", "recipientDetails"] as const,
+		simple: [
+			"title",
+			"caseNumber",
+			"reason",
+			"amount",
+			"section17",
+			"expenseType",
+			"businessID",
+			"isRecurring",
+		] as const,
+		nested: ["dateRequired", "recipientDetails", "businessDetails"] as const,
 	};
+
+	// Update the form in the database
+	const updateFormInDatabase = useCallback(
+		async (formToUpdate = form) => {
+			if (!formToUpdate.id || !userModel?.id) return;
+
+			try {
+				// Create a clean version of the form data without null businessID
+				const { businessID, ...restOfForm } = formToUpdate;
+
+				// Convert form data to update, ensuring all fields are included
+				const formDataToUpdate = {
+					...restOfForm,
+					creatorID: userModel.id,
+					...(businessID !== null && { businessID }),
+					// Let RecurringPaymentSection handle the defaults
+					isRecurring: formToUpdate.isRecurring ?? false,
+					...(formToUpdate.recurrencePattern && { recurrencePattern: formToUpdate.recurrencePattern }),
+				};
+
+				await updateForm(formToUpdate.id, formDataToUpdate);
+			} catch (error) {
+				console.error("Form update error:", error);
+				setErrorMessage(`Failed to update form: ${error instanceof Error ? error.message : String(error)}`);
+			}
+		},
+		[form, userModel?.id],
+	);
 
 	const loadConversation = useCallback(
 		async (formId: string) => {
@@ -168,58 +220,108 @@ export function FormContent() {
 	}, [searchParams, loadExistingForm, createFormSilently, userModel]);
 
 	// Handle form field changes
-	const handleFormChange = (field: string, value: unknown, updateDb = false) => {
-		if (!form) return;
+	const handleFormChange = useCallback(
+		(field: string, value: unknown, updateDb = false) => {
+			if (!form) return;
 
-		setForm((prevForm) => {
-			const newForm = { ...prevForm, [field]: value };
-			if (updateDb && newForm.id) {
-				updateFormInDatabase(newForm);
-			}
-			return newForm;
-		});
-	};
+			setForm((prevForm: Partial<Schema["Form"]["type"]>) => {
+				let newForm = { ...prevForm, [field]: value };
 
-	// Update the form in the database
-	const updateFormInDatabase = async (formToUpdate = form) => {
-		if (!formToUpdate.id || !userModel?.id) return;
+				// Reset recurring payment fields when switching to prepaid card
+				if (field === "expenseType" && value === "PREPAID_CARD") {
+					newForm = {
+						...newForm,
+						isRecurring: false,
+						recurrencePattern: undefined,
+					};
+				}
 
-		try {
-			await updateForm(formToUpdate.id, {
-				...formToUpdate,
-				creatorID: userModel.id,
+				if (updateDb && newForm.id) {
+					updateFormInDatabase(newForm);
+				}
+				return newForm;
 			});
-		} catch {
-			setErrorMessage("Failed to update form. Please try again.");
-		}
-	};
+		},
+		[form, updateFormInDatabase],
+	);
 
 	// Handle form submission
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
-		
-		if (!userModel) return; 
 
-    		const team = await getTeamByID(userModel.teamID || "Placeholder");
+		if (!userModel) return;
+
+		const team = await getTeamByID(userModel.teamID || "Placeholder");
 		if (!form || !form.id || !userModel?.id || !form.amount || !team) return;
 
 		try {
 			setLoading(true);
-			await updateForm(form.id, {
-				...form,
-				status: "SUBMITTED",
+
+			// Call the financeCode function with the UI messages and current form state
+			const client = generateClient<Schema>();
+
+			// Start finance code generation in background - don't await it
+			void client.queries
+				.FinanceCodeFunction({
+					messages: JSON.stringify(messages),
+					currentFormState: JSON.stringify(form),
+					formID: form.id,
+				})
+				.catch((error) => {
+					console.error("Error in finance code generation:", error);
+				});
+
+			// Start business creation in parallel if needed
+			let businessPromise: Promise<{ id: string } | null> = Promise.resolve(null);
+			if (!form.businessID && form.expenseType === "PURCHASE_ORDER" && form.businessDetails?.name) {
+				businessPromise = createBusiness(
+					form.businessDetails.name,
+					{
+						lineOne: form.businessDetails.address?.lineOne || "",
+						lineTwo: form.businessDetails.address?.lineTwo || undefined,
+						townOrCity: form.businessDetails.address?.townOrCity || "",
+						postcode: form.businessDetails.address?.postcode || "",
+					},
+					userModel.id,
+				).catch((error) => {
+					console.error("Error creating business:", error);
+					// Return null if business creation fails
+					return null;
+				});
+			}
+
+			// Wait for business creation to complete
+			const newBusiness = await businessPromise;
+
+			// Get the business ID (either existing or newly created)
+			let businessID = form.businessID;
+			if (newBusiness) {
+				businessID = newBusiness.id;
+			}
+
+			// Create a clean version of the form data without null businessID
+			const { ...formDataToUpdate } = form;
+
+			// Only include businessID if it's not null
+			const formDataToSubmit: Partial<Schema["Form"]["type"]> = {
+				...formDataToUpdate,
+				status: "SUBMITTED" as FormStatus,
 				creatorID: userModel.id,
-			});
-			let assigneeId;
+				...(businessID && { businessID }),
+			};
+
+			await updateForm(form.id, formDataToSubmit);
+
+			let assigneeId: string;
 			if (form.amount > 5000) {
- 				if (!team?.managerUserID) return;
-				assigneeId = team?.managerUserID;
- 			} else {
+				if (!team?.managerUserID) return;
+				assigneeId = team.managerUserID;
+			} else {
 				if (!team?.assistantManagerUserID) return;
- 				assigneeId = team?.assistantManagerUserID;
- 			}
+				assigneeId = team.assistantManagerUserID;
+			}
 			await assignUserToForm(form.id, assigneeId);
-			
+
 			router.push(FORM_BOARD);
 		} catch (_error: unknown) {
 			setErrorMessage(_error instanceof Error ? _error.message : String(_error));
@@ -272,26 +374,26 @@ export function FormContent() {
 	}
 
 	const isSocialWorker = userModel?.permissionGroup === PERMISSIONS.SOCIAL_WORKER_GROUP;
-	const isDraft = form.status === FORM_STATUS.DRAFT
+	const isDraft = form.status === FORM_STATUS.DRAFT;
 
 	return (
 		<div style={{ height: "calc(100vh - 140px)", overflow: "hidden" }}>
 			<main className="govuk-main-wrapper" style={{ height: "100%", padding: "0" }}>
 				<div className="govuk-width-container" style={{ height: "100%", paddingLeft: "15px", paddingRight: "15px" }}>
 					<div className="govuk-grid-row flex" style={{ height: "100%", margin: 0 }}>
-						<div className={`${ isSocialWorker && isDraft ? "md:w-6/10" : "md:w-full" }`} >
+						<div className={`${isSocialWorker && isDraft ? "md:w-6/10" : "md:w-full"}`}>
 							<FormLayout
 								form={form}
 								loading={loading}
 								handleFormChange={handleFormChange}
 								handleSubmit={handleSubmit}
 								isFormValid={isFormValid}
-								disabled={processingMessage || !(isDraft)}
+								disabled={processingMessage || !isDraft}
 								updatedFields={updatedFields}
-								isSocialWorker={ isSocialWorker }
+								isSocialWorker={isSocialWorker}
 							/>
 						</div>
-						{ isDraft && isSocialWorker &&
+						{isDraft && isSocialWorker && (
 							<div className="md:w-4/10">
 								<NormLayout
 									messages={messages}
@@ -324,14 +426,9 @@ export function FormContent() {
 										setForm(updatedForm);
 										setLastNormForm(updatedForm);
 
-										// Update the form in the database to ensure creatorID is preserved
-										if (updatedForm.id && userModel?.id) {
-											updateForm(updatedForm.id, {
-												...updatedForm,
-												creatorID: userModel.id,
-											}).catch(() => {
-												// Silently handle error
-											});
+										// Update the form in the database
+										if (updatedForm.id) {
+											updateFormInDatabase(updatedForm);
 										}
 									}}
 									currentForm={form}
@@ -340,7 +437,7 @@ export function FormContent() {
 									getFormChanges={getFormChanges}
 								/>
 							</div>
-						}
+						)}
 					</div>
 				</div>
 			</main>
