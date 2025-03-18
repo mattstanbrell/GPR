@@ -30,7 +30,7 @@ export async function middleware(request: NextRequest) {
 		return NextResponse.redirect(new URL("/home", request.url));
 	}
 
-	// Continue to the requested page. 
+	// Continue to the requested page.
 	// If user is not authenticated, this is the sign in page.
 	return response;
 }
