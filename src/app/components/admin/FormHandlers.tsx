@@ -3,7 +3,7 @@
 import React from "react"
 import { ADMIN } from "@/app/constants/urls";
 import { redirect } from "next/navigation";
-import { addUserToTeam, createChild, createTeam, getManagers, 
+import { addUserToTeam, createChild, createTeam, deleteChild, deleteTeam, getManagers, 
     updateChild, updateTeam, updateUser } from "@/utils/apis";
 
 export const handleUserFormSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -81,5 +81,15 @@ export const handlTeamFormSubmit = async (event: React.FormEvent<HTMLFormElement
         await createTeam(data.name, data.managerUserID, data.assistantManagerUserID); 
     }
 
+    redirect(ADMIN)
+}
+
+export const handleDeleteChild = async (childId: string) => {
+    await deleteChild(childId);
+    redirect(ADMIN);
+}
+
+export const handleDeleteTeam = async (teamId: string) => {
+    await deleteTeam(teamId);
     redirect(ADMIN)
 }

@@ -10,7 +10,7 @@ import { ADMIN } from "@/app/constants/urls"
 import { InputTextTableRow, InputDateTableRow, 
         InputSelectTableRow, InputHiddenTableRow } from "@/app/components/admin/FormElements"
 import { handleUserFormSubmit, handleChildFormSubmit, 
-        handlTeamFormSubmit } from "@/app/components/admin/FormHandlers"
+        handlTeamFormSubmit, handleDeleteChild, handleDeleteTeam } from "@/app/components/admin/FormHandlers"
 import type { SelectNameID } from "@/app/types/input"
 import { gendersNameID } from "@/app/constants/global"
 
@@ -31,7 +31,7 @@ export const UserForm = ({data} : {data: User | null}) => {
         }
         fetchTeams();
     }, [data])
-    
+
     const formElements = (
         <>
             <tbody className="govuk-table__body">
@@ -52,9 +52,10 @@ export const UserForm = ({data} : {data: User | null}) => {
 }
 
 export const ChildForm = ({data} : {data: Child | null}) => {
+    const childId = data && data.id ? data.id : "";
     const formElements = (
         <tbody>
-            <InputHiddenTableRow name="childId" value={data && data.id ? data.id : ""} />
+            <InputHiddenTableRow name="childId" value={childId} />
             <InputTextTableRow fieldName="Case Number" inputName="casenumber" defaultValue={ data?.caseNumber ? data.caseNumber : "" } isRequired={ true } />
             <InputTextTableRow fieldName="First Name" inputName="firstname" defaultValue={ data?.firstName ? data.firstName : "" } isRequired={ true } />
             <InputTextTableRow fieldName="Last Name" inputName="lastname" defaultValue={ data?.lastName ? data.lastName : "" } isRequired={ true } />
@@ -67,7 +68,7 @@ export const ChildForm = ({data} : {data: Child | null}) => {
     return <Form 
             components={ formElements } 
             handleSubmit={ handleChildFormSubmit }
-            button={ <WarningButton name="Delete" onClick={() => console.log("delete user")} /> }  
+            button={ <WarningButton name="Delete" onClick={() => handleDeleteChild(childId)} /> }  
         />
 }
 
@@ -76,6 +77,7 @@ export const TeamForm = ({data} : {data: Team | null}) => {
     const [managerNameIds, setManagerNameIds] = useState<SelectNameID[]>([]);
     const managerId = data?.assistantManagerUserID ? data.assistantManagerUserID : "";
     const assistantManagerId = data?.managerUserID ? data.managerUserID : "";
+    const teamId = data && data.id ? data.id : "";
 
     useEffect(() => {
         const fetchManagers = async () => {
@@ -97,7 +99,7 @@ export const TeamForm = ({data} : {data: Team | null}) => {
 
     const formElements = (
         <tbody>
-            <InputHiddenTableRow name="teamId" value={data && data.id ? data.id : ""} />
+            <InputHiddenTableRow name="teamId" value={teamId} />
             <InputTextTableRow fieldName="Team Name" inputName="teamname" defaultValue={ data?.name ? data.name : "" } isRequired={ true } />
             <InputSelectTableRow fieldName="Assistant Manager" inputName="assistantmanagerid" defaultValue={ assistantManagerId } options={ managerNameIds } />
             <InputSelectTableRow fieldName="Team Manager" inputName="managerid" defaultValue={ managerId } options={ managerNameIds } />
@@ -107,7 +109,7 @@ export const TeamForm = ({data} : {data: Team | null}) => {
     return <Form 
             components={ formElements } 
             handleSubmit={ handlTeamFormSubmit }
-            button={ <WarningButton name="Delete" onClick={() => console.log("delete user")} /> } 
+            button={ <WarningButton name="Delete" onClick={() => handleDeleteTeam(teamId)} /> } 
         />
 }
 
