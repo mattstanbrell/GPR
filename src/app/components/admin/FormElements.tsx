@@ -58,7 +58,7 @@ export const InputSelectTableRow = (
         fieldName: string, 
         inputName: string, 
         defaultValue: string, 
-        options: string[], 
+        options: {name: string, id: string}[], 
         isRequired?: boolean
     }
 ) => {
@@ -67,6 +67,8 @@ export const InputSelectTableRow = (
     useEffect(() => {
         setSelectedValue(defaultValue);
     }, [defaultValue])
+
+    console.log(selectedValue)
 
     return (
         <tr className="govuk-table__row">
@@ -80,8 +82,8 @@ export const InputSelectTableRow = (
                     onChange={(e) => setSelectedValue(e.target.value)}
                 >
                     <option value="" disabled>Select</option>
-                    { options.map((opt, index) => (
-                        <option key={index} value={ opt }>{ opt }</option>
+                    { options.map(({name, id}, index) => (
+                        <option key={index} value={ id }>{ name }</option>
                     ))} 
                 </select>
             </td>

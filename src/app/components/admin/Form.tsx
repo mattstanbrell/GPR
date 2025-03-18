@@ -11,30 +11,31 @@ import { InputTextTableRow, InputDateTableRow,
         InputSelectTableRow, InputHiddenTableRow } from "@/app/components/admin/FormElements"
 import { handleUserFormSubmit, handleChildFormSubmit, 
         handlTeamFormSubmit } from "@/app/components/admin/FormHandlers"
+import type { SelectNameID } from "@/app/types/input"
+import { gendersNameID } from "@/app/constants/global"
 
 export const UserForm = ({data} : {data: User | null}) => {
-    const [teamNames, setTeamNames] = useState<string[]>([]);
-    const [defaultTeam, setDefaultTeam] = useState<string>("Select"); 
+    const [teamNameIds, setTeamNameIds] = useState<SelectNameID[]>([]);
     useEffect(() => {
-        const fetchTeamNames = async () => {
+        const fetchTeams = async () => {
             const teams = await listTeams();
-            const names: string[] = [];
-            teams.map(({name, id}) => {
-                names.push(name ? name : "")
-                if (id === data?.teamID) {
-                    setDefaultTeam(name ? name : ""); 
-                }
+            const nameIds: SelectNameID[] = [];
+            teams.map(({name, id}, ) => {
+                const teamName = name ? name : "No Team Name"
+                nameIds.push(
+                    {name: teamName, id}
+                )
             })
-            setTeamNames(names)
+            setTeamNameIds(nameIds); 
         }
-        fetchTeamNames();
-    }, [])
+        fetchTeams();
+    }, [data])
 
     const formElements = (
         <>
             <tbody className="govuk-table__body">
                 <InputHiddenTableRow name="userId" value={data && data.id ? data.id : ""} />
-                <InputSelectTableRow fieldName="Team" inputName="team" defaultValue={ defaultTeam } options={ teamNames } />
+                <InputSelectTableRow fieldName="Team" inputName="team" defaultValue={ data?.teamID ? data.teamID : "" } options={ teamNameIds } />
                 <tr className="govuk-table__row text-center">
                     <th colSpan={2}>Address</th>
                 </tr>
@@ -57,8 +58,8 @@ export const ChildForm = ({data} : {data: Child | null}) => {
             <InputTextTableRow fieldName="First Name" inputName="firstname" defaultValue={ data?.firstName ? data.firstName : "" } isRequired={ true } />
             <InputTextTableRow fieldName="Last Name" inputName="lastname" defaultValue={ data?.lastName ? data.lastName : "" } isRequired={ true } />
             <InputDateTableRow fieldName="Date of Birth" defaultValue={ data?.dateOfBirth ? data?.dateOfBirth : null } />
-            <InputSelectTableRow fieldName="Sex" inputName="sex" defaultValue={ data?.sex ? data?.sex : "" } options={["Male", "Female"]} isRequired={ true } />
-            <InputSelectTableRow fieldName="Gender" inputName="gender" defaultValue={ data?.gender ? data?.gender : "" } options={["Male", "Female"]} isRequired={ true } />
+            <InputSelectTableRow fieldName="Sex" inputName="sex" defaultValue={ data?.sex ? data?.sex : "" } options={gendersNameID} isRequired={ true } />
+            <InputSelectTableRow fieldName="Gender" inputName="gender" defaultValue={ data?.gender ? data?.gender : "" } options={gendersNameID} isRequired={ true } />
         </tbody>
     )
 
@@ -71,9 +72,9 @@ export const ChildForm = ({data} : {data: Child | null}) => {
 
 export const TeamForm = ({data} : {data: Team | null}) => {
     const [managers, setManagers] = useState<User[]>([]);
-    const [currentManager, setCurrentManager] = useState<string>("");
-    const [currentAssistantManager, setCurrentAssistantManager] = useState<string>("");
-    const [managerNames, setManagerNames] = useState<string[]>([]);
+    const [managerNameIds, setManagerNameIds] = useState<SelectNameID[]>([]);
+    const managerId = data?.assistantManagerUserID ? data.assistantManagerUserID : "";
+    const assistantManagerId = data?.managerUserID ? data.managerUserID : "";
 
     useEffect(() => {
         const fetchManagers = async () => {
@@ -83,25 +84,22 @@ export const TeamForm = ({data} : {data: Team | null}) => {
     }, [])
 
     useEffect(() => {
-        const names: string[] = [];
-        managers && managers.map(({id, firstName, lastName}, index) => {
+        const nameIds: SelectNameID[] = [];
+        managers.map(({id, firstName, lastName}) => {
             const name: string = `${firstName} ${lastName}`;
-            names.push(name)
-            if (id === data?.assistantManagerUserID) {
-                setCurrentAssistantManager(name);
-            } else if (id === data?.managerUserID) {
-                setCurrentManager(name)
-            }
+            nameIds.push(
+                { name, id }
+            )
         })
-        setManagerNames(names);
+        setManagerNameIds(nameIds);
     }, [managers])
 
     const formElements = (
         <tbody>
             <InputHiddenTableRow name="teamId" value={data && data.id ? data.id : ""} />
             <InputTextTableRow fieldName="Team Name" inputName="teamname" defaultValue={ data?.name ? data.name : "" } isRequired={ true } />
-            <InputSelectTableRow fieldName="Assistant Manager" inputName="assistmanager" defaultValue={ currentAssistantManager } options={ managerNames } />
-            <InputSelectTableRow fieldName="Team Manager" inputName="manager" defaultValue={ currentManager } options={ managerNames } />
+            <InputSelectTableRow fieldName="Assistant Manager" inputName="assistantmanager" defaultValue={ assistantManagerId } options={ managerNameIds } />
+            <InputSelectTableRow fieldName="Team Manager" inputName="manager" defaultValue={ managerId } options={ managerNameIds } />
         </tbody>
     )
 
