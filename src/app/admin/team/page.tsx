@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect } from "react";
 import { TeamForm } from "@/app/components/admin/Form";
 import { useSearchParams } from "next/navigation";
 import type { Team } from "@/app/types/models";
@@ -22,10 +22,10 @@ const Team = () => {
     }, [teamId])
 
     return (
-        <Suspense>
+        <>
             <h1 className="govuk-heading-l">{ team ? team.name : "Create New Team" }</h1>
             <TeamForm data={team} />
-        </Suspense>
+        </>
     )
 }
 

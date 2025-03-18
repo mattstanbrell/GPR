@@ -4,7 +4,7 @@ import { ChildForm } from "@/app/components/admin/Form";
 import type { Child } from "@/app/types/models";
 import { getChildById } from "@/utils/apis";
 import { useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 const Child = () => {
     const searchParams = useSearchParams(); 
@@ -21,10 +21,10 @@ const Child = () => {
     }, [childId])
 
     return (
-        <Suspense>
+        <>
             <h1 className="govuk-heading-l">{ child ? "Edit Child" : "Create New Child"}</h1>
             <ChildForm data={child} /> 
-        </Suspense>
+        </>
     )
 }
 
