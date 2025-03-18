@@ -22,7 +22,9 @@ export const WarningButton = (
     return <button type="button" className="govuk-button govuk-button--warning" onClick={ onClick }>{ name }</button>
 }
 
-export const SubmitButton = ({onClick} : {onClick?: () => void}
+export const SubmitButton = (
+    {name = "Submit", onClick} : 
+    {name?: string, onClick?: () => void}
 ) => {
-    return <button type="submit" className="govuk-button" onClick={ onClick }>Submit</button>
+    return <button type="submit" className="govuk-button" onClick={ onClick }>{ name }</button>
 }

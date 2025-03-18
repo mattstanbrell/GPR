@@ -49,7 +49,7 @@ export const UserForm = ({data} : {data: User | null}) => {
         </>
     )
 
-    return <Form components={ formElements } handleSubmit={ handleUserFormSubmit } />
+    return <Form components={ formElements } handleSubmit={ handleUserFormSubmit } isCreate={ !(data) } />
 }
 
 export const ChildForm = ({data} : {data: Child | null}) => {
@@ -70,6 +70,7 @@ export const ChildForm = ({data} : {data: Child | null}) => {
             components={ formElements } 
             handleSubmit={ handleChildFormSubmit }
             button={ data ? <WarningButton name="Delete" onClick={() => handleDeleteChild(childId)} /> : null }
+            isCreate={ !(data) }
         />
 }
 
@@ -111,15 +112,17 @@ export const TeamForm = ({data} : {data: Team | null}) => {
             components={ formElements } 
             handleSubmit={ handlTeamFormSubmit }
             button={ data ? <WarningButton name="Delete" onClick={() => handleDeleteTeam(teamId)} /> : null } 
+            isCreate={ !(data) }
         />
 }
 
 const Form = (
-    {components, handleSubmit, button} : 
+    {components, handleSubmit, button, isCreate} : 
     {
         components: React.ReactElement, 
         handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void,
         button?: React.ReactElement | null,
+        isCreate?: boolean, 
     }
 ) => {
     return (
@@ -133,7 +136,7 @@ const Form = (
                     { components }
                 </table>
                 <div className="w-full flex justify-center">
-                    <SubmitButton />
+                    <SubmitButton name={isCreate ? "Create" : "Update" } />
                 </div> 
             </form>
         </>
