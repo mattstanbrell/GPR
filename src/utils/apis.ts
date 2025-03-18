@@ -185,7 +185,7 @@ export async function createBusiness(
 // ------------Team APIs -------------
 export async function createTeam(name: string, managerUserID: string, assistantManagerUserID: string) {
 	const { data, errors } = await client.models.Team.create({
-		name: sting, 
+		name: name, 
 		managerUserID: managerUserID,
 		assistantManagerUserID: assistantManagerUserID,
 	});
