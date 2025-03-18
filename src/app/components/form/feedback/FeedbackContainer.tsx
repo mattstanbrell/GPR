@@ -3,8 +3,8 @@
 import { useContext } from "react";
 import { AppContext } from "@/app/layout";
 import { useState } from "react";
-import { AuthorisationButtonsContainer,
-    SubmitFeedbackButtonContainer } from "@/app/components/form/feedback/ButtonsContainer";
+import { ManagersFormButtonsContainer,
+    SubmitFeedbackButtonContainer } from "@/app/components/form/ButtonsContainer";
 import { FORM_STATUS, PERMISSIONS } from "@/app/constants/models";
 import { Form } from "@/app/types/models";
 import { SubmitSuccessStatusMessage, ApprovalStatusMessage, SubmitWarningMessage } from "@/app/components/form/feedback/Messages";
@@ -58,7 +58,7 @@ const FeedbackContainer = ({form} : {form: Form}) => {
                     ) : (
                     isFormApproved && <ApprovalStatusMessage form={ form } />
                 )}
-                <AuthorisationButtonsContainer form={ form } 
+                <ManagersFormButtonsContainer form={ form } 
                     isReject={ isReject } 
                     setIsReject={ setIsReject } 
                 />

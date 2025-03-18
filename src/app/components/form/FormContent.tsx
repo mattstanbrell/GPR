@@ -240,20 +240,17 @@ export function FormContent() {
 	);
 
 	const handleSubmit = async (e: React.FormEvent) => {
-		console.log("handleSubmit called");
 		e.preventDefault();
 
 		if (!userModel) return;
 
-		const team = await getTeamByID(userModel.teamID || "");
+		const team = await getTeamByID(userModel.teamID || "Placeholder");
 		if (!form || !form.id || !userModel?.id || !form.amount || !team) return;
 
 		try {
 			setLoading(true);
 
 			const client = generateClient<Schema>();
-			console.log("submission messages", messages);
-			console.log("submission form", form);
 
 			void client.queries
 				.FinanceCodeFunction({
@@ -287,7 +284,6 @@ export function FormContent() {
 			let businessID = form.businessID;
 			if (newBusiness) {
 				businessID = newBusiness.id;
-				console.log("Created new business with ID:", businessID);
 			}
 
 			const { ...formDataToUpdate } = form;

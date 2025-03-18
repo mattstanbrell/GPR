@@ -1,9 +1,13 @@
-import { FORM_STATUS } from "@/app/constants/models";
+
+import { FORM_STATUS, PERMISSIONS } from "@/app/constants/models";
 import type { Schema } from "../../../../amplify/data/resource";
 import { RecurringPaymentSection } from "./RecurringPaymentSection";
 import FeedbackContainer from "./feedback/FeedbackContainer";
 import Image from "next/image";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useContext } from "react";
+
+import { AppContext } from "@/app/layout";
+import { SocialWorkerFormButtonContainer } from "./ButtonsContainer";
 
 interface FormLayoutProps {
 	form: Partial<Schema["Form"]["type"]>;
@@ -30,6 +34,7 @@ export function FormLayout({
 	isMobile,
 	onToggle,
 }: FormLayoutProps) {
+<<<<<<< HEAD
 	const [menuOpen, setMenuOpen] = useState(false);
 	const menuRef = useRef<HTMLDivElement>(null);
 
@@ -47,6 +52,29 @@ export function FormLayout({
 		};
 	}, []);
 
+=======
+
+	const { currentUser } = useContext(AppContext)
+	const isSocialWorker = currentUser?.permissionGroup === PERMISSIONS.SOCIAL_WORKER_GROUP
+
+	// State to keep track of any errors during submission
+	const [submitError, setSubmitError] = useState<string | null>(null);
+
+	// Wrapper to catch submission errors
+	const handleSubmitWrapper = async (e: React.FormEvent) => {
+		e.preventDefault();
+		try {
+			await handleSubmit(e);
+			setSubmitError(null);
+		} catch (error) {
+			if (error instanceof Error) {
+				setSubmitError(error.message || "An error occurred while submitting.");
+			} else {
+				setSubmitError("An error occurred while submitting.");
+			}
+		}
+	};
+>>>>>>> dev/social-worker-form-buttons
 	return (
 		<>
 			<style jsx>{`
@@ -249,6 +277,7 @@ export function FormLayout({
 				</div>
 
 				<FeedbackContainer form={form} />
+				{ isSocialWorker && <SocialWorkerFormButtonContainer form={ form } /> }
 
 				<div style={{ flexGrow: 1, overflowY: "auto", paddingRight: "0" }}>
 					<form onSubmit={handleSubmit} style={{ paddingRight: "20px", paddingLeft: "3px" }}>
@@ -945,23 +974,26 @@ export function FormLayout({
 					</form>
 				</div>
 				{form?.status === FORM_STATUS.DRAFT && (
-					<div className="button-container">
-						<button
-							type="submit"
-							className="govuk-button"
-							onClick={handleSubmit}
-							disabled={!isFormValid(form) || loading}
-							style={{
-								marginBottom: 0,
-								position: "relative",
-								zIndex: 1,
-								opacity: isFormValid(form) ? 1 : 0.5,
-								cursor: isFormValid(form) ? "pointer" : "not-allowed",
-							}}
-						>
-							{loading ? "Submitting..." : "Submit"}
-						</button>
-					</div>
+					<>
+						<div className="button-container">
+							<button
+								type="submit"
+								className="govuk-button"
+								onClick={handleSubmitWrapper}
+								disabled={!isFormValid(form) || loading}
+								style={{
+									marginBottom: 0,
+									position: "relative",
+									zIndex: 1,
+									opacity: isFormValid(form) ? 1 : 0.5,
+									cursor: isFormValid(form) ? "pointer" : "not-allowed",
+								}}
+							>
+								{loading ? "Submitting..." : "Submit"}
+							</button>
+						</div>
+						{submitError && <p className="govuk-error-message">{submitError}</p>}
+					</>
 				)}
 			</div>
 		</>

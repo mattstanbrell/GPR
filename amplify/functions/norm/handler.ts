@@ -522,11 +522,11 @@ async function handleToolCalls(
 	userID: string,
 ) {
 	// Log all tool calls being made
-	console.log("\n=== Tool Calls Being Made ===");
-	for (const call of toolCalls) {
-		console.log("Tool:", call.function.name);
-		console.log("Arguments:", call.function.arguments);
-	}
+	// console.log("\n=== Tool Calls Being Made ===");
+	// for (const call of toolCalls) {
+	// 	console.log("Tool:", call.function.name);
+	// 	console.log("Arguments:", call.function.arguments);
+	// }
 
 	// Process all tool calls in parallel
 	const toolCallPromises = toolCalls.map(async (toolCall) => {
@@ -537,9 +537,9 @@ async function handleToolCalls(
 				const { firstName, lastName } = args;
 				// We can safely use userID here since we check at the handler level
 				const result = await lookupCaseNumber(firstName, lastName, userID);
-				console.log("\n=== Tool Response: lookupCaseNumber ===");
-				console.log("Query:", { firstName, lastName });
-				console.log("Response:", JSON.stringify(result, null, 2));
+				// console.log("\n=== Tool Response: lookupCaseNumber ===");
+				// console.log("Query:", name);
+				// console.log("Response:", JSON.stringify(result, null, 2));
 
 				messages.push({
 					role: "tool",
@@ -552,9 +552,9 @@ async function handleToolCalls(
 				const name = args.name;
 				// console.log("Current messages:", messages);
 				const result = await searchBusinesses(name);
-				console.log("\n=== Tool Response: searchBusinesses ===");
-				console.log("Query:", name);
-				console.log("Response:", JSON.stringify(result, null, 2));
+				// console.log("\n=== Tool Response: searchBusinesses ===");
+				// console.log("Query:", name);
+				// console.log("Response:", JSON.stringify(result, null, 2));
 
 				messages.push({
 					role: "tool",
@@ -566,10 +566,10 @@ async function handleToolCalls(
 			case "parseRecurring": {
 				const { description, startDate } = args;
 				const result = await parseRecurring(description, startDate);
-				console.log("\n=== Tool Response: parseRecurring ===");
-				console.log("Description:", description);
-				console.log("Start Date:", startDate);
-				console.log("Response:", JSON.stringify(result, null, 2));
+				// console.log("\n=== Tool Response: parseRecurring ===");
+				// console.log("Description:", description);
+				// console.log("Start Date:", startDate);
+				// console.log("Response:", JSON.stringify(result, null, 2));
 
 				messages.push({
 					role: "tool",
@@ -583,7 +583,7 @@ async function handleToolCalls(
 
 	// Wait for all tool calls to complete
 	await Promise.all(toolCallPromises);
-	console.log("\n=== All Tool Calls Completed ===\n");
+	// console.log("\n=== All Tool Calls Completed ===\n");
 }
 
 async function processLLMResponse(
@@ -1430,19 +1430,19 @@ Explain limitations if the social worker requests:
 		userIdFromIdentity,
 	);
 
-	console.log("Result from processLLMResponse:", {
-		followUp: result.followUp,
-		formData: JSON.stringify(result.formData, null, 2),
-		messagesLength: result.messages.length,
-	});
+	// console.log("Result from processLLMResponse:", {
+	// 	followUp: result.followUp,
+	// 	formData: JSON.stringify(result.formData, null, 2),
+	// 	messagesLength: result.messages.length,
+	// });
 
 	const conversationUpdatePromise = client.models.NormConversation.update({
 		id: conversationId,
 		messages: JSON.stringify(result.messages),
 	});
 
-	console.log("About to update form with data:", JSON.stringify(result.formData, null, 2));
-	console.log("Form ID for update:", formID);
+	// console.log("About to update form with data:", JSON.stringify(result.formData, null, 2));
+	// console.log("Form ID for update:", formID);
 
 	// Ensure we have a valid form ID before attempting an update
 	if (!formID) {
@@ -1451,7 +1451,7 @@ Explain limitations if the social worker requests:
 
 	// Check if we have form data to update
 	const hasFormData = result.formData && Object.keys(result.formData).length > 0;
-	console.log("Has form data to update:", hasFormData);
+	// console.log("Has form data to update:", hasFormData);
 
 	// Create the form update promise
 	const formUpdatePromise =

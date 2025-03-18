@@ -1,9 +1,10 @@
 "use client";
 
 import Menu from "@/app/components/navigation/Menu";
-import useIsMobileWindowSize from "@/utils/responsivenessHelpers";
 import Link from "next/link";
 import { HOME } from "@/app/constants/urls";
+import { useContext } from "react";
+import { AppContext } from "../layout";
 
 const Header = ({
 	toggleMobileMenu,
@@ -16,7 +17,7 @@ const Header = ({
 	isSignedIn: boolean;
 	handleClick: () => void;
 }) => {
-	const isMobile = useIsMobileWindowSize();
+	const { isMobile } = useContext(AppContext)
 
 	const handleAudilyClick = () => {
 		if (isMenuOpen) {
