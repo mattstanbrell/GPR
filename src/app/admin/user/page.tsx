@@ -1,7 +1,7 @@
 'use client'
 
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { UserForm } from "@/app/components/admin/Form";
 import type { User } from "@/app/types/models";
 import { getUserById } from "@/utils/apis";
@@ -21,10 +21,10 @@ const Users = () => {
     }, [userId])
 
     return (
-        <>
+        <Suspense>
             <h1 className="govuk-heading-l">{`${user?.firstName} ${user?.lastName}`}</h1>
             <UserForm data={ user } /> 
-        </>
+        </Suspense>
     )
 }
 

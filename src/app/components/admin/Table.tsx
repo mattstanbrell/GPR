@@ -64,7 +64,7 @@ export const ChildTable = ({childrenList} : { childrenList: Child[]}) => {
     )
 
     // build body
-    const body = (
+    const body = childrenList.length > 0 ? (
         <tbody className="govuk-table__body">
             { childrenList.map(({id, caseNumber, firstName, lastName, dateOfBirth}, index) => (
                 <tr key={ index } className="govuk-table__row">
@@ -75,7 +75,7 @@ export const ChildTable = ({childrenList} : { childrenList: Child[]}) => {
                 </tr>
             ))}
         </tbody>
-    )
+    ) : (<NoDataMessage colspan={4} />)
 
     // render table with elements
     return <Table 
@@ -98,7 +98,7 @@ export const TeamTable = ({teams} : { teams: Team[]}) => {
     )
 
     // build body
-    const body = (
+    const body = teams.length > 0 ? (
         <tbody className="govuk-table__body">
             { teams.map(({id, name}, index) => (
                 <tr key={ index } className="govuk-table__row">
@@ -107,7 +107,7 @@ export const TeamTable = ({teams} : { teams: Team[]}) => {
                 </tr>
             ))}
         </tbody>
-    )
+    ) : ( <NoDataMessage colspan={2} /> )
 
     // render table with elements
     return <Table 
