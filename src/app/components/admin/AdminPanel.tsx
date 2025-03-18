@@ -3,10 +3,12 @@
 import { useContext } from "react"
 import { AppContext } from "@/app/layout"
 import { PERMISSIONS } from "@/app/constants/models"
-import { AllUsersView, AllChildrenView, AllTeamsView, AllTeamMembersView } from "@/app/components/admin/Views"
+import { AllUsersView, AllChildrenView, 
+    AllTeamsView, AllTeamMembersView } from "@/app/components/admin/Views"
 
 const NoTeamMessage = () => {
-    return <h3 className="text-center">You are not assigned to a team. Please contact the application administrator.</h3>
+    const message = "You are not assigned to a team. Please contact the application administrator.";
+    return <h3 className="text-center">{ message }</h3>
 }
 
 const AdministratorPanel = () => {
@@ -27,9 +29,6 @@ export const AdminPanel = () => {
     const { currentUser, isLoading } = useContext(AppContext)
     const isManager = currentUser?.permissionGroup === PERMISSIONS.MANAGER_GROUP; 
 
-    // load panel depending on user
-
-    // return isManager ? <ManagerPanel teamId={currentUser.teamID ? currentUser.teamID : ""} /> : <AdministratorPanel />  
     return (
         <>
             { isLoading ? (
