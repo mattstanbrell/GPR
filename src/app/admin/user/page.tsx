@@ -12,10 +12,12 @@ const Users = () => {
     const [user, setUser] = useState<User | null>(null);
 
     useEffect(() => {
-        const fetchUser = async () => {
-            setUser(await getUserById(userId ? userId : ""));
+        if (userId) {
+            const fetchUser = async () => {
+                setUser(await getUserById(userId));
+            }
+            fetchUser();
         }
-        fetchUser();
     }, [userId])
 
     return (

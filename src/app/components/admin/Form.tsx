@@ -33,16 +33,14 @@ export const UserForm = ({data} : {data: User | null}) => {
     }, [data])
 
     console.log(currentTeamId)
-    
+
 
     const formElements = (
         <>
             <tbody className="govuk-table__body">
                 <InputHiddenTableRow name="userId" value={data && data.id ? data.id : ""} />
                 <InputSelectTableRow fieldName="Team" inputName="teamid" defaultValue={ currentTeamId } options={ teamNameIds } />
-                <tr className="govuk-table__row text-center">
-                    <th colSpan={2}>Address</th>
-                </tr>
+                <tr><td className="govuk-heading-l pt-4" colSpan={2}>Address</td></tr>
                 <InputTextTableRow fieldName="Line 1" inputName="lineone" defaultValue={ data?.address?.lineOne ? data?.address?.lineOne : "" } />
                 <InputTextTableRow fieldName="Line 2" inputName="linetwo" defaultValue={ data?.address?.lineTwo ? data?.address?.lineTwo : "" } />
                 <InputTextTableRow fieldName="Town/City" inputName="towncity" defaultValue={ data?.address?.townOrCity ? data?.address?.townOrCity : "" } />
@@ -71,7 +69,7 @@ export const ChildForm = ({data} : {data: Child | null}) => {
     return <Form 
             components={ formElements } 
             handleSubmit={ handleChildFormSubmit }
-            button={ <WarningButton name="Delete" onClick={() => handleDeleteChild(childId)} /> }  
+            button={ data ? <WarningButton name="Delete" onClick={() => handleDeleteChild(childId)} /> : null }
         />
 }
 
@@ -112,7 +110,7 @@ export const TeamForm = ({data} : {data: Team | null}) => {
     return <Form 
             components={ formElements } 
             handleSubmit={ handlTeamFormSubmit }
-            button={ <WarningButton name="Delete" onClick={() => handleDeleteTeam(teamId)} /> } 
+            button={ data ? <WarningButton name="Delete" onClick={() => handleDeleteTeam(teamId)} /> : null } 
         />
 }
 
@@ -121,7 +119,7 @@ const Form = (
     {
         components: React.ReactElement, 
         handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void,
-        button?: React.ReactElement,
+        button?: React.ReactElement | null,
     }
 ) => {
     return (

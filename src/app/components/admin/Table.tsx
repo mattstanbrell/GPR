@@ -49,7 +49,7 @@ export const UserTable = ({users} : { users: User[]}) => {
     return <Table header={ header } body={ body } />
 } 
 
-export const ChildTable = ({children} : { children: Child[]}) => {
+export const ChildTable = ({childrenList} : { childrenList: Child[]}) => {
     const url = "/admin/child";
     // build header 
     const header = (
@@ -66,7 +66,7 @@ export const ChildTable = ({children} : { children: Child[]}) => {
     // build body
     const body = (
         <tbody className="govuk-table__body">
-            { children.map(({id, caseNumber, firstName, lastName, dateOfBirth}, index) => (
+            { childrenList.map(({id, caseNumber, firstName, lastName, dateOfBirth}, index) => (
                 <tr key={ index } className="govuk-table__row">
                     <TableData data={`${firstName} ${lastName}`} />
                     <TableData data={caseNumber} />
@@ -127,15 +127,15 @@ const Table = (
 ) => {
     return (
         <>
+            { buttons && (
+                <div className="w-full flex justify-left">
+                    { buttons }
+                </div>
+            )}
             <table className="govuk-table">
                 { header }
                 { body }
             </table>
-            { buttons && (
-                <div className="w-full flex justify-center">
-                    { buttons }
-                </div>
-            )}
         </>
     )
 }

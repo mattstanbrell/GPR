@@ -3,15 +3,15 @@
 import React from "react"
 import { ADMIN } from "@/app/constants/urls";
 import { redirect } from "next/navigation";
-import { createChild, createTeam, deleteChild, deleteTeam, 
+import { addUserToTeam, createChild, createTeam, deleteChild, deleteTeam, 
     updateChild, updateTeam, updateUser } from "@/utils/apis";
 
 export const handleUserFormSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault(); 
     const formData = new FormData(event.currentTarget); 
     const userId = formData.get('userId') as string;
+    const teamId = formData.get('teamid') as string;
     const updatedData = {
-        teamID: formData.get('teamid') as string,
         address: {
             lineOne: formData.get('lineone') as string,
             lineTwo: formData.get('linetwo') as string,
@@ -22,6 +22,8 @@ export const handleUserFormSubmit = async (event: React.FormEvent<HTMLFormElemen
     
     // update user details
     await updateUser(userId, updatedData); 
+    await addUserToTeam(userId, teamId); 
+    
     redirect(ADMIN)
 }
 

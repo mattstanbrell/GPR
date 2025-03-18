@@ -7,16 +7,17 @@ import type { Team } from "@/app/types/models";
 import { getTeamByID } from "@/utils/apis";
 
 const Team = () => {
-    // url is admin/team?id=....
     const searchParams = useSearchParams(); 
     const teamId = searchParams.get("id"); 
     const [team, setTeam] = useState<Team | null>(null); 
 
     useEffect(() => {
-        const fetchTeam = async () => {
-            setTeam(await getTeamByID(teamId? teamId : "")); 
+        if (teamId) {
+            const fetchTeam = async () => {
+                setTeam(await getTeamByID(teamId? teamId : "")); 
+            }
+            fetchTeam();
         }
-        fetchTeam();
     }, [teamId])
 
     return (

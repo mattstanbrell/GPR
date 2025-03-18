@@ -28,7 +28,7 @@ export const AllChildrenView = () => {
     return isLoading ? <LoadingMessage /> : (
         <>
             <ViewHeading heading="Children" />
-            <ChildTable children={ childrenList } />
+            <ChildTable childrenList={ childrenList } />
         </>
     )
 }
