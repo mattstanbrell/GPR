@@ -1,7 +1,7 @@
 
-import DatePicker from "react-datepicker";
 import { TableData } from "@/app/components/admin//TableComponents";
 import React, { useEffect, useState } from "react";
+import type { SelectNameID } from "@/app/types/input";
 
 export const InputTextTableRow = (
     {fieldName, inputName, isRequired = false, defaultValue, placeholder = ""} : 
@@ -58,7 +58,7 @@ export const InputSelectTableRow = (
         fieldName: string, 
         inputName: string, 
         defaultValue: string, 
-        options: {name: string, id: string}[], 
+        options: SelectNameID[], 
         isRequired?: boolean
     }
 ) => {
