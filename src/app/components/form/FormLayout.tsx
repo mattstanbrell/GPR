@@ -1,4 +1,3 @@
-
 import { FORM_STATUS, PERMISSIONS } from "@/app/constants/models";
 import type { Schema } from "../../../../amplify/data/resource";
 import { RecurringPaymentSection } from "./RecurringPaymentSection";
@@ -30,11 +29,9 @@ export function FormLayout({
 	isFormValid,
 	disabled,
 	updatedFields,
-	isSocialWorker,
 	isMobile,
 	onToggle,
 }: FormLayoutProps) {
-<<<<<<< HEAD
 	const [menuOpen, setMenuOpen] = useState(false);
 	const menuRef = useRef<HTMLDivElement>(null);
 
@@ -52,10 +49,8 @@ export function FormLayout({
 		};
 	}, []);
 
-=======
-
-	const { currentUser } = useContext(AppContext)
-	const isSocialWorker = currentUser?.permissionGroup === PERMISSIONS.SOCIAL_WORKER_GROUP
+	const { currentUser } = useContext(AppContext);
+	const isSocialWorker = currentUser?.permissionGroup === PERMISSIONS.SOCIAL_WORKER_GROUP;
 
 	// State to keep track of any errors during submission
 	const [submitError, setSubmitError] = useState<string | null>(null);
@@ -74,7 +69,7 @@ export function FormLayout({
 			}
 		}
 	};
->>>>>>> dev/social-worker-form-buttons
+
 	return (
 		<>
 			<style jsx>{`
@@ -277,7 +272,7 @@ export function FormLayout({
 				</div>
 
 				<FeedbackContainer form={form} />
-				{ isSocialWorker && <SocialWorkerFormButtonContainer form={ form } /> }
+				{isSocialWorker && <SocialWorkerFormButtonContainer form={form} />}
 
 				<div style={{ flexGrow: 1, overflowY: "auto", paddingRight: "0" }}>
 					<form onSubmit={handleSubmit} style={{ paddingRight: "20px", paddingLeft: "3px" }}>
