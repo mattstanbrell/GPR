@@ -1,4 +1,64 @@
 @use "styles/colours" as *;
 @use "styles/govuk-overrides";
-@use "styles/app-styles";
 @use "tailwindcss";
+@use "sass:color";
+@use "styles/app-styles";
+
+.form__label--radio {
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.form__radio {
+  margin-right: 1rem;
+}
+
+.settings-button--save {
+  background-color: $hounslow-primary;  // Apply the primary button color
+  color: white;  // Text color
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.settings-button--save:hover {
+background-color: color.adjust($hounslow-primary, $lightness: -15%);  // Darken on hover
+}
+
+.settings-button--reset {
+  background-color: $color-button-primary;  // Apply the primary button color
+  color: white;  // Text color
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.settings-button--reset:hover {
+background-color: color.adjust($color-button-primary, $lightness: -15%);  // Darken on hover
+}
+
+.settings-button--preview {
+  background-color: $color-accent;  // Apply the primary button color
+  color: white;  // Text color
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.settings-button--preview:hover {
+background-color: color.adjust($color-accent, $lightness: -15%);  // Darken on hover
+}
+
+@media screen and (max-width: 640px) {
+  .settings-button--reset,
+  .settings-button--save,
+  .settings-button--preview {
+    width: 100%;
+    display: block;
+    margin-bottom: 10px; // Adds spacing between buttons
+  }
+}
