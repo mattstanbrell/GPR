@@ -79,6 +79,7 @@ export const handleChildFormSubmit = async (event: React.FormEvent<HTMLFormEleme
 
 export const handlTeamFormSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    
     // get form date
     const formData = new FormData(event.currentTarget); 
     const teamId = formData.get("teamId") as string;
