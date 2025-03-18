@@ -1,13 +1,12 @@
 'use client'
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { TeamForm } from "@/app/components/admin/Form";
 import { useSearchParams } from "next/navigation";
 import type { Team } from "@/app/types/models";
 import { getTeamByID } from "@/utils/apis";
 
-
-const Team = () => {
+const RenderPage = () => {
     const searchParams = useSearchParams(); 
     const teamId = searchParams.get("id"); 
     const [team, setTeam] = useState<Team | null>(null); 
@@ -27,6 +26,14 @@ const Team = () => {
             <TeamForm data={team} />
         </>
     )
+}
+
+const Team = () => {
+    return (
+        <Suspense>
+            <RenderPage />
+        </Suspense>
+    ) 
 }
 
 export default Team;
