@@ -1,6 +1,7 @@
 
 import DatePicker from "react-datepicker";
 import { TableData } from "@/app/components/admin//TableComponents";
+import React, { useEffect, useState } from "react";
 
 export const InputTextTableRow = (
     {fieldName, inputName, isRequired = false, defaultValue, placeholder = ""} : 
@@ -61,11 +62,23 @@ export const InputSelectTableRow = (
         isRequired?: boolean
     }
 ) => {
+
+    const [selectedValue, setSelectedValue] = useState<string>("")
+    useEffect(() => {
+        setSelectedValue(defaultValue);
+    }, [defaultValue])
+
     return (
         <tr className="govuk-table__row">
             <TableData data={ fieldName } /> 
             <td className="govuk-table__cell">
-                <select className="govuk-select" name={ inputName } defaultValue={ defaultValue } required={isRequired}>
+                <select 
+                    className="govuk-select" 
+                    name={ inputName } 
+                    value={ selectedValue } 
+                    required={isRequired} 
+                    onChange={(e) => setSelectedValue(e.target.value)}
+                >
                     <option value="" disabled>Select</option>
                     { options.map((opt, index) => (
                         <option key={index} value={ opt }>{ opt }</option>
