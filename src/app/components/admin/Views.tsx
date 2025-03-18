@@ -9,6 +9,10 @@ const LoadingMessage = () => {
     return <h3 className="text-center">Loading...</h3>
 }
 
+const ViewHeading = ({heading} : {heading: string}) => {
+    return <h1 className="govuk-heading-l">{heading}</h1>
+}
+
 export const AllChildrenView = () => {
     const [isLoading, setIsLoading] = useState<boolean>(true); 
     const [children, setChildren] = useState<Child[]>([]); 
@@ -21,7 +25,12 @@ export const AllChildrenView = () => {
         fetchChildren(); 
     }, [])
 
-    return isLoading ? <LoadingMessage /> : <ChildTable children={ children } />
+    return isLoading ? <LoadingMessage /> : (
+        <>
+            <ViewHeading heading="Children" />
+            <ChildTable children={ children } />
+        </>
+    )
 }
 
 export const AllTeamsView = () => {
@@ -36,7 +45,12 @@ export const AllTeamsView = () => {
         fetchTeams(); 
     }, [])
 
-    return isLoading ? <LoadingMessage /> : <TeamTable teams={ teams } />
+    return isLoading ? <LoadingMessage /> : (
+        <>
+            <ViewHeading heading="Teams" />
+            <TeamTable teams={ teams } />
+        </>
+    )
 }
 
 export const AllUsersView = () => {
@@ -51,7 +65,12 @@ export const AllUsersView = () => {
         fetchAllUsers(); 
     }, [])
 
-    return isLoading ? <LoadingMessage /> : <UserTable users={ users } />
+    return isLoading ? <LoadingMessage /> : (
+        <>
+            <ViewHeading heading="Users" />
+            <UserTable users={ users } />
+        </>
+    )
 }
 
 export const AllTeamMembersView = ({teamId} : {teamId: string}) => {
@@ -70,8 +89,8 @@ export const AllTeamMembersView = ({teamId} : {teamId: string}) => {
     }, [teamId])
 
     return isLoading ? <LoadingMessage /> : (
-        <>
-            <h2>{ teamName ? teamName : "CRITICAL Channel" }</h2>
+        <>  
+            <ViewHeading heading={ teamName } />
             <UserTable users={ teamMembers } />
         </>
     ) 
