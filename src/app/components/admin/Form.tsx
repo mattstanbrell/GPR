@@ -30,15 +30,11 @@ export const UserForm = ({data} : {data: User | null}) => {
 
     const formElements = (
         <>
-            <thead>
-                <tr>
-                    <th colSpan={2}>{data?.firstName} {data?.lastName}</th>
-                </tr>
-            </thead>
-            <tbody>
+            <caption className="govuk-table__caption govuk-table__caption--m">{data?.firstName} {data?.lastName}</caption>
+            <tbody className="govuk-table__body">
                 <InputHiddenTableRow name="userId" value={data && data.id ? data.id : ""} />
                 <InputSelectTableRow fieldName="Team" inputName="team" defaultValue={ defaultTeam } options={ teamNames } />
-                <tr className="text-center">
+                <tr className="govuk-table__row text-center">
                     <th colSpan={2}>Address</th>
                 </tr>
                 <InputTextTableRow fieldName="Line 1" inputName="lineone" defaultValue={ data?.address?.lineOne ? data?.address?.lineOne : "" } />
@@ -53,16 +49,16 @@ export const UserForm = ({data} : {data: User | null}) => {
 }
 
 export const ChildForm = ({data} : {data: Child | null}) => {
-
+    console.log(data)
     const formElements = (
         <tbody>
             <InputHiddenTableRow name="childId" value={data && data.id ? data.id : ""} />
             <InputTextTableRow fieldName="Case Number" inputName="casenumber" defaultValue={ data?.caseNumber ? data.caseNumber : "" } isRequired={ true } />
             <InputTextTableRow fieldName="First Name" inputName="firstname" defaultValue={ data?.firstName ? data.firstName : "" } isRequired={ true } />
             <InputTextTableRow fieldName="Last Name" inputName="lastname" defaultValue={ data?.lastName ? data.lastName : "" } isRequired={ true } />
-            <InputDateTableRow fieldName="DoB" inputName="dob" defaultValue={ data?.dateOfBirth ? data?.dateOfBirth : null } isRequired={ true } />
-            <InputSelectTableRow fieldName="Sex" inputName="sex" defaultValue={ data?.sex ? data.sex : "Select" } options={["Male", "Female"]} />
-            <InputSelectTableRow fieldName="Gender" inputName="gender" defaultValue={ data?.gender ? data.gender : "Select" } options={["Male", "Female"]} />
+            <InputDateTableRow fieldName="Date of Birth" defaultValue={ data?.dateOfBirth ? data?.dateOfBirth : null } />
+            <InputSelectTableRow fieldName="Sex" inputName="sex" defaultValue={ data?.sex ? data?.sex : "" } options={["Male", "Female"]} />
+            <InputSelectTableRow fieldName="Gender" inputName="gender" defaultValue={ data?.gender ? data?.gender : "" } options={["Male", "Female"]} />
         </tbody>
     )
 
@@ -99,7 +95,7 @@ export const TeamForm = ({data} : {data: Team | null}) => {
     const formElements = (
         <tbody>
             <InputHiddenTableRow name="teamId" value={data && data.id ? data.id : ""} />
-            <InputTextTableRow fieldName="Team Name" inputName="teamname" defaultValue={ data?.name ? data.name : "" } />
+            <InputTextTableRow fieldName="Team Name" inputName="teamname" defaultValue={ data?.name ? data.name : "" } isRequired={ true } />
             <InputSelectTableRow fieldName="Assistant Manager" inputName="assistmanager" defaultValue={ currentAssistantManager } options={ managerNames } />
             <InputSelectTableRow fieldName="Team Manager" inputName="manager" defaultValue={ currentManager } options={ managerNames } />
         </tbody>
@@ -114,7 +110,7 @@ const Form = (
 ) => {
     return (
         <form onSubmit={ handleSubmit }>
-            <table className="w-full text-left">
+            <table className="govuk-table">
                 { components }
             </table>
             <div className="govuk-button-group">
