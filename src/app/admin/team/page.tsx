@@ -23,7 +23,7 @@ const Team = () => {
 
     return (
         <>
-            <h1>Howdy, Team</h1>
+            <h1 className="govuk-heading-l">{ team ? team.name : "Create New Team" }</h1>
             <TeamForm data={team} />
         </>
     )

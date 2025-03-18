@@ -22,7 +22,7 @@ const Users = () => {
 
     return (
         <>
-            <h1>Howdy user</h1>
+            <h1 className="govuk-heading-l">{`${user?.firstName} ${user?.lastName}`}</h1>
             <UserForm data={ user } /> 
         </>
     )

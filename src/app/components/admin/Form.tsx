@@ -1,10 +1,10 @@
 
 'use client'
 
-import { useEffect, useState } from "react"
+import React, { useEffect, useState } from "react"
 import { redirect } from "next/navigation"
 import type { Child, Team, User } from "@/app/types/models"
-import { SubmitButton, WarningButton } from "@/app/components/admin/Buttons"
+import { SecondaryButton, SubmitButton, WarningButton } from "@/app/components/admin/Buttons"
 import { listTeams, getManagers } from "@/utils/apis"
 import { ADMIN } from "@/app/constants/urls"
 import { InputTextTableRow, InputDateTableRow, 
@@ -32,7 +32,6 @@ export const UserForm = ({data} : {data: User | null}) => {
 
     const formElements = (
         <>
-            <caption className="govuk-table__caption govuk-table__caption--m">{data?.firstName} {data?.lastName}</caption>
             <tbody className="govuk-table__body">
                 <InputHiddenTableRow name="userId" value={data && data.id ? data.id : ""} />
                 <InputSelectTableRow fieldName="Team" inputName="team" defaultValue={ defaultTeam } options={ teamNames } />
@@ -63,7 +62,11 @@ export const ChildForm = ({data} : {data: Child | null}) => {
         </tbody>
     )
 
-    return <Form components={ formElements } handleSubmit={ handleChildFormSubmit } />
+    return <Form 
+            components={ formElements } 
+            handleSubmit={ handleChildFormSubmit }
+            button={ <WarningButton name="Delete" onClick={() => console.log("delete user")} /> }  
+        />
 }
 
 export const TeamForm = ({data} : {data: Team | null}) => {
@@ -102,22 +105,35 @@ export const TeamForm = ({data} : {data: Team | null}) => {
         </tbody>
     )
 
-    return <Form components={ formElements } handleSubmit={ handlTeamFormSubmit } />
+    return <Form 
+            components={ formElements } 
+            handleSubmit={ handlTeamFormSubmit }
+            button={ <WarningButton name="Delete" onClick={() => console.log("delete user")} /> } 
+        />
 }
 
 const Form = (
-    {components, handleSubmit} : 
-    {components: React.ReactElement, handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void}
+    {components, handleSubmit, button} : 
+    {
+        components: React.ReactElement, 
+        handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void,
+        button?: React.ReactElement,
+    }
 ) => {
     return (
-        <form onSubmit={ handleSubmit }>
-            <table className="govuk-table">
-                { components }
-            </table>
+        <>
             <div className="govuk-button-group">
-                <SubmitButton /> 
-                <WarningButton name="Cancel" onClick={() => redirect(ADMIN)} />
+                <SecondaryButton name="Cancel" onClick={() => redirect(ADMIN)} />
+                { button }
             </div>
-        </form>
+            <form onSubmit={ handleSubmit }>
+                <table className="govuk-table">
+                    { components }
+                </table>
+                <div className="w-full flex justify-center">
+                    <SubmitButton />
+                </div> 
+            </form>
+        </>
     )
 }

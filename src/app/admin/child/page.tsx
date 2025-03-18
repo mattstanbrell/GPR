@@ -25,7 +25,7 @@ const Child = () => {
 
     return (
         <>
-            <h1>Howdy, child</h1>
+            <h1 className="govuk-heading-l">{ child ? "Edit Child" : "Create New Child"}</h1>
             <ChildForm data={child} /> 
         </>
     )
