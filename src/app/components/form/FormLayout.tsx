@@ -1,8 +1,12 @@
-import { FORM_STATUS } from "@/app/constants/models";
+
+import { FORM_STATUS, PERMISSIONS } from "@/app/constants/models";
 import type { Schema } from "../../../../amplify/data/resource";
 import { RecurringPaymentSection } from "./RecurringPaymentSection";
 import FeedbackContainer from "./feedback/FeedbackContainer";
 import { useState } from "react";
+import { useContext } from "react";
+import { AppContext } from "@/app/layout";
+import { SocialWorkerFormButtonContainer } from "./ButtonsContainer";
 
 interface FormLayoutProps {
 	form: Partial<Schema["Form"]["type"]>;
@@ -24,6 +28,10 @@ export function FormLayout({
 	disabled,
 	updatedFields,
 }: FormLayoutProps) {
+
+	const { currentUser } = useContext(AppContext)
+	const isSocialWorker = currentUser?.permissionGroup === PERMISSIONS.SOCIAL_WORKER_GROUP
+
 	// State to keep track of any errors during submission
 	const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -150,6 +158,7 @@ export function FormLayout({
 				</h1>
 
 				<FeedbackContainer form={form} />
+				{ isSocialWorker && <SocialWorkerFormButtonContainer form={ form } /> }
 
 				<div style={{ flexGrow: 1, overflowY: "auto", paddingRight: "0" }}>
 					<form onSubmit={handleSubmit} style={{ paddingRight: "20px", paddingLeft: "3px" }}>
