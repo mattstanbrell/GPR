@@ -16,6 +16,7 @@ import { gendersNameID } from "@/app/constants/global"
 
 export const UserForm = ({data} : {data: User | null}) => {
     const [teamNameIds, setTeamNameIds] = useState<SelectNameID[]>([]);
+    const currentTeamId = data?.teamID ? data?.teamID : "";
     useEffect(() => {
         const fetchTeams = async () => {
             const teams = await listTeams();
@@ -30,12 +31,12 @@ export const UserForm = ({data} : {data: User | null}) => {
         }
         fetchTeams();
     }, [data])
-
+    
     const formElements = (
         <>
             <tbody className="govuk-table__body">
                 <InputHiddenTableRow name="userId" value={data && data.id ? data.id : ""} />
-                <InputSelectTableRow fieldName="Team" inputName="team" defaultValue={ data?.teamID ? data.teamID : "" } options={ teamNameIds } />
+                <InputSelectTableRow fieldName="Team" inputName="teamid" defaultValue={ currentTeamId } options={ teamNameIds } />
                 <tr className="govuk-table__row text-center">
                     <th colSpan={2}>Address</th>
                 </tr>
@@ -98,8 +99,8 @@ export const TeamForm = ({data} : {data: Team | null}) => {
         <tbody>
             <InputHiddenTableRow name="teamId" value={data && data.id ? data.id : ""} />
             <InputTextTableRow fieldName="Team Name" inputName="teamname" defaultValue={ data?.name ? data.name : "" } isRequired={ true } />
-            <InputSelectTableRow fieldName="Assistant Manager" inputName="assistantmanager" defaultValue={ assistantManagerId } options={ managerNameIds } />
-            <InputSelectTableRow fieldName="Team Manager" inputName="manager" defaultValue={ managerId } options={ managerNameIds } />
+            <InputSelectTableRow fieldName="Assistant Manager" inputName="assistantmanagerid" defaultValue={ assistantManagerId } options={ managerNameIds } />
+            <InputSelectTableRow fieldName="Team Manager" inputName="managerid" defaultValue={ managerId } options={ managerNameIds } />
         </tbody>
     )
 

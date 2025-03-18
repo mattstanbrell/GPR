@@ -16,7 +16,7 @@ const ViewHeading = ({heading} : {heading: string}) => {
 export const AllChildrenView = () => {
     const [isLoading, setIsLoading] = useState<boolean>(true); 
     const [children, setChildren] = useState<Child[]>([]); 
-    console.log(children)
+    
     useEffect(() => {
         const fetchChildren = async () => {
             setChildren(await listChildren());

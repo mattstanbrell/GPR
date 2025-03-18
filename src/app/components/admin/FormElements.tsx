@@ -1,3 +1,4 @@
+'use client'
 
 import { TableData } from "@/app/components/admin//TableComponents";
 import React, { useEffect, useState } from "react";
@@ -67,8 +68,6 @@ export const InputSelectTableRow = (
     useEffect(() => {
         setSelectedValue(defaultValue);
     }, [defaultValue])
-
-    console.log(selectedValue)
 
     return (
         <tr className="govuk-table__row">

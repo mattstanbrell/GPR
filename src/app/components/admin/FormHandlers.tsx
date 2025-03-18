@@ -3,35 +3,21 @@
 import React from "react"
 import { ADMIN } from "@/app/constants/urls";
 import { redirect } from "next/navigation";
-import { createChild, createTeam, getManagers, listTeams, updateChild, updateTeam, updateUser } from "@/utils/apis";
+import { addUserToTeam, createChild, createTeam, getManagers, 
+    updateChild, updateTeam, updateUser } from "@/utils/apis";
 
 export const handleUserFormSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault(); 
-    // get form data
     const formData = new FormData(event.currentTarget); 
-    const selectedTeam = formData.get('team') as string;
     const userId = formData.get('userId') as string;
-
-    // find team id
-    let teamId = null;
-    if (selectedTeam) {
-        const teams = await listTeams();
-        for (const team of teams) {
-            if (team.name === selectedTeam) {
-                teamId = team.id;
-                break
-            }
-        }
-    }
-
     const updatedData = {
+        teamID: formData.get('teamid') as string,
         address: {
             lineOne: formData.get('lineone') as string,
             lineTwo: formData.get('linetwo') as string,
             townOrCity: formData.get('towncity') as string, 
             postcode: formData.get('postcode') as string, 
-        },
-        teamID: teamId, 
+        }, 
     }
     
     // update user details
@@ -41,7 +27,6 @@ export const handleUserFormSubmit = async (event: React.FormEvent<HTMLFormElemen
 
 export const handleChildFormSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault(); 
-    // get form data
     const formData = new FormData(event.currentTarget); 
     const childId = formData.get("childId"); 
     
@@ -79,33 +64,14 @@ export const handleChildFormSubmit = async (event: React.FormEvent<HTMLFormEleme
 
 export const handlTeamFormSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    
-    // get form date
     const formData = new FormData(event.currentTarget); 
     const teamId = formData.get("teamId") as string;
-    const assistantManager = formData.get("assistmanager") as string;
-    const manager = formData.get("manager") as string;
-    
-    // find manager ids
-    let assistantManagerID = "null";
-    let managerID = "";
-    const managers = await getManagers(); 
-    for (const user of managers) {
-        const fullName = `${user.firstName} ${user.lastName}`;
-
-        if (fullName === assistantManager) {
-            assistantManagerID = user.id
-        } 
-        
-        if (fullName === manager) {
-            managerID = user.id
-        }
-    }
-
+    const managerId = formData.get("managerid") as string;
+    const assistantManagerId = formData.get("assistantmanagerid") as string;
     const data = {
         name: formData.get("teamname") as string,
-        managerUserID: assistantManagerID, 
-        assistantManagerUserID: managerID,
+        managerUserID: managerId, 
+        assistantManagerUserID: assistantManagerId,
     }
 
     // create or update team 

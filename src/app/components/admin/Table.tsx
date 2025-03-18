@@ -18,7 +18,7 @@ const NoDataMessage = ({colspan} : {colspan: number}) => {
 
 export const UserTable = ({users} : { users: User[]}) => {
     const url = "/admin/user";
-    console.log(users)
+    
     // build header 
     const header = (
         <thead className="govuk-table__head">
