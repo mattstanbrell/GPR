@@ -1,0 +1,152 @@
+[
+	{
+		"typeDescription": "Sessional Workers Carebank",
+		"accountCode": "A330",
+		"accountCodeDescription": "Sessional Workers (Carebank workers only)",
+		"areasCovered": "Contact supervision, family support, transport"
+	},
+	{
+		"typeDescription": "Sessional Workers Agency",
+		"accountCode": "A340",
+		"accountCodeDescription": "Sessional Workers (external Agencies)",
+		"areasCovered": "Contact supervision, family support, transport etc"
+	},
+	{
+		"typeDescription": "Transport",
+		"accountCode": "C411",
+		"accountCodeDescription": "Public Transport including Train/Bus/Air Travel",
+		"areasCovered": "Contact visits, hospital appt's, court hearings etc."
+	},
+	{
+		"typeDescription": "Transport",
+		"accountCode": "C312",
+		"accountCodeDescription": "Taxi/Minicab Service",
+		"areasCovered": ""
+	},
+	{
+		"typeDescription": "Transport",
+		"accountCode": "C541",
+		"accountCodeDescription": "Car Parking charges",
+		"areasCovered": ""
+	},
+	{
+		"typeDescription": "Transport",
+		"accountCode": "C311",
+		"accountCodeDescription": "Secure Transport for client.",
+		"areasCovered": ""
+	},
+	{
+		"typeDescription": "Transport",
+		"accountCode": "C593",
+		"accountCodeDescription": "Mileage Claim",
+		"areasCovered": ""
+	},
+	{
+		"typeDescription": "Clothing",
+		"accountCode": "D312",
+		"accountCodeDescription": "Children's Clothing",
+		"areasCovered": "Essential items only"
+	},
+	{
+		"typeDescription": "Subsistence",
+		"accountCode": "D711",
+		"accountCodeDescription": "Subsistence",
+		"areasCovered": "Food, drink, gas & electric Basic necessities. Mobile Phones and payments to staff for out of Borough visits (Food/Drinks)"
+	},
+	{
+		"typeDescription": "Birthday / Festive Allowance",
+		"accountCode": "D741",
+		"accountCodeDescription": "Monetary Awards",
+		"areasCovered": "LAC only"
+	},
+	{
+		"typeDescription": "Activities Cost",
+		"accountCode": "D13W",
+		"accountCodeDescription": "Holidays & Recreation",
+		"areasCovered": "Additional to placement costs"
+	},
+	{
+		"typeDescription": "Equipment",
+		"accountCode": "D111",
+		"accountCodeDescription": "Equipment Purchase for staff/clients",
+		"areasCovered": "Cookers, baby equipment, etc essential items only. Staff claim for glasses"
+	},
+	{
+		"typeDescription": "Equipment",
+		"accountCode": "B733",
+		"accountCodeDescription": "Equipment Maintenance for staff/clients",
+		"areasCovered": "House cleaning, Skips etc"
+	},
+	{
+		"typeDescription": "Equipment",
+		"accountCode": "D540",
+		"accountCodeDescription": "Storage Expenses",
+		"areasCovered": "Client belongings in storage units"
+	},
+	{
+		"typeDescription": "Inquiry & Legal Expenses",
+		"accountCode": "D538",
+		"accountCodeDescription": "Legal Enquires & Expenses. Therapeutic, Psychological Assessments. Hair Strand Testing etc",
+		"areasCovered": "To be used for cases in pre proceedings. Also, for all Passports, Birth Certificates, Visas etc"
+	},
+	{
+		"typeDescription": "Fees",
+		"accountCode": "D511",
+		"accountCodeDescription": "Family Group Conferences. Therapeutic, Psychological Assessments. Hair Strand Testing etc",
+		"areasCovered": "To be used for all cases not in pre proceedings or care proceedings."
+	},
+	{
+		"typeDescription": "",
+		"accountCode": "B416",
+		"accountCodeDescription": "Room hire",
+		"areasCovered": ""
+	},
+	{
+		"typeDescription": "Legal Fees-External",
+		"accountCode": "D531",
+		"accountCodeDescription": "Court directed legal spend",
+		"areasCovered": "Only to be used for cases in proceedings. Invoices are usually received via HB Law"
+	},
+	{
+		"typeDescription": "Interpreting / Translation",
+		"accountCode": "D591",
+		"accountCodeDescription": "Translation Services not provided by Translation Unit",
+		"areasCovered": "Letter, telephone calls etc"
+	},
+	{
+		"typeDescription": "Removal Expenses",
+		"accountCode": "D941",
+		"accountCodeDescription": "Moving YP's belongings between placements",
+		"areasCovered": "Assisting families with removal costs"
+	},
+	{
+		"typeDescription": "Sponsored Childminders",
+		"accountCode": "E777",
+		"accountCodeDescription": "Childminding",
+		"areasCovered": "Must be registered. Includes after school clubs"
+	},
+	{
+		"typeDescription": "Nursery and Mother & Baby Unit",
+		"accountCode": "E778",
+		"accountCodeDescription": "Sponsored Nursery and Mother & Baby Unit (merged code)",
+		"areasCovered": "Includes pre-school play groups and any additional costs for Mother & Baby Units not paid through placements (babysitting, additional supervision)"
+	},
+	{
+		"typeDescription": "Sponsored Playgroups",
+		"accountCode": "E779",
+		"accountCodeDescription": "All other Playgroups",
+		"areasCovered": ""
+	},
+	{
+		"typeDescription": "Intentionally Homeless",
+		"accountCode": "F622",
+		"accountCodeDescription": "Housing Costs",
+		"areasCovered": "Intentionally homeless, B&B, rent, includes deposits"
+	},
+	{
+		"typeDescription": "Other Recharges",
+		"accountCode": "G500",
+		"accountCodeDescription": "Only to be used for internal recharging (operational permits, translation, fuel recharges)",
+		"areasCovered": ""
+	}
+]

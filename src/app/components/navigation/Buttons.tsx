@@ -20,6 +20,7 @@ const ButtonImage = ({
 			width={width}
 			height={height}
 			priority
+			className="transition duration-300 delay-100 ease-in-out hover:scale-120"
 			style={{ filter: "var(--hounslow-menu-icon-filter)" }}
 		/>
 	);

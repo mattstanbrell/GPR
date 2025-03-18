@@ -7,7 +7,6 @@ import { AppContext } from "../layout";
 export default function SignInButton() {
 	const { isSignedIn } = useContext(AppContext);
 
-
 	const handleClick = async () => {
 		if (isSignedIn) {
 			await signOut();
@@ -19,11 +18,7 @@ export default function SignInButton() {
 	};
 
 	return (
-		<a
-			onClick={handleClick}
-			className="govuk-header__link"
-			style={{ cursor: "pointer" }}
-		>
+		<a onClick={handleClick} className="govuk-header__link" style={{ cursor: "pointer" }}>
 			{isSignedIn ? "Sign out" : "Sign in"}
 		</a>
 	);
