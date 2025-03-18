@@ -1,14 +1,16 @@
 
 'use client'
 
-import type { Child, Team, User } from "@/app/types/models"
-import { PrimaryButton, WarningButton } from "@/app/components/admin/Buttons"
-import { listTeams, getManagers } from "@/utils/apis"
 import { useEffect, useState } from "react"
 import { redirect } from "next/navigation"
+import type { Child, Team, User } from "@/app/types/models"
+import { SubmitButton, WarningButton } from "@/app/components/admin/Buttons"
+import { listTeams, getManagers } from "@/utils/apis"
 import { ADMIN } from "@/app/constants/urls"
-import { InputTextTableRow, InputDateTableRow, InputSelectTableRow, InputHiddenTableRow } from "@/app/components/admin/FormElements"
-import { handleUserFormSubmit, handleChildFormSubmit, handlTeamFormSubmit } from "@/app/components/admin/FormHandlers"
+import { InputTextTableRow, InputDateTableRow, 
+        InputSelectTableRow, InputHiddenTableRow } from "@/app/components/admin/FormElements"
+import { handleUserFormSubmit, handleChildFormSubmit, 
+        handlTeamFormSubmit } from "@/app/components/admin/FormHandlers"
 
 export const UserForm = ({data} : {data: User | null}) => {
     const [teamNames, setTeamNames] = useState<string[]>([]);
@@ -49,7 +51,6 @@ export const UserForm = ({data} : {data: User | null}) => {
 }
 
 export const ChildForm = ({data} : {data: Child | null}) => {
-    console.log(data)
     const formElements = (
         <tbody>
             <InputHiddenTableRow name="childId" value={data && data.id ? data.id : ""} />
@@ -57,8 +58,8 @@ export const ChildForm = ({data} : {data: Child | null}) => {
             <InputTextTableRow fieldName="First Name" inputName="firstname" defaultValue={ data?.firstName ? data.firstName : "" } isRequired={ true } />
             <InputTextTableRow fieldName="Last Name" inputName="lastname" defaultValue={ data?.lastName ? data.lastName : "" } isRequired={ true } />
             <InputDateTableRow fieldName="Date of Birth" defaultValue={ data?.dateOfBirth ? data?.dateOfBirth : null } />
-            <InputSelectTableRow fieldName="Sex" inputName="sex" defaultValue={ data?.sex ? data?.sex : "" } options={["Male", "Female"]} />
-            <InputSelectTableRow fieldName="Gender" inputName="gender" defaultValue={ data?.gender ? data?.gender : "" } options={["Male", "Female"]} />
+            <InputSelectTableRow fieldName="Sex" inputName="sex" defaultValue={ data?.sex ? data?.sex : "" } options={["Male", "Female"]} isRequired={ true } />
+            <InputSelectTableRow fieldName="Gender" inputName="gender" defaultValue={ data?.gender ? data?.gender : "" } options={["Male", "Female"]} isRequired={ true } />
         </tbody>
     )
 
@@ -114,7 +115,7 @@ const Form = (
                 { components }
             </table>
             <div className="govuk-button-group">
-                <PrimaryButton name="Submit" /> 
+                <SubmitButton /> 
                 <WarningButton name="Cancel" onClick={() => redirect(ADMIN)} />
             </div>
         </form>

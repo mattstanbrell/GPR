@@ -52,14 +52,20 @@ export const InputDateTableRow = (
 }
 
 export const InputSelectTableRow = (
-    {fieldName, inputName, defaultValue, options} : 
-    {fieldName: string, inputName: string, defaultValue: string, options: string[]}
+    {fieldName, inputName, defaultValue, options, isRequired} : 
+    {
+        fieldName: string, 
+        inputName: string, 
+        defaultValue: string, 
+        options: string[], 
+        isRequired?: boolean
+    }
 ) => {
     return (
         <tr className="govuk-table__row">
             <TableData data={ fieldName } /> 
             <td className="govuk-table__cell">
-                <select className="govuk-select" name={ inputName } defaultValue={ defaultValue }>
+                <select className="govuk-select" name={ inputName } defaultValue={ defaultValue } required={isRequired}>
                     <option value="" disabled>Select</option>
                     { options.map((opt, index) => (
                         <option key={index} value={ opt }>{ opt }</option>
