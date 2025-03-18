@@ -1,4 +1,3 @@
-import { data } from "../../../../amplify/data/resource"
 
 export const HeaderTableData = ({data} : {data: string}) => {
     return <th className="govuk-table__header">{ data }</th>
