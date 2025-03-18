@@ -12,14 +12,12 @@ const Child = () => {
     const childId = searchParams.get("id"); 
     const [child, setChild] = useState<Child | null>(null)
 
-    if (childId) {
-        useEffect(() => {
-            const fetchChild = async () => {
-                setChild(await getChildById(childId));
-            }
-            fetchChild(); 
-        }, [child])
-    }
+    useEffect(() => {
+        const fetchChild = async () => {
+            setChild(await getChildById(childId ? childId : ""));
+        }
+        fetchChild(); 
+    }, [childId])
     // check whether updating a child or creating a new child by see if childId exists
     // display form to add/edit children
 

@@ -15,7 +15,7 @@ const ViewHeading = ({heading} : {heading: string}) => {
 
 export const AllChildrenView = () => {
     const [isLoading, setIsLoading] = useState<boolean>(true); 
-    const [children, setChildren] = useState<Child[]>([]); 
+    const [childrenList, setChildren] = useState<Child[]>([]); 
     
     useEffect(() => {
         const fetchChildren = async () => {
@@ -28,7 +28,7 @@ export const AllChildrenView = () => {
     return isLoading ? <LoadingMessage /> : (
         <>
             <ViewHeading heading="Children" />
-            <ChildTable children={ children } />
+            <ChildTable children={ childrenList } />
         </>
     )
 }

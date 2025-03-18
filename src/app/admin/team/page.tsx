@@ -12,14 +12,12 @@ const Team = () => {
     const teamId = searchParams.get("id"); 
     const [team, setTeam] = useState<Team | null>(null); 
 
-    if (teamId) {
-        useEffect(() => {
-            const fetchTeam = async () => {
-                setTeam(await getTeamByID(teamId)); 
-            }
-            fetchTeam();
-        }, [teamId])
-    }
+    useEffect(() => {
+        const fetchTeam = async () => {
+            setTeam(await getTeamByID(teamId? teamId : "")); 
+        }
+        fetchTeam();
+    }, [teamId])
 
     return (
         <>

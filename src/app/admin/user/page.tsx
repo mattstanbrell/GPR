@@ -11,14 +11,12 @@ const Users = () => {
     const userId = searchParams.get("id"); 
     const [user, setUser] = useState<User | null>(null);
 
-    if (userId) {
-        useEffect(() => {
-            const fetchUser = async () => {
-                setUser(await getUserById(userId));
-            }
-            fetchUser();
-        }, [userId])
-    }
+    useEffect(() => {
+        const fetchUser = async () => {
+            setUser(await getUserById(userId ? userId : ""));
+        }
+        fetchUser();
+    }, [userId])
 
     return (
         <>

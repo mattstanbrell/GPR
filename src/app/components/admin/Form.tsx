@@ -32,6 +32,9 @@ export const UserForm = ({data} : {data: User | null}) => {
         fetchTeams();
     }, [data])
 
+    console.log(currentTeamId)
+    
+
     const formElements = (
         <>
             <tbody className="govuk-table__body">

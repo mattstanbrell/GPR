@@ -26,7 +26,7 @@ type UserUpdates = {
 	email?: string;
 	permissionGroup?: "ADMIN" | "MANAGER" | "SOCIAL_WORKER" | null;
 	lastLogin?: string;
-	teamID?: string | null;
+	teamID?: string;
 	userSettings?: {
 		fontSize: number;
 		font: string;
@@ -126,6 +126,9 @@ export async function updateUser(userId: string, updates: UserUpdates) {
 	}
 	// Merge the updates with the existing data
 	const mergedUser = { ...existingUser, ...updates };
+
+	console.log(mergedUser)
+
 	const { data, errors } = await client.models.User.update(mergedUser);
 	if (errors) {
 		throw new Error(errors[0].message);
