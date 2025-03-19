@@ -11,7 +11,7 @@ const FilterByActionSelector = ({ action, updateAction }: FilterByActionSelector
   };
 
   return (
-    <div className="form__control flex justify-between items-center md:gap-3">
+    <div className="form__control items-center md:gap-3 mb-1 flex-1">
       <label className="govuk-label">Action:</label>
       <select className="govuk-select" value={action} onChange={handleActionChange}>
         <option value="ALL">ALL</option>

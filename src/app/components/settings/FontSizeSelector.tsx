@@ -15,9 +15,9 @@ const FontSizeSelector = ({ fontSize, updateTempFontSize }: FontSizeSelectorProp
       <label className="govuk-label">Font size</label>
       <select style={{width: "min(700px, 60%)"}} className="govuk-select" value={fontSize} onChange={handleFontSizeChange}>
         <option value={1}>1x (Standard)</option>
+        <option value={1.25}>1.25x</option>
         <option value={1.5}>1.5x</option>
-        <option value={2}>2x</option>
-        <option value={2.5}>2.5x</option>
+        <option value={1.75}>1.75x</option>
       </select>
     </div>
   );

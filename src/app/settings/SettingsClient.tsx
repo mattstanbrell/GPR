@@ -9,7 +9,10 @@ import Preview from '../components/settings/Preview';
 
 import { useState, useEffect } from 'react';
 import { updateUserSettings, getUserSettingsByUserId } from '@/utils/apis';
-import { useUserModel } from '@/utils/authenticationUtils';
+import { useContext } from "react"
+import { AppContext } from "@/app/layout"
+
+import Abc from '../components/settings/Abcd';
 
 const DEFAULT_FONT_SIZE = 1;
 const DEFAULT_FONT = 'lexend';
@@ -43,7 +46,9 @@ export default function SettingsClient() {
   const [tempFontColour, setTempFontColour] = useState(DEFAULT_FONT_COLOUR);
   const [tempBgColour, setTempBgColour] = useState(DEFAULT_BG_COLOUR);
 
-  const userModel = useUserModel();
+  const { currentUser, isLoading } = useContext(AppContext);
+  console.log("you are ",currentUser);
+  const userModel = currentUser; 
 
   useEffect(() => {
     const fetchUserSettings = async () => {
@@ -134,14 +139,14 @@ export default function SettingsClient() {
   
   return (
     <>
+      <Abc fontSize={fontSize} font={font} fontColour={fontColour} bgColour={bgColour} spacing={spacing}/>
       {loaded ? (
         <div>
-          <h1 className="govuk-heading-xl" style={{ backgroundColor: '#e5f2eb' }} >Settings</h1>
+          <h1 className="govuk-heading-xl" >Settings</h1>
           <div>
             <p className="summary"
               style={{
-                border: '.25rem solid #f0e8f0',
-                color: '#642f6c',
+                border: '.25rem solid',
                 fontSize: '1.125rem',
                 marginBottom: '2.25rem',
                 padding: '1.5rem',
@@ -197,7 +202,7 @@ export default function SettingsClient() {
           </div>
         </div> 
       ) : (
-        <h3>Loading Logs...</h3>
+        <h3>Loading Settings...</h3>
       )}
     </>
   )
