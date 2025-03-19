@@ -90,21 +90,29 @@ const llmResponseSchema = z.object({
 
 type LLMResponseType = z.infer<typeof llmResponseSchema>;
 
+type ChildResponse = Pick<Schema["Child"]["type"], "caseNumber" | "firstName" | "lastName" | "gender"> & {
+	age: number;
+};
+
 const tools = [
 	{
 		type: "function" as const,
 		function: {
 			name: "lookupCaseNumber",
-			description: "Lookup a child's case number by name",
+			description: "Search for children by name, returning their details",
 			parameters: {
 				type: "object",
 				properties: {
-					name: {
+					firstName: {
 						type: "string",
-						description: "The name of the child",
+						description: "The first name of the child (can be empty string if unknown)",
+					},
+					lastName: {
+						type: "string",
+						description: "The last name of the child (can be empty string if unknown)",
 					},
 				},
-				required: ["name"],
+				required: ["firstName", "lastName"],
 				additionalProperties: false,
 			},
 			strict: true,
@@ -154,13 +162,10 @@ const tools = [
 	},
 ];
 
-async function lookupCaseNumber(name: string, userID: string) {
-	// Extract first and last name
-	const [firstName, lastName] = name.split(" ");
-
-	if (!firstName || !lastName) {
-		throw new Error("Please provide both first and last name");
-	}
+async function lookupCaseNumber(firstName: string | undefined, lastName: string | undefined, userID: string) {
+	// Convert undefined or empty strings to null for consistent handling
+	const firstNameQuery = firstName && firstName.trim() !== "" ? firstName : null;
+	const lastNameQuery = lastName && lastName.trim() !== "" ? lastName : null;
 
 	// First, get all UserChild records for this user
 	const { data: userChildren, errors: userChildErrors } = await client.models.UserChild.list({
@@ -184,20 +189,83 @@ async function lookupCaseNumber(name: string, userID: string) {
 	const childResults = await Promise.all(childPromises);
 
 	// Filter out any errors and extract the data
-	const children = childResults.filter((result) => !result.errors && result.data).map((result) => result.data);
+	const children = childResults
+		.filter(
+			(result): result is { data: NonNullable<Schema["Child"]["type"]> } =>
+				!result.errors && result.data !== null && result.data !== undefined,
+		)
+		.map((result) => result.data);
 
 	if (children.length === 0) {
 		throw new Error("No children found for this user");
 	}
 
-	// Find the child with the matching name
-	const foundChild = children.find((child) => child?.firstName === firstName && child?.lastName === lastName);
+	// Calculate age function
+	function calculateAge(dateOfBirth: string): number {
+		const birthDate = new Date(dateOfBirth);
+		const today = new Date();
+		let age = today.getFullYear() - birthDate.getFullYear();
+		const monthDifference = today.getMonth() - birthDate.getMonth();
 
-	if (!foundChild) {
-		throw new Error(`No child named ${name} found for this user`);
+		if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < birthDate.getDate())) {
+			age--;
+		}
+
+		return age;
 	}
 
-	return foundChild;
+	// Map children to the focused return type with calculated age
+	const mapChildToResponse = (child: Schema["Child"]["type"]): ChildResponse => ({
+		caseNumber: child.caseNumber,
+		firstName: child.firstName,
+		lastName: child.lastName,
+		gender: child.gender,
+		age: calculateAge(child.dateOfBirth),
+	});
+
+	// If no search parameters provided, return all children
+	if (!firstNameQuery && !lastNameQuery) {
+		return {
+			message: "Found no exact match, here are all the children associated with the social worker",
+			children: children.map(mapChildToResponse),
+		};
+	}
+
+	// Look for exact match first (case insensitive)
+	if (firstNameQuery && lastNameQuery) {
+		const exactMatch = children.find(
+			(child) =>
+				child.firstName.toLowerCase() === firstNameQuery.toLowerCase() &&
+				child.lastName.toLowerCase() === lastNameQuery.toLowerCase(),
+		);
+
+		if (exactMatch) {
+			return {
+				message: "Found exact match",
+				children: [mapChildToResponse(exactMatch)],
+			};
+		}
+	}
+
+	// If no exact match, look for partial matches
+	const matches = children.filter((child) => {
+		const matchFirstName = firstNameQuery ? child.firstName.toLowerCase().includes(firstNameQuery.toLowerCase()) : true;
+		const matchLastName = lastNameQuery ? child.lastName.toLowerCase().includes(lastNameQuery.toLowerCase()) : true;
+		return matchFirstName && matchLastName;
+	});
+
+	if (matches.length > 0) {
+		return {
+			message: "Found possible matches",
+			children: matches.map(mapChildToResponse),
+		};
+	}
+
+	// If no matches found, return all children
+	return {
+		message: "Found no exact match, here are all the children associated with the social worker",
+		children: children.map(mapChildToResponse),
+	};
 }
 
 async function parseRecurring(description: string, startDate: string) {
@@ -466,9 +534,9 @@ async function handleToolCalls(
 
 		switch (toolCall.function.name) {
 			case "lookupCaseNumber": {
-				const name = args.name;
+				const { firstName, lastName } = args;
 				// We can safely use userID here since we check at the handler level
-				const result = await lookupCaseNumber(name, userID);
+				const result = await lookupCaseNumber(firstName, lastName, userID);
 				// console.log("\n=== Tool Response: lookupCaseNumber ===");
 				// console.log("Query:", name);
 				// console.log("Response:", JSON.stringify(result, null, 2));
@@ -635,22 +703,24 @@ function formatLondonTime() {
 	return new Date().toLocaleString("en-GB", options as Intl.DateTimeFormatOptions);
 }
 
+// beginsWith wasn't working
 async function getUserDetails(userID: string) {
 	try {
-		// Query the User model using the profileOwner field which contains the sub ID
-		const { data: users, errors } = await client.models.User.list({
-			// @ts-ignore - The type definitions don't match the actual API
-			filter: { profileOwner: { beginsWith: userID } },
-			limit: 1,
+		// First, get all users to see what we have
+		const { data: allUsers, errors: allUsersErrors } = await client.models.User.list({
+			limit: 100,
 		});
 
-		if (errors) {
-			console.error("Error querying User model:", errors);
+		if (allUsersErrors) {
+			console.error("Error querying all users:", allUsersErrors);
 			return null;
 		}
 
-		const userData = users?.[0];
-		// console.log("Found user data:", userData);
+		console.log("All users in system:", JSON.stringify(allUsers, null, 2));
+
+		// Find the user by checking if their profileOwner starts with the userID
+		const userData = allUsers?.find((user) => user.profileOwner?.startsWith(userID));
+		console.log("Found user data:", userData);
 
 		if (!userData) {
 			console.warn("No user found with ID:", userID);
@@ -785,6 +855,17 @@ Common fields for both expense types:
 * Never ask something like "What is the case number for Charlie Bucket?" without first using the lookupCaseNumber tool.
 * The first time the Child's name is mentioned, immediately use the tool to lookup their case number and fill out that field. Never tell the user you are going to lookup the case number, just do it.
 
+## Child Search Results
+
+When using the lookupCaseNumber tool, you may get different types of results:
+
+* Exact match: When a single child perfectly matches the name provided. Confidently use this child's details.
+* Single partial match: When one child partially matches the name. Present this match to the social worker for confirmation.
+* Multiple partial matches: When several children match the search criteria. Present all matches and ask the social worker to select the correct child.
+* No matches: When no children match the search criteria. 
+  * If there's an obvious match (like a misspelling - e.g., "Jakub" vs "Jacob"), suggest just that specific child.
+  * Otherwise, show all children available to the social worker and ask them to select the correct one.
+
 ## Title
 
 * You must generate a short, descriptive title summarising the expense request.
@@ -825,8 +906,20 @@ Common fields for both expense types:
 
 User: "I need a prepaid card for £50 to buy school supplies for Emily Smith by March 25th."
 
-[Tool call: lookupCaseNumber("Emily Smith")]  
-[Tool response: {"id": "12345", "firstName": "Emily", "lastName": "Smith", "dateOfBirth": "2015-03-10"}]
+[Tool call lookupCaseNumber {
+  "firstName": "Emily", 
+  "lastName": "Smith"
+}]
+[Tool response {
+  "message": "Found exact match",
+  "children": [{
+    "caseNumber": "12345",
+    "firstName": "Emily",
+    "lastName": "Smith",
+    "gender": "Female",
+    "age": 9
+  }]
+}]
 
 Response:
 {
@@ -851,12 +944,38 @@ Response:
   "followUp": "I've filled in the form for a £50 prepaid card for Emily Smith's school supplies. The card will be issued to you and the request is set for March 25th, 2025. Is there anything else you need for this request?"
 }
 
-### Example 2: Parent as recipient
+### Example 2: Parent as recipient (partial match)
 
-User: "I need to arrange a £75 prepaid card for Jenny Taylor's mother to buy winter clothing."
+User: "I need to arrange a £75 prepaid card for Jenny's mother to buy winter clothing."
 
-[Tool call: lookupCaseNumber("Jenny Taylor")]  
-[Tool response: {"id": "67890", "firstName": "Jenny", "lastName": "Taylor", "dateOfBirth": "2017-09-22"}]
+[Tool call lookupCaseNumber {
+  "firstName": "Jenny",
+  "lastName": ""
+}]
+[Tool response {
+  "message": "Found possible matches",
+  "children": [{
+    "caseNumber": "67890",
+    "firstName": "Jenny",
+    "lastName": "Taylor",
+    "gender": "Female",
+    "age": 6
+  }]
+}]
+
+Response:
+{
+  "form": {
+    "title": "Winter clothing for Jenny",
+    "expenseType": "PREPAID_CARD",
+    "reason": "Winter clothing purchase",
+    "amount": 75,
+    "isRecurring": false
+  },
+  "followUp": "I found one child named Jenny Taylor in the system. Is this the correct child for this expense request?"
+}
+
+User: "Yes, that's the right child."
 
 Response:
 {
@@ -907,7 +1026,7 @@ Response:
 User: "I need to order school books from BookWorld for Jamie Green's class. It will cost £120 and we need them by April 10th."
 
 Tool calls (both made together in the same response):
-1. lookupCaseNumber("Jamie Green")
+1. lookupCaseNumber({"firstName": "Jamie", "lastName": "Green"})
 2. searchBusinesses("BookWorld")
 
 After receiving tool responses:
@@ -933,7 +1052,7 @@ Final response:
 User: "I need to set up monthly payments of £85 to ABC Therapy Services for Daniel Wilson's speech therapy."
 
 Tool calls (both made together in the same response):
-1. lookupCaseNumber("Daniel Wilson")
+1. lookupCaseNumber({"firstName": "Daniel", "lastName": "Wilson"})
 2. searchBusinesses("ABC Therapy Services")
 
 After receiving tool responses:
@@ -965,8 +1084,11 @@ First response:
 
 User: "April 5th"
 
-[Tool call: parseRecurring("monthly payments starting April 5th", "2025-04-05")]  
-[Tool response: {
+[Tool call parseRecurring {
+  "description": "monthly payments starting April 5th",
+  "startDate": "2025-04-05"
+}]  
+[Tool response {
   "frequency": "MONTHLY",
   "interval": 1,
   "startDate": "2025-04-05",
@@ -1005,22 +1127,67 @@ Final response:
   "followUp": "I've set up monthly recurring payments of £85 to ABC Therapy Services for Daniel's speech therapy, starting April 5th, 2025. Is there anything else you need to add to this purchase order?"
 }
 
-### Example 3: Multiple search results
+### Example 3: Multiple search results (multiple child matches)
 
-User: "I need to order £250 of furniture from Furniture World for Sophia Lee by May 15th."
+User: "I need to order £250 of furniture from Furniture World for Sophia by May 15th."
 
-Tool calls (both made together in the same response):
-1. lookupCaseNumber("Sophia Lee")
-2. searchBusinesses("Furniture World")
+[Tool call lookupCaseNumber {
+  "firstName": "Sophia",
+  "lastName": ""
+}]
+[Tool response {
+  "message": "Found possible matches",
+  "children": [
+    {
+      "caseNumber": "78123",
+      "firstName": "Sophia",
+      "lastName": "Lee",
+      "gender": "Female",
+      "age": 9
+    },
+    {
+      "caseNumber": "78456",
+      "firstName": "Sophia",
+      "lastName": "Johnson",
+      "gender": "Female",
+      "age": 11
+    }
+  ]
+}]
 
-After receiving tool responses:
-- lookupCaseNumber returns: {"id": "78123", "firstName": "Sophia", "lastName": "Lee", "dateOfBirth": "2014-10-05"}
-- searchBusinesses returns: [
+[Tool call searchBusinesses {
+  "name": "Furniture World"
+}]
+[Tool response [
   {"id": "b34567", "name": "Furniture World - East London", "address": {"lineOne": "87 Commerce Road", "lineTwo": "Industrial Estate", "townOrCity": "London", "postcode": "E3 4TG"}},
   {"id": "b34568", "name": "Furniture World - North London", "address": {"lineOne": "23 Home Avenue", "lineTwo": "", "townOrCity": "London", "postcode": "N17 7QP"}}
-]
+]]
 
-Final response:
+Response:
+{
+  "form": {
+    "title": "Furniture purchase",
+    "expenseType": "PURCHASE_ORDER",
+    "reason": "Furniture purchase",
+    "amount": 250,
+    "dateRequired": { "day": 15, "month": 5, "year": 2025 },
+    "isRecurring": false,
+    "businessDetails": {
+      "name": "Furniture World",
+      "address": {
+        "lineOne": "",
+        "lineTwo": "",
+        "townOrCity": "",
+        "postcode": ""
+      }
+    }
+  },
+  "followUp": "I found two children named Sophia in our system:\n1) Sophia Lee (9 years old)\n2) Sophia Johnson (11 years old)\nWhich child is this furniture purchase for? Also, which Furniture World location would you like to use for this order?"
+}
+
+User: "It's for Sophia Lee, and the East London branch."
+
+Response:
 {
   "form": {
     "title": "Furniture purchase for Sophia Lee",
@@ -1029,30 +1196,68 @@ Final response:
     "reason": "Furniture purchase",
     "amount": 250,
     "dateRequired": { "day": 15, "month": 5, "year": 2025 },
-    "isRecurring": false
+    "isRecurring": false,
+    "businessDetails": {
+      "name": "Furniture World - East London",
+      "address": {
+        "lineOne": "87 Commerce Road",
+        "lineTwo": "Industrial Estate",
+        "townOrCity": "London",
+        "postcode": "E3 4TG"
+      }
+    },
+    "businessID": "b34567"
   },
-  "followUp": "I found two branches of Furniture World in our system. Which one would you like to use for this order?\n1) Furniture World - East London (87 Commerce Road, Industrial Estate, London, E3 4TG)\n2) Furniture World - North London (23 Home Avenue, London, N17 7QP)"
+  "followUp": "I've updated the form with Sophia Lee's details and Furniture World - East London as the supplier. Is there anything else you'd like to add to this furniture purchase request?"
 }
 
-### Example 4: Business not found
+### Example 4: No matches found (misspelled name)
 
-User: "I need to place a purchase order for £175 with Rainbow Educational Supplies for art materials for Oliver Brown's school project. We need them by March 30th."
+User: "I need to place a purchase order for £175 with Rainbow Educational Supplies for art materials for Jakub's school project. We need them by March 30th."
 
-Tool calls (both made together in the same response):
-1. lookupCaseNumber("Oliver Brown")
-2. searchBusinesses("Rainbow Educational Supplies")
+[Tool call lookupCaseNumber {
+  "firstName": "Jakub",
+  "lastName": ""
+}]
+[Tool response {
+  "message": "Found no exact match, here are all the children associated with the social worker",
+  "children": [
+    {
+      "caseNumber": "45678",
+      "firstName": "Oliver",
+      "lastName": "Brown",
+      "gender": "Male",
+      "age": 8
+    },
+    {
+      "caseNumber": "34789",
+      "firstName": "Emma",
+      "lastName": "Wilson",
+      "gender": "Female",
+      "age": 10
+    },
+    {
+      "caseNumber": "56123",
+      "firstName": "Jacob",
+      "lastName": "Taylor",
+      "gender": "Male",
+      "age": 7
+    }
+  ]
+}]
 
-After receiving tool responses:
-- lookupCaseNumber returns: {"id": "45678", "firstName": "Oliver", "lastName": "Brown", "dateOfBirth": "2015-05-18"}
-- searchBusinesses returns: {"message": "No businesses found matching \"Rainbow Educational Supplies\""}
+[Tool call searchBusinesses {
+  "name": "Rainbow Educational Supplies"
+}]
+[Tool response {
+  "message": "No businesses found matching "Rainbow Educational Supplies""
+}]
 
-
-Final response:
+Response:
 {
   "form": {
-    "title": "Art materials from Rainbow Educational Supplies for Oliver Brown",
+    "title": "Art materials for school project",
     "expenseType": "PURCHASE_ORDER",
-    "caseNumber": "45678",
     "reason": "Art materials for school project",
     "amount": 175,
     "dateRequired": { "day": 30, "month": 3, "year": 2025 },
@@ -1067,7 +1272,32 @@ Final response:
       }
     }
   },
-  "followUp": "I couldn't find Rainbow Educational Supplies in our system. Could you please provide their address details?"
+  "followUp": "I couldn't find a child named Jakub in your caseload. Could you be referring to Jacob Taylor? Also, I'll need Rainbow Educational Supplies' address as they're not in our system."
+}
+
+User: "Sorry, I meant Jacob Taylor. The supplier is at 45 Education Street, London, E1 6ED."
+
+Response:
+{
+  "form": {
+    "title": "Art materials from Rainbow Educational Supplies for Jacob Taylor",
+    "expenseType": "PURCHASE_ORDER",
+    "caseNumber": "56123",
+    "reason": "Art materials for school project",
+    "amount": 175,
+    "dateRequired": { "day": 30, "month": 3, "year": 2025 },
+    "isRecurring": false,
+    "businessDetails": {
+      "name": "Rainbow Educational Supplies",
+      "address": {
+        "lineOne": "45 Education Street",
+        "lineTwo": "",
+        "townOrCity": "London",
+        "postcode": "E1 6ED"
+      }
+    }
+  },
+  "followUp": "Thank you for clarifying. I've filled in the form with Jacob Taylor's details and Rainbow Educational Supplies' address. Is there anything else you'd like to add to this request?"
 }
 
 ## Recurring Payments
@@ -1119,9 +1349,22 @@ Explain limitations if the social worker requests:
 
 ### Available Tools
 
-* lookupCaseNumber(name: string): look up a child's case number using their name.
-* searchBusinesses(name: string): search for a business by name.
-* parseRecurring(description: string, startDate: string): convert natural language description of a recurring payment schedule into structured recurrencePattern.
+* lookupCaseNumber: Search for children by name, returning their details
+  * Parameters:
+    * firstName (string, required): The first name of the child (can be empty string if unknown)
+    * lastName (string, required): The last name of the child (can be empty string if unknown)
+  * Returns: Object containing message and array of children with caseNumber, firstName, lastName, gender, and age
+
+* searchBusinesses: Search for businesses by name
+  * Parameters:
+    * name (string, required): The name of the business to search for
+  * Returns: Array of businesses with id, name, and address details, or message if none found
+
+* parseRecurring: Convert natural language descriptions of recurring schedules into structured patterns
+  * Parameters:
+    * description (string, required): The natural language description of the recurring schedule
+    * startDate (string, required): The start date in YYYY-MM-DD format
+  * Returns: Structured recurrence pattern with frequency, interval, startDate, and optional fields
 
 ### Guidelines
 
@@ -1255,7 +1498,7 @@ Explain limitations if the social worker requests:
 	try {
 		// console.log("Starting Promise.all for conversation and form updates");
 		const [conversationResult, formResult] = await Promise.all([conversationUpdatePromise, formUpdatePromise]);
-		// console.log("Conversation update result:", JSON.stringify(conversationResult, null, 2));
+		console.log("Conversation update result:", JSON.stringify(conversationResult, null, 2));
 		// console.log("Form update result:", {
 		// 	data: formResult.data ? "Data present" : "No data",
 		// 	dataType: formResult.data ? typeof formResult.data : "N/A",

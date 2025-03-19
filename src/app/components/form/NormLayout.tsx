@@ -2,7 +2,8 @@ import ReactMarkdown from "react-markdown";
 import type { UIMessage, FormChanges } from "./types";
 import { generateClient } from "aws-amplify/api";
 import type { Schema } from "../../../../amplify/data/resource";
-import { useState, type Dispatch, type SetStateAction } from "react";
+import { useState, type Dispatch, type SetStateAction, useRef, useEffect } from "react";
+import Image from "next/image";
 
 interface NormLayoutProps {
 	messages: UIMessage[];
@@ -17,6 +18,9 @@ interface NormLayoutProps {
 	processingMessage: boolean;
 	setProcessingMessage: (processing: boolean) => void;
 	getFormChanges: () => FormChanges | null;
+	isMobile?: boolean;
+	onToggle?: () => void;
+	isFormValid?: boolean;
 }
 
 interface SystemMessage {
@@ -30,7 +34,6 @@ interface NormMessage {
 	id?: number;
 }
 
-// Type guard for system messages
 const isSystemMessage = (message: NormMessage): message is SystemMessage => {
 	return message.role === "system";
 };
@@ -48,11 +51,29 @@ export function NormLayout({
 	processingMessage,
 	setProcessingMessage,
 	getFormChanges,
+	isMobile,
+	onToggle,
+	isFormValid,
 }: NormLayoutProps) {
 	const [systemPrompt, setSystemPrompt] = useState<string>("");
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
+	const [menuOpen, setMenuOpen] = useState(false);
+	const menuRef = useRef<HTMLDivElement>(null);
 
-	// Function to render message content
+	// Close the menu when clicking outside
+	useEffect(() => {
+		const handleClickOutside = (event: MouseEvent) => {
+			if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+				setMenuOpen(false);
+			}
+		};
+
+		document.addEventListener("mousedown", handleClickOutside);
+		return () => {
+			document.removeEventListener("mousedown", handleClickOutside);
+		};
+	}, []);
+
 	const renderMessageContent = (content: string): string => {
 		if (!content) return "";
 		const followUpMatch = content.match(/"followUp"\s*:\s*"([^"]*?)"/);
@@ -62,7 +83,6 @@ export function NormLayout({
 		return content;
 	};
 
-	// Helper function to detect payment method changes
 	const detectPaymentMethodChange = (
 		currentForm: Partial<Schema["Form"]["type"]>,
 		updatedForm: Partial<Schema["Form"]["type"]>,
@@ -76,7 +96,6 @@ export function NormLayout({
 
 		setProcessingMessage(true);
 
-		// Check for form changes
 		const formChanges = getFormChanges();
 		const userMessage: UIMessage = {
 			id: Date.now(),
@@ -90,7 +109,6 @@ export function NormLayout({
 		try {
 			const client = generateClient<Schema>();
 
-			// If there are form changes, insert them just before the new user message
 			const messagesPayload = formChanges
 				? JSON.stringify(
 						[
@@ -100,14 +118,15 @@ export function NormLayout({
 										content: systemPrompt,
 									}
 								: null,
-							...messages, // Include all previous messages
+							...messages,
 							{
 								role: "system",
 								content: `User manually changed the following fields: ${Object.entries(formChanges)
 									.map(([field, { from, to }]) => {
-										// Special handling for payment method changes
 										if (field === "paymentMethod") {
-											return `${field}: from ${from || "undefined"} to ${to || "undefined"} (This changes the form type)`;
+											return `${field}: from ${from || "undefined"} to ${
+												to || "undefined"
+											} (This changes the form type)`;
 										}
 										return `${field}: from ${JSON.stringify(from)} to ${JSON.stringify(to)}`;
 									})
@@ -150,12 +169,10 @@ export function NormLayout({
 				if (normResponse?.messages) {
 					const formattedMessages = processMessages(normResponse.messages);
 					if (formattedMessages.length > 0) {
-						// Store the system prompt if this is our first message
 						const firstMessage = formattedMessages[0];
 						if (messages.length === 0 && isSystemMessage(firstMessage)) {
 							setSystemPrompt(firstMessage.content);
 						}
-						// Add only the assistant's response
 						const lastMessage = formattedMessages[formattedMessages.length - 1];
 						if (lastMessage.role === "assistant") {
 							setMessages((prev: UIMessage[]) => [
@@ -191,10 +208,8 @@ export function NormLayout({
 				if (normResponse?.currentFormState) {
 					const updatedForm = JSON.parse(normResponse.currentFormState);
 					if (updatedForm) {
-						// Check if payment method has changed
 						const paymentMethodChanged = detectPaymentMethodChange(currentForm, updatedForm);
 
-						// Only update if Norm actually changed something or payment method changed
 						const hasChanges =
 							paymentMethodChanged ||
 							Object.keys(updatedForm as Partial<Schema["Form"]["type"]>).some(
@@ -244,7 +259,6 @@ export function NormLayout({
 		}
 	};
 
-	// Helper function to process messages
 	const processMessages = (messagesString: string): NormMessage[] => {
 		try {
 			return JSON.parse(messagesString);
@@ -256,59 +270,157 @@ export function NormLayout({
 	return (
 		<>
 			<style jsx>{`
-				@keyframes blink {
-					0% { opacity: 0.2; }
-					20% { opacity: 1; }
-					100% { opacity: 0.2; }
-				}
-				
-				.typing-indicator {
-					display: inline-flex;
-					align-items: center;
-				}
-				
-				.dot {
-					display: inline-block;
-					width: 8px;
-					height: 8px;
-					border-radius: 50%;
-					background-color: var(--hounslow-primary);
-					margin-right: 4px;
-					animation: blink 1.4s infinite both;
-				}
-				
-				.dot:nth-child(2) {
-					animation-delay: 0.2s;
-				}
-				
-				.dot:nth-child(3) {
-					animation-delay: 0.4s;
-				}
-				
-				.govuk-inset-text--purple {
-					background-color: var(--color-background-light);
-					border-color: var(--hounslow-primary);
-					border-left-width: 5px;
-				}
-				
-				.error-message {
-					color: #d4351c;
-					margin-bottom: 15px;
-				}
-			`}</style>
+        @keyframes blink {
+          0% {
+            opacity: 0.2;
+          }
+          20% {
+            opacity: 1;
+          }
+          100% {
+            opacity: 0.2;
+          }
+        }
+
+        .typing-indicator {
+          display: inline-flex;
+          align-items: center;
+        }
+
+        .dot {
+          display: inline-block;
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background-color: var(--hounslow-primary);
+          margin-right: 4px;
+          animation: blink 1.4s infinite both;
+        }
+
+        .dot:nth-child(2) {
+          animation-delay: 0.2s;
+        }
+
+        .dot:nth-child(3) {
+          animation-delay: 0.4s;
+        }
+
+        .govuk-inset-text--purple {
+          background-color: var(--color-background-light);
+          border-color: var(--hounslow-primary);
+          border-left-width: 5px;
+        }
+
+        .error-message {
+          color: #d4351c;
+          margin-bottom: 15px;
+        }
+      `}</style>
 			<div
 				style={{
 					width: "100%",
 					height: "100%",
 					display: "flex",
 					flexDirection: "column",
-					paddingLeft: "20px",
-					paddingRight: "15px",
+					paddingLeft: isMobile ? "0" : "15px",
+					paddingRight: "0",
 					float: "left",
 					boxSizing: "border-box",
 				}}
 			>
-				<h2 className="govuk-heading-l">Norm</h2>
+				<div
+					style={{
+						display: "flex",
+						justifyContent: "space-between",
+						alignItems: "center",
+						...(isMobile && {
+							borderBottom: "1px solid #b1b4b6",
+							paddingBottom: "15px",
+							marginBottom: "15px",
+						}),
+					}}
+				>
+					<h2
+						className="govuk-heading-l"
+						style={{
+							margin: 0,
+							display: "flex",
+							alignItems: "center",
+						}}
+					>
+						Norm
+					</h2>
+					{isMobile && onToggle && (
+						<div ref={menuRef} style={{ position: "relative" }}>
+							<Image
+								src="/more-options.svg"
+								alt="Menu"
+								width={24}
+								height={24}
+								onClick={() => setMenuOpen(!menuOpen)}
+								style={{
+									cursor: "pointer",
+									filter: "var(--color-button-primary-filter)",
+								}}
+								role="button"
+								tabIndex={0}
+								onKeyDown={(e) => {
+									if (e.key === "Enter" || e.key === " ") {
+										e.preventDefault();
+										setMenuOpen(!menuOpen);
+									}
+								}}
+							/>
+
+							{menuOpen && (
+								<div
+									style={{
+										position: "absolute",
+										right: 0,
+										top: "100%",
+										marginTop: "5px",
+										backgroundColor: "#fff",
+										border: "1px solid #b1b4b6",
+										borderRadius: "4px",
+										boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+										zIndex: 100,
+										width: "150px",
+									}}
+								>
+									<button
+										type="button"
+										onClick={() => {
+											onToggle();
+											setMenuOpen(false);
+										}}
+										style={{
+											display: "flex",
+											alignItems: "center",
+											padding: "10px 15px",
+											width: "100%",
+											textAlign: "left",
+											border: "none",
+											backgroundColor: "transparent",
+											cursor: "pointer",
+											borderRadius: "4px",
+											gap: "8px",
+										}}
+										aria-label="Switch to Form view"
+									>
+										<Image
+											src="/file.svg"
+											alt=""
+											width={18}
+											height={18}
+											style={{ filter: "var(--color-button-primary-filter)" }}
+										/>
+										<span>Form</span>
+									</button>
+								</div>
+							)}
+						</div>
+					)}
+				</div>
 				{errorMessage && <div className="govuk-error-message error-message">{errorMessage}</div>}
 				<div
 					style={{
@@ -452,6 +564,38 @@ export function NormLayout({
 						placeholder="Type your message here..."
 						disabled={processingMessage}
 					/>
+					{isMobile && (
+						<div style={{ display: "flex", gap: "10px" }}>
+							{onToggle && (
+								<button
+									type="button"
+									onClick={onToggle}
+									className="govuk-button govuk-button--secondary"
+									style={{
+										marginTop: "10px",
+										flex: "1",
+										opacity: isFormValid ? 1 : 0.5,
+										backgroundColor: isFormValid ? "var(--color-button-secondary)" : "#dddddd",
+										transition: "background-color 0.3s ease, opacity 0.3s ease",
+										borderColor: isFormValid ? "var(--color-button-secondary)" : "#dddddd",
+									}}
+									disabled={!isFormValid}
+									aria-label="Review form before submitting"
+								>
+									{isFormValid ? "Review Form" : "Form Incomplete"}
+								</button>
+							)}
+							<button
+								type="button"
+								onClick={handleNormMessageSubmit}
+								className="govuk-button"
+								style={{ marginTop: "10px", flex: "1" }}
+								disabled={processingMessage}
+							>
+								Send
+							</button>
+						</div>
+					)}
 				</div>
 			</div>
 		</>
