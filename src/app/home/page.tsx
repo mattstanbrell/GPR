@@ -5,7 +5,6 @@ import SocialWorkerButtons from "../components/dashboard/SocialWorkerButtons";
 import ManagerButtons from "../components/dashboard/ManagerButtons";
 import AdminButtons from "../components/dashboard/AdminButtons";
 import { AppContext } from "@/app/layout";
-import { signOut } from "aws-amplify/auth";
 
 
 const renderButtons = (permissionGroup: "ADMIN" | "MANAGER" | "SOCIAL_WORKER" | null | undefined) => {
