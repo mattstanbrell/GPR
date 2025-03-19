@@ -611,12 +611,28 @@ async function processLLMResponse(
 		await handleToolCalls(llmMessage.tool_calls, messages, userID);
 		// console.log("messages after tool call: ", messages);
 
+		console.log("Calling GPT-4o with messages:", JSON.stringify(messages, null, 2));
 		const followUpCompletion = await openai.beta.chat.completions.parse({
 			model: "gpt-4o",
 			messages,
 			tools,
 			response_format: zodResponseFormat(llmResponseSchema, "schema"),
 		});
+		console.log(
+			"GPT-4o response:",
+			JSON.stringify(
+				{
+					response: followUpCompletion,
+					usage: {
+						prompt_tokens: followUpCompletion.usage?.prompt_tokens,
+						completion_tokens: followUpCompletion.usage?.completion_tokens,
+						total_tokens: followUpCompletion.usage?.total_tokens,
+					},
+				},
+				null,
+				2,
+			),
+		);
 
 		return processLLMResponse(followUpCompletion, messages, currentFormState, formID, userID);
 	}
@@ -1417,12 +1433,28 @@ Explain limitations if the social worker requests:
 	}
 
 	// Call OpenAI with the messages
+	console.log("Calling GPT-4o with messages:", JSON.stringify(messagesWithSystem, null, 2));
 	const completion = await openai.beta.chat.completions.parse({
 		model: "gpt-4o",
 		messages: messagesWithSystem,
 		tools,
 		response_format: zodResponseFormat(llmResponseSchema, "schema"),
 	});
+	console.log(
+		"GPT-4o response:",
+		JSON.stringify(
+			{
+				response: completion,
+				usage: {
+					prompt_tokens: completion.usage?.prompt_tokens,
+					completion_tokens: completion.usage?.completion_tokens,
+					total_tokens: completion.usage?.total_tokens,
+				},
+			},
+			null,
+			2,
+		),
+	);
 
 	const result = await processLLMResponse(
 		completion,
@@ -1500,7 +1532,7 @@ Explain limitations if the social worker requests:
 	try {
 		// console.log("Starting Promise.all for conversation and form updates");
 		const [conversationResult, formResult] = await Promise.all([conversationUpdatePromise, formUpdatePromise]);
-		console.log("Conversation update result:", JSON.stringify(conversationResult, null, 2));
+		// console.log("Conversation update result:", JSON.stringify(conversationResult, null, 2));
 		// console.log("Form update result:", {
 		// 	data: formResult.data ? "Data present" : "No data",
 		// 	dataType: formResult.data ? typeof formResult.data : "N/A",
