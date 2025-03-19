@@ -18,10 +18,11 @@ import {
 	updateForm,
 	getFormById,
 	getTeamByID,
-	assignUserToForm,
 	getNormConversationByFormId,
 	createAuditLog,
 	createBusiness,
+	assignUserToFormWithThread,
+	getAssigneesForForm
 
 } from "../../../utils/apis";
 import { FORM_STATUS, PERMISSIONS } from "@/app/constants/models";
@@ -254,7 +255,11 @@ export function FormContent() {
 		if (!userModel) return;
 
 		const team = await getTeamByID(userModel.teamID || "Placeholder");
-		if (!form || !form.id || !userModel?.id || !form.amount || !team) return;
+		if (!form || !form.id || !userModel?.id || !form.amount) return;
+
+		if (!team) {
+			throw new Error("No team assigned.");
+		}
 
 		try {
 			setLoading(true);
@@ -322,7 +327,19 @@ export function FormContent() {
 				if (!team?.assistantManagerUserID) return;
 				assigneeId = team.assistantManagerUserID;
 			}
-			await assignUserToForm(form.id, assigneeId);
+			
+			let formAssignee;
+			try {
+				const res = await getAssigneesForForm(form.id); 
+				formAssignee = res;
+			} catch (error) {
+				formAssignee = null; 
+			}
+			
+			if (!(formAssignee)) {
+				await assignUserToFormWithThread(form.id, assigneeId);
+			}
+			
 			await createAuditLog(`${userModel.firstName} ${userModel.lastName} submitted a form`, userModel.id, form.id);
 			router.push(FORM_BOARD);
 		} catch (_error: unknown) {
