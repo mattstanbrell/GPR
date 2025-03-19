@@ -84,7 +84,7 @@ export const ChildForm = ({data} : {data: Child | null}) => {
         <tbody>
             <InputHiddenTableRow name="childId" value={childId} />
             <InputTextTableRow fieldName="Case Number" inputName="casenumber" defaultValue={ data?.caseNumber ? data.caseNumber : "" } isRequired={ true } />
-            <InputSelectTableRow fieldName="Social Worker" inputName="socialworker" defaultValue={assignedSocialWorkerId} options={socialWorkerNameIds} isRequired={ true } />
+            <InputSelectTableRow fieldName="Add Social Worker" inputName="socialworker" defaultValue={""} options={socialWorkerNameIds} isRequired={ true } />
             <InputTextTableRow fieldName="First Name" inputName="firstname" defaultValue={ data?.firstName ? data.firstName : "" } isRequired={ true } />
             <InputTextTableRow fieldName="Last Name" inputName="lastname" defaultValue={ data?.lastName ? data.lastName : "" } isRequired={ true } />
             <InputDateTableRow fieldName="Date of Birth" defaultValue={ data?.dateOfBirth ? data?.dateOfBirth : null } />
