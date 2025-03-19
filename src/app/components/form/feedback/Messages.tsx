@@ -62,10 +62,15 @@ const AwaitingApprovalStatusMessage = () => {
     return <StatusMessage heading="Awaiting Approval" status={ MESSAGE_STATUS.AWAITING_APPROVAL } /> 
 }
 
+const ValidatedStatusMessage = () => {
+    return <StatusMessage heading="Validated" status={ MESSAGE_STATUS.APPROVED } /> 
+}
+
 export const ApprovalStatusMessage = ({form} : {form: Form}) => {
     const isDraft = form.status === FORM_STATUS.DRAFT;
     const isAwaitingApproval = form.status === FORM_STATUS.SUBMITTED
-    const isAuthorised = form.status === FORM_STATUS.AUTHORISED || form.status === FORM_STATUS.VALIDATED;
+    const isAuthorised = form.status === FORM_STATUS.AUTHORISED;
+    const isValidated = form.status === FORM_STATUS.VALIDATED;
 
     if (isDraft && form.feedback) {
         return <RejectedStatusMessage feedback={form.feedback ? form.feedback : ""} /> 
@@ -73,6 +78,8 @@ export const ApprovalStatusMessage = ({form} : {form: Form}) => {
         return <AwaitingApprovalStatusMessage /> 
     } else if (isAuthorised) {
         return <ApprovedStatusMessage />
+    } else if (isValidated) {
+        return <ValidatedStatusMessage /> 
     }
 }
 

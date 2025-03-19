@@ -30,7 +30,7 @@ const schema = a
 					postcode: a.string(),
 				}),
 				userSettings: a.customType({
-					fontSize: a.integer(),
+					fontSize: a.float(),
 					font: a.string(),
 					fontColour: a.string(),
 					bgColour: a.string(),
@@ -171,7 +171,7 @@ const schema = a
 		AuditLog: a
 			.model({
 				action: a.string().required(),
-				date: a.date().required(),
+				date: a.datetime().required(),
 				userID: a.id(),
 				user: a.belongsTo("User", "userID"),
 				formID: a.id(),

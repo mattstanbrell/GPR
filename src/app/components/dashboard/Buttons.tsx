@@ -4,6 +4,7 @@ import {
 	FORM,
 	UPDATES,
 	ADMIN,
+	ACTION_LOG,
 	THREADS,
 } from "@/app/constants/urls";
 import Link from "next/link";
@@ -118,7 +119,7 @@ const ActionLogsButton = () => {
 	return (
 		<Button
 			text="Action Log"
-			link={ADMIN}
+			link={ACTION_LOG}
 			src="/action-log.svg"
 			alt="A picture of a filled shield."
 		/>
