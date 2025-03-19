@@ -10,12 +10,10 @@ const Header = ({
 	toggleMobileMenu,
 	isMenuOpen,
 	isSignedIn,
-	handleClick,
 }: {
-	toggleMobileMenu: () => void;
-	isMenuOpen: boolean;
-	isSignedIn: boolean;
-	handleClick: () => void;
+	toggleMobileMenu: () => void,
+	isMenuOpen: boolean,
+	isSignedIn: boolean,
 }) => {
 	const { isMobile } = useContext(AppContext)
 
@@ -41,7 +39,6 @@ const Header = ({
 						isMobile={isMobile}
 						toggleMobileMenu={toggleMobileMenu}
 						isMenuOpen={isMenuOpen}
-						handleClick={handleClick}
 					/>
 				</div>
 			</div>

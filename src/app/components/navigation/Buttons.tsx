@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { HOME, UPDATES, SETTINGS } from "@/app/constants/urls";
+import { signOut } from "aws-amplify/auth";
 
 const desktopIconSize = 25;
 const mobileIconSize = 50;
@@ -131,16 +132,13 @@ const SettingsButton = ({ isTitled }: { isTitled: boolean }) => {
 	);
 };
 
-const MenuSignOutButton = ({
-	isTitled,
-	handleSignOut,
-}: { isTitled: boolean; handleSignOut: () => void }) => {
+const MenuSignOutButton = ({isTitled}: {isTitled: boolean}) => {
 	const src = "/signout.svg";
 	const alt = "A picture of a door with an exit symbol";
 	const name = "Sign Out";
 
 	return (
-		<div onClick={handleSignOut}>
+		<div onClick={() => signOut({ global: true, oauth: { redirectUrl: "https://dev-test-sanity.d2sc3b0jj94stq.amplifyapp.com" } })}>
 			<Button src={src} alt={alt} name={name} isTitled={isTitled} />
 		</div>
 	);
