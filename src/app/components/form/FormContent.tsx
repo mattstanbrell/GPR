@@ -9,7 +9,7 @@ import { FormLayout } from "./FormLayout";
 import { NormLayout } from "./NormLayout";
 import { FORM_BOARD } from "../../constants/urls";
 import { useUserModel } from "../../../utils/authenticationUtils";
-import type { FormStatus } from "@/app/types/models";
+import type { FormAssignee, FormStatus } from "@/app/types/models";
 import { isFormValid, processMessages } from "./_helpers";
 import type { UIMessage, FormChanges } from "./types";
 import { FormErrorSummary } from "./FormErrorSummary";
@@ -22,7 +22,7 @@ import {
 	createAuditLog,
 	createBusiness,
 	assignUserToFormWithThread,
-	getAssigneesForForm
+	hasBeenSubmitted
 
 } from "../../../utils/apis";
 import { FORM_STATUS, PERMISSIONS } from "@/app/constants/models";
@@ -336,16 +336,8 @@ export function FormContent() {
 				if (!team?.assistantManagerUserID) return;
 				assigneeId = team.assistantManagerUserID;
 			}
-			
-			let formAssignee;
-			try {
-				const res = await getAssigneesForForm(form.id); 
-				formAssignee = res;
-			} catch (error) {
-				formAssignee = null; 
-			}
-			
-			if (!(formAssignee)) {
+						
+			if (!(await hasBeenSubmitted(form.id))) {
 				await assignUserToFormWithThread(form.id, assigneeId);
 			}
 			
