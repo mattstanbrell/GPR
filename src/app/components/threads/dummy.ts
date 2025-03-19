@@ -1,6 +1,15 @@
 import { generateClient } from "@aws-amplify/api";
 import { Schema } from "../../../../amplify/data/resource";
-import { assignUserToFormWithThread, assignUserToThread, createFormWithThread, createMessage, createUser } from "@/utils/apis";
+import { 
+    assignUserToFormWithThread, 
+    assignUserToThread, 
+    createFormWithThread, 
+    createMessage, 
+    createTeam, 
+    createUser, 
+    addUserToTeam,
+    getUserById, 
+    assignUserToForm } from "@/utils/apis";
 import { UserType } from "../../types/threads";
 
 const client = generateClient<Schema>();
@@ -87,69 +96,66 @@ export const seed = async (currentUser?: UserType) => {
     const bob = await createUser("bob.dylan@gmail.com", "Bob", "Dylan");
     const charlie = await createUser("charlie.brown@gmail.com", "Charlie", "Brown");
     const dave = await createUser("dave.jones@gmail.com", "Dave", "Jones");
+    const eve = await createUser("eve.emilia@gmail.com", "Eve", "Emilia");
     
-    if (!alice || !bob || !charlie || !dave) return;
+    if (!alice || !bob || !charlie || !dave || !eve) return;
+
+    // create Teams
+    const team1 = await createTeam("Team1", alice.id, bob.id);
+    const team2 = await createTeam("Team2", charlie.id, dave.id);
+
+    if (!team1 || !team2) return;
+
+    // add users to teams
+    await addUserToTeam(currentUser.id, team1.id);
+    await addUserToTeam(alice.id, team1.id);
+    await addUserToTeam(bob.id, team1.id);
+
+    await addUserToTeam(charlie.id, team2.id);
+    await addUserToTeam(dave.id, team2.id);
+    await addUserToTeam(eve.id, team2.id);
+
     
+
     // create forms and threads
     const {form: form1, thread: thread1} = await createFormWithThread(
-        "11", "Need sauce", 20, 
         {
-            day: 1, 
-            month: 1, 
-            year: 2025
-        }, 
-        {
-            name: {firstName: "Alice", lastName: "Smith"}, 
-            address: {lineOne: "1", lineTwo: "2", townOrCity: "London", postcode: "E1 1AA"}
-        },
-        "COMPLETED", currentUser.id, "1","good", 
-        "Hotel for Jim"
+            creatorID: currentUser.id,
+            status: "DRAFT",
+            title: "Meeting for Alice",
+        }
     );
 
     const {form: form2, thread: thread2} = await createFormWithThread(
-        "12", "Need more details", 30, 
         {
-            day: 2, 
-            month: 2, 
-            year: 2025
-        }, 
-        {
-            name: {firstName: "Bob", lastName: "Dylan"}, 
-            address: {lineOne: "3", lineTwo: "4", townOrCity: "Manchester", postcode: "M1 1AA"}
-        },
-        "COMPLETED", currentUser.id, "2", "detailed", 
-        "Conference for Bob"
+            creatorID: currentUser.id,
+            status: "DRAFT",
+            title: "Meeting for Bob",
+        }
     );
 
     const {form: form3, thread: thread3} = await createFormWithThread(
-        "13", "Need approval", 40, 
         {
-            day: 3, 
-            month: 3, 
-            year: 2025
-        }, 
-        {
-            name: {firstName: "Charlie", lastName: "Brown"}, 
-            address: {lineOne: "5", lineTwo: "6", townOrCity: "Birmingham", postcode: "B1 1AA"}
-        },
-        "DRAFT", currentUser.id, "3", "urgent", 
-        "Meeting for Charlie"
+            creatorID: charlie.id,
+            status: "DRAFT",
+            title: "Meeting for Charlie",
+        }
     );
 
+    const {form: form4} = await createFormWithThread(
+        {
+            creatorID: currentUser.id,
+            status: "SUBMITTED",
+            title: "Hotel for Steve",
+        }
+    );
+
+
     // assign users to forms
-    assignUserToFormWithThread(form1.id, alice.id);
-    assignUserToFormWithThread(form1.id, bob.id);
-
-    assignUserToFormWithThread(form2.id, bob.id);
-    assignUserToFormWithThread(form2.id, charlie.id);
-
-    assignUserToFormWithThread(form3.id, charlie.id);
-    assignUserToFormWithThread(form3.id, dave.id);
-
-    // assign creater of form to thread
-    assignUserToThread(thread1.id, currentUser.id);
-    assignUserToThread(thread2.id, currentUser.id);
-    assignUserToThread(thread3.id, currentUser.id);
+    assignUserToForm(form1.id, alice.id);
+    assignUserToForm(form2.id, bob.id);
+    assignUserToForm(form3.id, charlie.id);
+    assignUserToForm(form4.id, alice.id);
 
 
     // add messages to thread 1
@@ -160,8 +166,12 @@ export const seed = async (currentUser?: UserType) => {
 
     // add messages to thread 2
     await createMessage(bob.id, thread2.id, "I think we need to add more detail to the requirements", new Date().toISOString());
-    await createMessage(charlie.id, thread2.id, "Really? I thought we had everything we needed", new Date().toISOString());
+    await createMessage(currentUser.id, thread2.id, "Really? I thought we had everything we needed", new Date().toISOString());
     await createMessage(bob.id, thread2.id, "I think we'll need more than that, what else is available?", new Date().toISOString());
+
+    // add messages to thread 3
+    await createMessage(charlie.id, thread3.id, "I think we need to add more detail to the requirements", new Date().toISOString());
+    await createMessage(dave.id, thread3.id, "Really? I thought we had everything we needed", new Date().toISOString());
 
     console.log("Seeded database");
 }
