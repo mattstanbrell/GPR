@@ -30,14 +30,6 @@ const Abc = ( {fontSize, font, fontColour, bgColour, spacing} : AbcdProps) => {
       "--font-family",
       font
     );
-    // root?.style.setProperty(
-    //   "--hounslow-primary",
-    //   fontColour
-    // );
-    // root?.style.setProperty(
-    //   "--color-background-lightest",
-    //   bgColour
-    // );
     root?.style.setProperty(
       "--word-spacing",
       `${spacing*WORD_SPACING_SCALE + 0.25}em` // base word-spacing is "normal", which by default is 0.25 rem
