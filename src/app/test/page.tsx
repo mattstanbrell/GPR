@@ -146,12 +146,12 @@ export default function NewFormPage() {
 		try {
 			// Step 1: Create a new Child record
 			const childData = {
-				firstName: "Charlie",
-				lastName: "Bucket",
-				caseNumber: "12345",
-				dateOfBirth: "2015-01-01", // January 1, 2015
-				sex: "Male",
-				gender: "Male",
+				firstName: "Pippa",
+				lastName: "Pepper",
+				caseNumber: "23456",
+				dateOfBirth: "2016-05-12", // May 12, 2016
+				sex: "Female",
+				gender: "Female",
 			};
 			console.log("📝 Attempting to create child with data:", childData);
 
@@ -203,7 +203,7 @@ export default function NewFormPage() {
 				setChildren(childrenDetails);
 			}
 
-			setChildCreationResult(`Successfully created child: Charlie Bucket (ID: ${newChild.id})`);
+			setChildCreationResult(`Successfully created child: Pippa Pepper (ID: ${newChild.id})`);
 		} catch (err) {
 			console.error("Error creating test child:", err);
 			setChildCreationResult(err instanceof Error ? err.message : String(err));
@@ -1004,7 +1004,7 @@ export default function NewFormPage() {
 										onClick={createTestChild}
 										disabled={creatingChild || !userModel}
 									>
-										{creatingChild ? "Creating..." : "Create Test Child (Charlie Bucket)"}
+										{creatingChild ? "Creating..." : "Create Test Child (Pippa Pepper)"}
 									</button>
 
 									{childCreationResult && (
