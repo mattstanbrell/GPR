@@ -80,6 +80,12 @@ export function RecurringPaymentSection({ form, handleFormChange, disabled }: Re
 		} else if (condition === "date") {
 			handleFormChange("recurrencePattern.neverEnds", false);
 			handleFormChange("recurrencePattern.maxOccurrences", undefined);
+			// Set a default end date if none exists
+			if (!pattern?.endDate) {
+				const date = new Date();
+				date.setMonth(date.getMonth() + 6); // Default to 6 months from now
+				handleFormChange("recurrencePattern.endDate", date.toISOString().split("T")[0]);
+			}
 		} else if (condition === "occurrences") {
 			handleFormChange("recurrencePattern.neverEnds", false);
 			handleFormChange("recurrencePattern.endDate", undefined);

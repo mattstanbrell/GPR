@@ -57,6 +57,7 @@ const schema = a
 
 		Team: a
 			.model({
+				name: a.string(),
 				managerUserID: a.id(),
 				assistantManagerUserID: a.id(),
 				members: a.hasMany("User", "teamID"),
@@ -151,8 +152,8 @@ const schema = a
 				firstName: a.string().required(),
 				lastName: a.string().required(),
 				dateOfBirth: a.date().required(),
-				sex: a.string().required(),
-				gender: a.string().required(),
+				sex: a.string(),
+				gender: a.string(),
 				user: a.hasMany("UserChild", "childID"),
 				form: a.hasMany("Form", "childID"),
 			})
