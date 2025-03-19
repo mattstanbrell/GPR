@@ -4,6 +4,7 @@ import React from "react"
 import { ADMIN } from "@/app/constants/urls";
 import { redirect } from "next/navigation";
 import { addUserToTeam, createChild, createTeam, deleteChild, deleteTeam, 
+    linkUserToChild, 
     updateChild, updateTeam, updateUser } from "@/utils/apis";
 
 export const handleUserFormSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -30,7 +31,10 @@ export const handleUserFormSubmit = async (event: React.FormEvent<HTMLFormElemen
 export const handleChildFormSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault(); 
     const formData = new FormData(event.currentTarget); 
-    const childId = formData.get("childId"); 
+    const childId = formData.get("childId") as string; 
+    const socialWorkerId = formData.get("socialworker") as string; 
+
+    console.log("handler",socialWorkerId)
     
     // construct date of birth
     const day = (formData.get("dd") as string).padStart(2, "0");
@@ -48,10 +52,11 @@ export const handleChildFormSubmit = async (event: React.FormEvent<HTMLFormEleme
     }
     
     // create or update child form
+    let child;
     if (childId) {
-        await updateChild(childId as string, data); 
+        child = await updateChild(childId as string, data); 
     } else {
-        await createChild(
+        child = await createChild(
             data.caseNumber, 
             data.firstName, 
             data.lastName, 
@@ -59,6 +64,10 @@ export const handleChildFormSubmit = async (event: React.FormEvent<HTMLFormEleme
             data.sex, 
             data.gender
         ); 
+    }
+
+    if (child && socialWorkerId) {
+        await linkUserToChild(socialWorkerId, child.id);
     }
 
     redirect(ADMIN);
