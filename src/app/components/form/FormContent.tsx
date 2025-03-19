@@ -9,7 +9,7 @@ import { FormLayout } from "./FormLayout";
 import { NormLayout } from "./NormLayout";
 import { FORM_BOARD } from "../../constants/urls";
 import { useUserModel } from "../../../utils/authenticationUtils";
-import type { FormAssignee, FormStatus } from "@/app/types/models";
+import type { FormStatus } from "@/app/types/models";
 import { isFormValid, processMessages } from "./_helpers";
 import type { UIMessage, FormChanges } from "./types";
 import { FormErrorSummary } from "./FormErrorSummary";
