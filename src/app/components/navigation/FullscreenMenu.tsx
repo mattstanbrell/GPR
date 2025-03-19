@@ -1,11 +1,13 @@
 
 import { getMenuItems } from '@/app/components/navigation/_helpers'
 
-const FullscreenMenu = ({handleToggle, handleClick} : {handleToggle: () => void, handleClick: () => void}) => {
-
+const FullscreenMenu = (
+    {handleToggle } : 
+    {handleToggle: () => void}
+) => {
     const userGroup = '';
     const isTitled = true;
-    const menuItems = getMenuItems(userGroup, isTitled, handleClick);
+    const menuItems = getMenuItems(userGroup, isTitled);
 
     return (
         <div className="size-full p-5 bg-[var(--hounslow-primary)] flex justify-center text-white font-bold text-3xl"> 

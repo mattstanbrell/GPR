@@ -3,10 +3,10 @@
 import { getMenuItems } from "@/app/components/navigation/_helpers";
 import { Button } from "@/app/components/navigation/Buttons";
 
-const DesktopMenu = ({ handleClick }: { handleClick: () => void }) => {
+const DesktopMenu = () => {
 	const userGroup = "";
 	const isTitled = false;
-	const menuItems = getMenuItems(userGroup, isTitled, handleClick);
+	const menuItems = getMenuItems(userGroup, isTitled);
 
 	return (
 		<div className="flex w-full justify-end pt-2">
@@ -42,20 +42,18 @@ const Menu = ({
 	isMobile,
 	toggleMobileMenu,
 	isMenuOpen,
-	handleClick,
 }: {
-	isSignedIn: boolean;
-	isMobile: boolean;
-	toggleMobileMenu: () => void;
-	isMenuOpen: boolean;
-	handleClick: () => void;
+	isSignedIn: boolean,
+	isMobile: boolean,
+	toggleMobileMenu: () => void,
+	isMenuOpen: boolean,
 }) => {
 	return (
 		<>
 			{isSignedIn && isMobile ? (
 				<MobileMenu handleToggle={toggleMobileMenu} isMenuOpen={isMenuOpen} />
 			) : isSignedIn ? (
-				<DesktopMenu handleClick={handleClick} />
+				<DesktopMenu />
 			) : (
 				<></>
 			)}

@@ -9,7 +9,6 @@ import Header from "@/app/components/Header";
 import FullscreenMenu from "@/app/components/navigation/FullscreenMenu";
 import { useState, useEffect, createContext } from "react";
 import { fetchUserAttributes, getCurrentUser } from "aws-amplify/auth";
-import { signInWithRedirect, signOut } from "aws-amplify/auth";
 import useIsMobileWindowSize, { useResponsiveMenu } from "@/utils/responsivenessHelpers";
 import { User } from "./types/models";
 import { getUserByEmail } from "@/utils/apis";
@@ -83,20 +82,6 @@ export default function RootLayout({
 
 	}, []);
 
-	const handleClick = async () => {
-		try {
-			if (isSignedIn) {
-				await signOut();
-			} else {
-				await signInWithRedirect({
-					provider: { custom: "MicrosoftEntraID" },
-				});
-			}
-		} catch (error) {
-			console.error("Error signing in:", error);
-		}
-	};
-
 	return (
 		<AppContext.Provider value={{ currentUser, isSignedIn, setUser, isMobile, isLoading }}>
 			<html
@@ -112,11 +97,9 @@ export default function RootLayout({
 							toggleMobileMenu={toggleMobileMenu}
 							isMenuOpen={isMenuOpen}
 							isSignedIn={isSignedIn}
-							handleClick={handleClick}
 						/>
 						<FullscreenMenu
 							handleToggle={toggleMobileMenu}
-							handleClick={handleClick}
 						/>
 					</body>
 				) : (
@@ -127,7 +110,6 @@ export default function RootLayout({
 							toggleMobileMenu={toggleMobileMenu}
 							isMenuOpen={isMenuOpen}
 							isSignedIn={isSignedIn}
-							handleClick={handleClick}
 						/>
 						<div className="govuk-width-container">
 							<main className="govuk-main-wrapper">{children}</main>
