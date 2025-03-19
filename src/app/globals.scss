@@ -65,25 +65,24 @@ background-color: color.adjust($color-accent, $lightness: -15%);  // Darken on h
 
 $font-size: 1;
 $font-family: "lexend";
-$spacing: 0;
+$word-spacing: normal;
+$letter-spacing: normal;
 
 :root {
   --font-size: #{$font-size};
   --font-family: #{$font-family};
-  --spacing: #{$spacing};
+  --word-spacing: #{$word-spacing};
+  --letter-spacing: #{$letter-spacing};
 }
 
 body {
   font-family: var(--font-family);
   color: var(--hounslow-primary);
   background-color: var(--color-background-lightest);
-  letter-spacing: var(--spacing);
-  word-spacing: var(--spacing);
+  word-spacing: var(--word-spacing);
+  letter-spacing: var(--letter-spacing);
 }
 
-// p, span, div, h1, h2, h3, h4, h5, h6, button, input, textarea {
-//   font-size: calc(1em * var(--font-size)); // Scale relative to parent elements
-// }
 html {
   font-size: calc(16px * var(--font-size)); // Base font size scaled by --font-size
 }
