@@ -170,7 +170,7 @@ export function FormContent() {
 		}
 
 		try {
-			const newForm = await createFormWithThread({
+			const {form: newForm} = await createFormWithThread({
 				...form,
 				status: "DRAFT",
 				creatorID: userModel.id,
