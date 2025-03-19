@@ -165,15 +165,34 @@ const tools = [
 // Define the Nullable type that was missing
 type Nullable<T> = T | null;
 
-async function lookupCaseNumber(firstName: string | undefined, lastName: string | undefined, userID: string) {
+async function lookupCaseNumber(firstName: string | undefined, lastName: string | undefined, cognitoUserId: string) {
+	console.log("lookupCaseNumber", firstName, lastName, cognitoUserId);
 	// Convert undefined or empty strings to null for consistent handling
 	const firstNameQuery = firstName && firstName.trim() !== "" ? firstName : null;
 	const lastNameQuery = lastName && lastName.trim() !== "" ? lastName : null;
 
-	// First, get all UserChild records for this user
+	// First, find the User associated with this Cognito userID
+	const { data: allUsers, errors: userErrors } = await client.models.User.list({
+		limit: 100,
+	});
+
+	if (userErrors) {
+		throw new Error(`Error querying users: ${userErrors.map((e) => e.message).join(", ")}`);
+	}
+
+	// Find the user whose profileOwner starts with the cognitoUserId
+	const userData = allUsers?.find((user) => user.profileOwner?.startsWith(cognitoUserId));
+
+	if (!userData) {
+		throw new Error(`No user found with Cognito ID: ${cognitoUserId}`);
+	}
+
+	console.log("Found user with ID:", userData.id);
+
+	// Then, get all UserChild records for this user using the User model ID
 	const { data: userChildren, errors: userChildErrors } = await client.models.UserChild.list({
 		// @ts-ignore - The type definitions don't match the actual API
-		filter: { userID: { eq: userID } },
+		filter: { userID: { eq: userData.id } },
 	});
 
 	if (userChildErrors) {
@@ -523,7 +542,7 @@ async function handleToolCalls(
 		id: string;
 	}>,
 	messages: ChatCompletionMessageParam[],
-	userID: string,
+	cognitoUserId: string,
 ) {
 	// Log all tool calls being made
 	// console.log("\n=== Tool Calls Being Made ===");
@@ -539,8 +558,8 @@ async function handleToolCalls(
 		switch (toolCall.function.name) {
 			case "lookupCaseNumber": {
 				const { firstName, lastName } = args;
-				// We can safely use userID here since we check at the handler level
-				const result = await lookupCaseNumber(firstName, lastName, userID);
+				// We pass the Cognito ID, then the function will resolve the actual User ID
+				const result = await lookupCaseNumber(firstName, lastName, cognitoUserId);
 				// console.log("\n=== Tool Response: lookupCaseNumber ===");
 				// console.log("Query:", name);
 				// console.log("Response:", JSON.stringify(result, null, 2));
@@ -595,7 +614,7 @@ async function processLLMResponse(
 	messages: ChatCompletionMessageParam[],
 	currentFormState: Schema["Form"]["type"],
 	formID: string,
-	userID: string,
+	cognitoUserId: string,
 ) {
 	const llmMessage = completion.choices[0].message;
 
@@ -610,7 +629,7 @@ async function processLLMResponse(
 			tool_calls: llmMessage.tool_calls,
 		});
 
-		await handleToolCalls(llmMessage.tool_calls, messages, userID);
+		await handleToolCalls(llmMessage.tool_calls, messages, cognitoUserId);
 		// console.log("messages after tool call: ", messages);
 
 		console.log("Calling GPT-4o with messages:", JSON.stringify(messages, null, 2));
@@ -636,7 +655,7 @@ async function processLLMResponse(
 			),
 		);
 
-		return processLLMResponse(followUpCompletion, messages, currentFormState, formID, userID);
+		return processLLMResponse(followUpCompletion, messages, currentFormState, formID, cognitoUserId);
 	}
 
 	messages.push({
@@ -793,11 +812,11 @@ async function searchBusinesses(name: string) {
 export const handler: Schema["Norm"]["functionHandler"] = async (event) => {
 	// Extract user ID directly from Cognito identity
 	// console.log("event identity: ", event.identity);
-	const userIdFromIdentity = (event.identity as { sub: string }).sub;
-	// console.log("Handler started with userID:", userIdFromIdentity);
+	const cognitoUserId = (event.identity as { sub: string }).sub;
+	// console.log("Handler started with userID:", cognitoUserId);
 	// console.log("Event arguments:", JSON.stringify(event.arguments, null, 2));
 
-	if (!userIdFromIdentity) {
+	if (!cognitoUserId) {
 		return {
 			followUp: "Unable to process your request. User authentication is required.",
 			conversationID: "",
@@ -820,7 +839,7 @@ export const handler: Schema["Norm"]["functionHandler"] = async (event) => {
 	let messagesWithSystem = messagesJSON;
 	if (!messagesJSON.length || messagesJSON[0].role !== "system") {
 		// Only fetch user details if we need to create a system message
-		const userDetails = await getUserDetails(userIdFromIdentity);
+		const userDetails = await getUserDetails(cognitoUserId);
 
 		const systemMessage = {
 			role: "system" as const,
@@ -1458,13 +1477,7 @@ Explain limitations if the social worker requests:
 		),
 	);
 
-	const result = await processLLMResponse(
-		completion,
-		messagesWithSystem,
-		currentFormStateJSON,
-		formID,
-		userIdFromIdentity,
-	);
+	const result = await processLLMResponse(completion, messagesWithSystem, currentFormStateJSON, formID, cognitoUserId);
 
 	// console.log("Result from processLLMResponse:", {
 	// 	followUp: result.followUp,
@@ -1497,7 +1510,7 @@ Explain limitations if the social worker requests:
 						// Start with the base update data as a Record type
 						const updateData: Record<string, unknown> = {
 							id: formID,
-							creatorID: userIdFromIdentity,
+							creatorID: cognitoUserId,
 						};
 
 						// Only add non-empty string fields from result.formData
