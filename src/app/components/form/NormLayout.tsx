@@ -582,7 +582,7 @@ export function NormLayout({
 									disabled={!isFormValid}
 									aria-label="Review form before submitting"
 								>
-									Review Form
+									{isFormValid ? "Review Form" : "Form Incomplete"}
 								</button>
 							)}
 							<button

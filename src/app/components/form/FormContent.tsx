@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, useContext } from "react";
 import type { Schema } from "../../../../amplify/data/resource";
 import { useRouter, useSearchParams } from "next/navigation";
 import { generateClient } from "@aws-amplify/api";
@@ -23,7 +23,7 @@ import {
 	createBusiness,
 } from "../../../utils/apis";
 import { FORM_STATUS, PERMISSIONS } from "@/app/constants/models";
-import { useMediaQuery } from "react-responsive";
+import { AppContext } from "@/app/layout";
 
 export function FormContent() {
 	const router = useRouter();
@@ -77,7 +77,7 @@ export function FormContent() {
 	const [mobileView, setMobileView] = useState<"norm" | "form">("norm"); // State for mobile toggle
 	const formCreationAttempted = useRef(false);
 
-	const isMobile = useMediaQuery({ query: "(max-width: 767px)" });
+	const { isMobile } = useContext(AppContext);
 
 	const formFields = {
 		simple: [
@@ -220,14 +220,38 @@ export function FormContent() {
 			if (!form) return;
 
 			setForm((prevForm: Partial<Schema["Form"]["type"]>) => {
-				let newForm = { ...prevForm, [field]: value };
+				const newForm = { ...prevForm };
 
-				if (field === "expenseType" && value === "PREPAID_CARD") {
-					newForm = {
-						...newForm,
-						isRecurring: false,
-						recurrencePattern: undefined,
+				// Skip read-only fields
+				if (field === "createdAt" || field === "updatedAt" || field === "id") {
+					return newForm;
+				}
+
+				// Handle nested field updates (e.g., recurrencePattern.frequency)
+				if (field.includes(".")) {
+					const [parentField, childField] = field.split(".") as [keyof Schema["Form"]["type"], string];
+
+					// Skip if parent field is read-only
+					if (parentField === "createdAt" || parentField === "updatedAt" || parentField === "id") {
+						return newForm;
+					}
+
+					const parentValue = prevForm[parentField] ?? {};
+					const updatedParentValue = {
+						...(typeof parentValue === "object" ? parentValue : {}),
+						[childField]: value,
 					};
+
+					// Safe assignment with type assertion
+					(newForm as Record<string, unknown>)[parentField] = updatedParentValue;
+				} else {
+					// Safe assignment for top-level fields
+					(newForm as Record<string, unknown>)[field] = value;
+
+					if (field === "expenseType" && value === "PREPAID_CARD") {
+						newForm.isRecurring = false;
+						newForm.recurrencePattern = undefined;
+					}
 				}
 
 				if (updateDb && newForm.id) {
