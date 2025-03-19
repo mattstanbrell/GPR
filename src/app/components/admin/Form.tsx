@@ -5,7 +5,7 @@ import React, { useEffect, useState } from "react"
 import { redirect } from "next/navigation"
 import type { Child, Team, User } from "@/app/types/models"
 import { SecondaryButton, SubmitButton, WarningButton } from "@/app/components/admin/Buttons"
-import { listTeams, getManagers, getSocialWorkers, getUsersForChild } from "@/utils/apis"
+import { listTeams, getManagers, getSocialWorkers } from "@/utils/apis"
 import { ADMIN } from "@/app/constants/urls"
 import { InputTextTableRow, InputDateTableRow, 
         InputSelectTableRow, InputHiddenTableRow } from "@/app/components/admin/FormElements"
@@ -51,7 +51,6 @@ export const UserForm = ({data} : {data: User | null}) => {
 
 export const ChildForm = ({data} : {data: Child | null}) => {
     const [socialWorkerNameIds, setSocialWorkerNameIds] = useState<SelectNameID[]>([]);
-    const [assignedSocialWorkerId, setAssignedSocialWorkerId] = useState<string>(""); 
     const childId = data && data.id ? data.id : "";
 
     useEffect(() => {
@@ -67,17 +66,7 @@ export const ChildForm = ({data} : {data: Child | null}) => {
             }
             setSocialWorkerNameIds(nameIds); 
         }
-        const fetchAssignedSocialWorkerId = async () => {
-            if (data) {
-                const assignedSocialWorkers = await getUsersForChild(data.id)
-                if (assignedSocialWorkers.length > 0) {
-                    const socialWorker = assignedSocialWorkers.pop(); 
-                    setAssignedSocialWorkerId(socialWorker ? socialWorker.id : "")
-                }
-            }
-        }
         fetchSocialWorkers(); 
-        fetchAssignedSocialWorkerId();
     }, [data]);
 
     const formElements = (
