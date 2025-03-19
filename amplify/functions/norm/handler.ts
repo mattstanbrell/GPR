@@ -215,7 +215,7 @@ async function lookupCaseNumber(firstName: string | undefined, lastName: string 
 	}
 
 	// Map children to the focused return type with calculated age
-	const mapChildToResponse = (child: Schema["Child"]["type"]): ChildResponse => ({
+	const mapChildToResponse = (child: NonNullable<Schema["Child"]["type"]>): ChildResponse => ({
 		caseNumber: child.caseNumber,
 		firstName: child.firstName,
 		lastName: child.lastName,
@@ -227,7 +227,7 @@ async function lookupCaseNumber(firstName: string | undefined, lastName: string 
 	if (!firstNameQuery && !lastNameQuery) {
 		return {
 			message: "Found no exact match, here are all the children associated with the social worker",
-			children: children.map(mapChildToResponse),
+			children: children.filter((child): child is NonNullable<typeof child> => child !== null).map(mapChildToResponse),
 		};
 	}
 
@@ -235,6 +235,7 @@ async function lookupCaseNumber(firstName: string | undefined, lastName: string 
 	if (firstNameQuery && lastNameQuery) {
 		const exactMatch = children.find(
 			(child) =>
+				child !== null &&
 				child.firstName.toLowerCase() === firstNameQuery.toLowerCase() &&
 				child.lastName.toLowerCase() === lastNameQuery.toLowerCase(),
 		);
@@ -249,6 +250,7 @@ async function lookupCaseNumber(firstName: string | undefined, lastName: string 
 
 	// If no exact match, look for partial matches
 	const matches = children.filter((child) => {
+		if (child === null) return false;
 		const matchFirstName = firstNameQuery ? child.firstName.toLowerCase().includes(firstNameQuery.toLowerCase()) : true;
 		const matchLastName = lastNameQuery ? child.lastName.toLowerCase().includes(lastNameQuery.toLowerCase()) : true;
 		return matchFirstName && matchLastName;
@@ -264,7 +266,7 @@ async function lookupCaseNumber(firstName: string | undefined, lastName: string 
 	// If no matches found, return all children
 	return {
 		message: "Found no exact match, here are all the children associated with the social worker",
-		children: children.map(mapChildToResponse),
+		children: children.filter((child): child is NonNullable<typeof child> => child !== null).map(mapChildToResponse),
 	};
 }
 
