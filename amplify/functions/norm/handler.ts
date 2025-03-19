@@ -13,7 +13,7 @@ import type { ChatCompletionMessageParam } from "openai/resources/chat/completio
 const { resourceConfig, libraryOptions } = await getAmplifyDataClientConfig(env);
 Amplify.configure(resourceConfig, libraryOptions);
 
-// Now we can use generateClient
+// Now we can use generateClien
 const client = generateClient<Schema>();
 
 const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
