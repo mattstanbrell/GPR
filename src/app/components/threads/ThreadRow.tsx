@@ -33,7 +33,6 @@ const ThreadRow = ({ name, threadId, message, unreadCount, className, selected, 
     const handleClick = async () => {
         if (!currentUser || !threadId) return;
 
-        console.log("ThreadRow Clicked");
         if (setThreads) {
             setThreads((prev) => {
                 return prev.map((thread) => {
