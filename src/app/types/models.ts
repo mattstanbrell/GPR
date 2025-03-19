@@ -14,3 +14,4 @@ export type FormStatus = Form["status"];
 export type PermissionsGroup = User["permissionGroup"]; 
 export type Message = Schema["Message"]["type"];
 export type UserThread = Schema["UserThread"]["type"];
+export type Team = Schema["Team"]["type"]; 

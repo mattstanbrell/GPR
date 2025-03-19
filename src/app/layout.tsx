@@ -86,7 +86,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
 	const handleClick = async () => {
 		try {
 			if (isSignedIn) {
-				await signOut();
+				await signOut({ global: true });
 			} else {
 				await signInWithRedirect({
 					provider: { custom: "MicrosoftEntraID" },

@@ -20,7 +20,9 @@ import {
 	getTeamByID,
 	assignUserToForm,
 	getNormConversationByFormId,
+	createAuditLog,
 	createBusiness,
+
 } from "../../../utils/apis";
 import { FORM_STATUS, PERMISSIONS } from "@/app/constants/models";
 import { AppContext } from "@/app/layout";
@@ -330,7 +332,7 @@ export function FormContent() {
 				assigneeId = team.assistantManagerUserID;
 			}
 			await assignUserToForm(form.id, assigneeId);
-
+			await createAuditLog(`${userModel.firstName} ${userModel.lastName} submitted a form`, userModel.id, form.id);
 			router.push(FORM_BOARD);
 		} catch (_error: unknown) {
 			setErrorMessage(_error instanceof Error ? _error.message : String(_error));

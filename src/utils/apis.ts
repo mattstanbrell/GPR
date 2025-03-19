@@ -33,7 +33,13 @@ type UserUpdates = {
 		fontColour: string;
 		bgColour: string;
 		spacing: number;
-	};
+	},
+	address?: {
+		lineOne?: string, 
+		lineTwo?: string,
+		townOrCity?: string,
+		postcode?: string,
+	}; 
 };
 
 type ChildUpdates = {
@@ -55,7 +61,16 @@ type AuditLogUpdates = {
 	formID?: string;
 };
 
+type UserSettingsUpdates = {
+	fontSize?: number;
+	font?: string;
+	fontColour?: string;
+	bgColour?: string;
+	spacing?: number;
+};
+
 type TeamUpdates = {
+	name?: string;
 	managerUserID?: string;
 	assistantManagerUserID?: string;
 };
@@ -134,6 +149,27 @@ export async function deleteUser(userId: string) {
 	return data;
 }
 
+export async function getManagers() {
+	const { data, errors } = await client.models.User.list({
+		filter: { permissionGroup: { eq: 'MANAGER'}}
+	});
+	if (errors) {
+		throw new Error(errors[0].message);
+	}
+	return data;
+}
+
+export async function getSocialWorkers() {
+	const { data, errors } = await client.models.User.list({
+		filter: { permissionGroup: { eq: 'SOCIAL_WORKER'}}
+	});
+	if (errors) {
+		throw new Error(errors[0].message);
+	}
+	return data;
+}
+
+
 // ----------Business APIs-----------
 export async function createBusiness(
 	name: string,
@@ -157,8 +193,9 @@ export async function createBusiness(
 }
 
 // ------------Team APIs -------------
-export async function createTeam(managerUserID: string, assistantManagerUserID: string) {
+export async function createTeam(name: string, managerUserID: string, assistantManagerUserID: string) {
 	const { data, errors } = await client.models.Team.create({
+		name: name, 
 		managerUserID: managerUserID,
 		assistantManagerUserID: assistantManagerUserID,
 	});
@@ -169,7 +206,15 @@ export async function createTeam(managerUserID: string, assistantManagerUserID: 
 }
 
 export async function addUserToTeam(userID: string, teamID: string) {
-	const data = await updateUser(userID, { teamID: teamID });
+	const { data, errors } = await client.models.User.update({
+		id: userID, 
+		teamID: teamID, 
+	})
+
+	if (errors) {
+		return new Error(errors[0].message)
+	}
+
 	return data;
 }
 
@@ -685,7 +730,10 @@ export async function deleteReceipt(receiptId: string) {
 // -------------- AuditLog APIs --------------
 
 // Create a new audit log
-export async function createAuditLog(action: string, date: string, userID: string, formID: string) {
+export async function createAuditLog(action: string, userID: string, formID: string) {
+	// const date = new Date(2025, 2, 14).toISOString();
+	const date = new Date().toISOString();
+
 	const { data, errors } = await client.models.AuditLog.create({
 		action,
 		date,
@@ -797,6 +845,26 @@ export async function updateNormConversation(conversationId: string, messages: s
 	return data;
 }
 
+// ------------------ UserSettings APIs --------------
+// Get UserSettings by user ID
+export async function getUserSettingsByUserId(userId: string) {
+	const { data, errors } = await client.models.User.get({ id: userId });
+	if (errors) {
+		throw new Error(errors[0].message);
+	}
+	return data?.userSettings;
+}
+
+export async function updateUserSettings(userId: string, settingsUpdates: UserSettingsUpdates) {
+	const { data, errors } = await client.models.User.update({
+		id: userId,
+		userSettings: settingsUpdates,
+	});
+	if (errors) {
+		throw new Error(errors[0].message);
+	}
+	return data;
+}
 // -------------- Thread APIs --------------
 
 // Create a new thread
