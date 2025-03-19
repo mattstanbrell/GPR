@@ -1,8 +1,7 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 
-// default word spacing is 0.25em
-// default letter spacing is 0
-const SPACING_SCALE = 0.08;
+const WORD_SPACING_SCALE = 0.05;
+const LETTER_SPACING_SCALE = 0.05;
 
 type AbcdProps = {
   fontSize: number;
@@ -16,7 +15,6 @@ const Abc = ( {fontSize, font, fontColour, bgColour, spacing} : AbcdProps) => {
 
   useEffect(() => {
     const root = document.documentElement;
-    // Update the --hounslow-primary variable based on the theme
     root?.style.setProperty(
       "--font-size",
       `${fontSize}`
@@ -35,11 +33,11 @@ const Abc = ( {fontSize, font, fontColour, bgColour, spacing} : AbcdProps) => {
     );
     root?.style.setProperty(
       "--word-spacing",
-      `${spacing*SPACING_SCALE + 0.25}em` // base word-spacing is "normal", which by default is 0.25 rem
+      `${spacing*WORD_SPACING_SCALE + 0.25}em` // base word-spacing is "normal", which by default is 0.25 rem
     );
     root?.style.setProperty(
       "--letter-spacing",
-      `${spacing*SPACING_SCALE}em` // base letter-spacing is "noraml", which by default is 0
+      `${spacing*LETTER_SPACING_SCALE}em` // base letter-spacing is "noraml", which by default is 0
     );
     
   }, [fontSize, font, fontColour, bgColour, spacing]);
