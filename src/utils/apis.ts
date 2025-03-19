@@ -484,6 +484,18 @@ export async function getAssigneesForForm(formId: string) {
 	return users;
 }
 
+export async function hasBeenSubmitted(formId: string) {
+	const { data, errors } = await client.models.FormAssignee.list({
+		filter: { formID: { eq: formId } },
+	});
+
+	if (errors) {
+		return false; 
+	}
+	
+	return data.length > 0
+}
+
 //Add an algorithm which assigns forms to the manager with the fewest forms.
 
 // ------------------ UserChild link APISs --------------
