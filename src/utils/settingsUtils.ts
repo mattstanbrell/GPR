@@ -17,6 +17,7 @@ const userSettings: Record<string, ColourTheme[]> = {
     { colourVar: 'color-accent', colourVal: '#DD57F0' },
     { colourVar: 'color-button-primary', colourVal: '#352238' },
     { colourVar: 'color-button-primary-filter', colourVal: 'brightness(0) saturate(100%) invert(22%) sepia(9%) saturate(5876%) hue-rotate(253deg) brightness(93%) contrast(89%)' },
+    { colourVar: 'hounslow-menu-icon-filter', colourVal: 'filter: brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(7500%) hue-rotate(189deg) brightness(102%) contrast(102%);' },
     { colourVar: 'color-button-secondary', colourVal: '#A080A0' },
     { colourVar: 'color-reject', colourVal: '#C76565' },
     { colourVar: 'color-accept', colourVal: '#5E9A5E' },
@@ -37,32 +38,26 @@ const userSettings: Record<string, ColourTheme[]> = {
     { colourVar: 'color-background-lightest-filter', colourVal: 'brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(7500%) hue-rotate(189deg) brightness(102%) contrast(102%)' },
   ],
   'high-contrast': [
-
     { colourVar: 'hounslow-primary', colourVal: '#FF0' },
-
     { colourVar: 'hounslow-primary-filter', colourVal: '#FF0000' },
     { colourVar: 'hounslow-menu-icon-filter', colourVal: '#FF0000' },
-
     { colourVar: 'color-secondary', colourVal: '#FF0' },
     { colourVar: 'color-accent', colourVal: '#FF0' },
     { colourVar: 'color-button-primary', colourVal: '#00FF00' },
     { colourVar: 'color-button-primary-filter', colourVal: 'filter: invert(50%) sepia(89%) saturate(2298%) hue-rotate(85deg) brightness(129%) contrast(116%);' },
+    { colourVar: 'hounslow-menu-icon-filter', colourVal: 'filter: invert(50%) sepia(89%) saturate(2298%) hue-rotate(85deg) brightness(129%) contrast(116%);' },
     { colourVar: 'color-button-secondary', colourVal: '#00FF00' },
     { colourVar: 'color-reject', colourVal: '#00FF00' },
     { colourVar: 'color-accept', colourVal: '#00FF00' },
-
     { colourVar: 'color-suggestion', colourVal: '#FF0000' },
     { colourVar: 'color-warning', colourVal: '#FF0000' },
     { colourVar: 'color-reject-filter', colourVal: '#FF0000' },
     { colourVar: 'color-accept-filter', colourVal: '#FF0000' },
     { colourVar: 'color-suggestion-filter', colourVal: '#FF0000' },
     { colourVar: 'color-warning-filter', colourVal: '#FF0000' },
-
     { colourVar: 'color-text-light', colourVal: '#FFFFFF' },
-
     { colourVar: 'color-text-light-alt', colourVal: '#FF0000' },
     { colourVar: 'color-text-subheading', colourVal: '#FF0000' },
-
     { colourVar: 'color-background-darkest', colourVal: '#000' },
     { colourVar: 'color-background-dark', colourVal: '#000' },
     { colourVar: 'color-background-medium', colourVal: '#000' },

@@ -12,7 +12,7 @@ import { updateUserSettings, getUserSettingsByUserId } from '@/utils/apis';
 import { useContext } from "react"
 import { AppContext } from "@/app/layout"
 
-import Abc from '../components/settings/Abcd';
+// import { applyUserSettings } from '../components/settings/applyUserSettings';
 
 const DEFAULT_FONT_SIZE = 1;
 const DEFAULT_FONT = 'lexend';
@@ -46,7 +46,6 @@ export default function SettingsClient() {
   const [tempBgColour, setTempBgColour] = useState(DEFAULT_BG_COLOUR);
 
   const { currentUser, isLoading } = useContext(AppContext);
-  console.log("you are ",currentUser);
   const userModel = currentUser; 
 
   useEffect(() => {
@@ -134,7 +133,6 @@ export default function SettingsClient() {
   
   return (
     <>
-      <Abc fontSize={fontSize} font={font} fontColour={fontColour} bgColour={bgColour} spacing={spacing}/>
       {!isLoading ? (
         <div>
           <h1 className="govuk-heading-xl" >Settings</h1>
