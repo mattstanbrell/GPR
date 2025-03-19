@@ -16,7 +16,7 @@ const FilterByDateSelector = ({ logDatesSet, selectedDate, updateDate}: FilterBy
 
   return (
     <div className="form__control flex justify-between items-center md:gap-3">
-      <label className="govuk-label">Select Date</label>
+      <label className="govuk-label">Select Date:</label>
       <div className="flex items-center">
       <DatePicker
         selected={selectedDate}

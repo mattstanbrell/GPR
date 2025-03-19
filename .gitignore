@@ -48,8 +48,12 @@ amplifyconfiguration*
 NOTES.md
 TODO.md
 biome.json
+PROMPT.md
 
 # Ignore the entire test directory
-/src/app/test/
+# /src/app/test/
+
+# Ignore mock directory
+/src/app/mock/
 
 private/
