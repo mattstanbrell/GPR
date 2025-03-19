@@ -28,7 +28,8 @@ const Home = () => {
 		const verifySignIn = async () => {
 			if (!(isSignedIn) || !(currentUser)) {
 				// signed in with an undefined account, force re-login
-				await signOut();
+				// await signOut();
+				setTimeout(() => {}, 500);
 			}
 		}
 		verifySignIn(); 
