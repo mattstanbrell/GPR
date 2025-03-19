@@ -38,7 +38,7 @@ const schema = a
 				}),
 				createdBusinesses: a.hasMany("Business", "creatorID"),
 			})
-			.authorization((allow) => [allow.publicApiKey(), allow.authenticated()]),
+			.authorization((allow) => [allow.authenticated()]),
 
 		Business: a
 			.model({
