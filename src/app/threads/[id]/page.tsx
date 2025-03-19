@@ -10,7 +10,7 @@ import { AppContext } from "@/app/layout";
 
 
 const ThreadPage = ({ params }: { params: Promise<{ id: string }> }) => {
-	const { threads, loading: loadingThreads } = useContext(ThreadsContext);
+	const { threads, loading: loadingThreads, setThreads } = useContext(ThreadsContext);
 	const { currentUser } = useContext(AppContext);
 	const [currentThread, setCurrentThread] = useState<ThreadType | null>(null);
 	const [loading, setLoading] = useState(true);
@@ -24,6 +24,21 @@ const ThreadPage = ({ params }: { params: Promise<{ id: string }> }) => {
 			setLoading(true);
 			if (!currentUser) return;
 			if(!threadId) return;
+
+			// Check if the thread is already in the threads list
+			const existingThread = threads.find((t) => t.id === threadId);
+			// Check if unread count is non-zero
+			const unreadCount = existingThread?.unreadCount || 0;
+			if (existingThread && unreadCount > 0) {
+				// If the thread is already in the list and has unread messages
+				// Update the unread count and return
+				setThreads((prev) => prev.map((t) => {
+					if (t.id === threadId) {
+						return { ...t, unreadCount: 0 };
+					}
+					return t;
+				}));
+			}
 
 			try {
 				// Cleanup: Unsubscribe and prevent updates if component is unmounted
