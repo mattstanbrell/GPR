@@ -138,7 +138,7 @@ const MenuSignOutButton = ({isTitled}: {isTitled: boolean}) => {
 	const name = "Sign Out";
 
 	return (
-		<div onClick={() => signOut()}>
+		<div onClick={() => signOut({ global: true, oauth: { redirectUrl: "http://localhost:3000" } })}>
 			<Button src={src} alt={alt} name={name} isTitled={isTitled} />
 		</div>
 	);
