@@ -285,48 +285,25 @@ export async function createForm(formData: Partial<Schema["Form"]["type"]> & { c
 	return data;
 }
 
+// Create a form with a thread, creator, manager and assistant manager
 export async function createFormWithThread(
-	caseNumber: string,
-	reason: string,
-	amount: number,
-	dateRequired: { day: number; month: number; year: number },
-	recipientDetails: {
-		name: { firstName: string; lastName: string };
-		address: {
-			lineOne: string;
-			lineTwo: string;
-			townOrCity: string;
-			postcode: string;
-		};
-	},
-	status: "DRAFT" | "SUBMITTED" | "AUTHORISED" | "VALIDATED" | "COMPLETED",
-	creatorID: string,
-	childID?: string,
-	feedback?: string,
-	title?: string,
+	formData: Partial<Schema["Form"]["type"]> & { creatorID: string }
 ) {
-	const { data, errors } = await client.models.Form.create({
-		caseNumber,
-		reason,
-		amount,
-		dateRequired,
-		recipientDetails,
-		status,
-		creatorID,
-		childID,
-		feedback,
-		title,
-	});
+	const { data, errors } = await client.models.Form.create(formData);
 	if (errors) {
 		throw new Error(errors[0].message);
 	}
 	if (!data) {
 		throw new Error("Form could not be created.");
 	}
+	// create thread for the form
 	const thread = await createThread(data.id);
 	if (!thread) {
 		throw new Error("Thread could not be created.");
 	}
+	// assign creator, manager and assistant manager to thread
+	await assignUserTeamToThread(thread.id, formData.creatorID);
+
 	return { form: data, thread };
 }
 
@@ -871,11 +848,36 @@ export async function updateUserSettings(userId: string, settingsUpdates: UserSe
 export async function createThread(formID: string) {
 	const { data, errors } = await client.models.Thread.create({
 		formID,
+		lastMessageTime: new Date().toISOString(),
 	});
 	if (errors) {
 		throw new Error(errors[0].message);
 	}
 	return data;
+}
+
+export async function assignUserTeamToThread(threadID: string, creatorID: string) {
+	// get teamID from creatorID
+	const creator = await getUserById(creatorID);
+	if (!creator) {
+		throw new Error(`User ${creatorID} not found`);
+	}
+	const { data: team } = await creator.team();
+	if (!team) {
+		throw new Error(`User ${creatorID} is not part of a team`);
+	}
+
+	// collect assistant manager and manager from team
+	const managerID = team.managerUserID;
+	const assistantManagerID = team.assistantManagerUserID;
+	if (!managerID || !assistantManagerID) {
+		throw new Error("Team does not have a manager or assistant manager");
+	}
+
+	// assign creator, manager and assistant manager to thread
+	await assignUserToThread(threadID, creatorID);
+	await assignUserToThread(threadID, managerID);
+	await assignUserToThread(threadID, assistantManagerID);
 }
 
 export async function getThreadbyID(threadID: string) {
@@ -912,6 +914,17 @@ export async function getUsersInThread(threadID: string) {
 
 // Assign user to thread
 export async function assignUserToThread(threadID: string, userID: string) {
+	// Check if user already in thread
+	const { data: userThreads, errors: userThreadErrors } = await client.models.UserThread.list({
+		filter: { and: [{ threadID: { eq: threadID } }, { userID: { eq: userID } }] },
+	});
+	if (userThreadErrors) {
+		throw new Error("Unable to check if user is already in thread");
+	}
+	if (userThreads.length > 0) {
+		return userThreads[0];
+	}
+
 	const { data, errors } = await client.models.UserThread.create({
 		threadID,
 		userID,

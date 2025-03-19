@@ -22,7 +22,7 @@ const MessagesContainer = ({ messages, loading }: MessagesContainerProps) => {
     }, [messages]);
 
     return (
-        <div ref={containerRef} className="flex flex-col flex-1 gap-5 max-h-100 p-4 overflow-y-auto">
+        <div ref={containerRef} className="flex flex-col flex-1 gap-5 h-100 p-4 overflow-y-auto">
             {loading ?
                 <div className="flex flex-col flex-1 gap-5 max-h-100 p-4">
                     <Message loading={loading} className="bg-(--color-background-medium) self-end"/>
