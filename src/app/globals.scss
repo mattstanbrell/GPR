@@ -63,6 +63,44 @@ background-color: color.adjust($color-accent, $lightness: -15%);  // Darken on h
   }
 }
 
+.govuk-template {
+  background-color: var(--color-background-lightest);
+}
+
+.govuk-template__body {
+  background-color: var(--color-background-lightest);
+}
+
+.govuk-header {
+  background-color: var(--hounslow-primary);
+}
+
+.govuk-header__container {
+  border-bottom: 10px solid var(--hounslow-primary);
+}
+
+.govuk-footer {
+  background: var(--color-background-lightest);
+}
+
+.govuk-heading-m {
+  color: var(--hounslow-primary);
+}
+
+.govuk-label {
+  color: var(--hounslow-primary);
+}
+
+.govuk-select {
+  color: var(--hounslow-primary);
+  background-color: var(--color-background-lightest);
+}
+
+.govuk-heading-xl {
+  color: var(--hounslow-primary);
+  background-color: var(--color-background-lightest);
+}
+
 $font-size: 1;
 $font-family: "lexend";
 $word-spacing: normal;
@@ -78,7 +116,6 @@ $letter-spacing: normal;
 body {
   font-family: var(--font-family);
   color: var(--hounslow-primary);
-  background-color: var(--color-background-lightest);
   word-spacing: var(--word-spacing);
   letter-spacing: var(--letter-spacing);
 }
@@ -89,4 +126,5 @@ html {
 
 p, span, div, h1, h2, h3, h4, h5, h6, button, input, textarea {
   font-size: calc(1em); // Scale relative to parent elements
+  color: var(--hounslow-primary);
 }

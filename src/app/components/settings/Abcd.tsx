@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { updateUserSettingColorThemes } from "@/utils/settingsUtils";
 
 const WORD_SPACING_SCALE = 0.05;
 const LETTER_SPACING_SCALE = 0.05;
@@ -14,7 +15,13 @@ type AbcdProps = {
 const Abc = ( {fontSize, font, fontColour, bgColour, spacing} : AbcdProps) => {
 
   useEffect(() => {
+
+    const selectedThemeLabel = getSelectedThemeLabel(fontColour, bgColour);
+    
     const root = document.documentElement;
+
+    updateUserSettingColorThemes(selectedThemeLabel);
+
     root?.style.setProperty(
       "--font-size",
       `${fontSize}`
@@ -23,14 +30,14 @@ const Abc = ( {fontSize, font, fontColour, bgColour, spacing} : AbcdProps) => {
       "--font-family",
       font
     );
-    root?.style.setProperty(
-      "--hounslow-primary",
-      fontColour
-    );
-    root?.style.setProperty(
-      "--color-background-lightest",
-      bgColour
-    );
+    // root?.style.setProperty(
+    //   "--hounslow-primary",
+    //   fontColour
+    // );
+    // root?.style.setProperty(
+    //   "--color-background-lightest",
+    //   bgColour
+    // );
     root?.style.setProperty(
       "--word-spacing",
       `${spacing*WORD_SPACING_SCALE + 0.25}em` // base word-spacing is "normal", which by default is 0.25 rem
@@ -41,6 +48,26 @@ const Abc = ( {fontSize, font, fontColour, bgColour, spacing} : AbcdProps) => {
     );
     
   }, [fontSize, font, fontColour, bgColour, spacing]);
+
+  const getSelectedThemeLabel = (fontColour: string, bgColour: string): string => {
+    if (fontColour === "#000000" && bgColour === "#FFFFFF") {
+      return "standard";
+    }
+    if (fontColour === "#FF0" && bgColour === "#000") {
+      return "high-contrast";
+    }
+    if (fontColour === "#000000" && bgColour === "#fff9d2") {
+      return "cream";
+    }
+    if (fontColour === "#000000" && bgColour === "#9fcfff") {
+      return "blue";
+    }
+    return "standard";
+  };
+
+  const selectedThemeLabel = getSelectedThemeLabel(fontColour, bgColour);
+
+  console.log("label",selectedThemeLabel);
 
   return (
     <div>
