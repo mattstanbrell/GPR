@@ -8,18 +8,14 @@ import { useContext, useEffect } from "react";
 
 
 export default function Home() {
-	const { currentUser: user, isLoading, isSignedIn } = useContext(AppContext);
+	const { isSignedIn } = useContext(AppContext);
 	const router = useRouter();
 
 	useEffect(() => {
-		if (user) {
+		if (isSignedIn) {
 			router.push(HOME);
 		}
-	}, [isLoading, user, isSignedIn, router]);
-
-	if (isLoading) {
-		return <h3 className="text-center">Loading...</h3>;
-	}
+	}, [isSignedIn, router]);
 
 	return (
 		<main className="govuk-main-wrapper">

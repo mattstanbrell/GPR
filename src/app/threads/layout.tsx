@@ -8,7 +8,7 @@ import { ThreadType } from "../types/threads";
 export const ThreadsContext = createContext<
     { 
         threads: ThreadType[],
-        setThreads?: React.Dispatch<React.SetStateAction<ThreadType[]>>,
+        setThreads: React.Dispatch<React.SetStateAction<ThreadType[]>>,
         loading: boolean,
     }>({
         threads: [],
