@@ -13,7 +13,7 @@ import type { ChatCompletionMessageParam } from "openai/resources/chat/completio
 const { resourceConfig, libraryOptions } = await getAmplifyDataClientConfig(env);
 Amplify.configure(resourceConfig, libraryOptions);
 
-// Now we can use generateClient
+// Now we can use generateClien
 const client = generateClient<Schema>();
 
 const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
@@ -162,6 +162,9 @@ const tools = [
 	},
 ];
 
+// Define the Nullable type that was missing
+type Nullable<T> = T | null;
+
 async function lookupCaseNumber(firstName: string | undefined, lastName: string | undefined, userID: string) {
 	// Convert undefined or empty strings to null for consistent handling
 	const firstNameQuery = firstName && firstName.trim() !== "" ? firstName : null;
@@ -190,11 +193,10 @@ async function lookupCaseNumber(firstName: string | undefined, lastName: string 
 
 	// Filter out any errors and extract the data
 	const children = childResults
-		.filter(
-			(result): result is { data: NonNullable<Schema["Child"]["type"]> } =>
-				!result.errors && result.data !== null && result.data !== undefined,
-		)
-		.map((result) => result.data);
+		.filter((result) => !result.errors && result.data !== null && result.data !== undefined)
+		.map((result) => result.data)
+		// Simple filter without type predicate
+		.filter(Boolean);
 
 	if (children.length === 0) {
 		throw new Error("No children found for this user");
@@ -215,11 +217,11 @@ async function lookupCaseNumber(firstName: string | undefined, lastName: string 
 	}
 
 	// Map children to the focused return type with calculated age
-	const mapChildToResponse = (child: NonNullable<Schema["Child"]["type"]>): ChildResponse => ({
+	const mapChildToResponse = (child: Schema["Child"]["type"]): ChildResponse => ({
 		caseNumber: child.caseNumber,
 		firstName: child.firstName,
 		lastName: child.lastName,
-		gender: child.gender,
+		gender: child.gender || "",
 		age: calculateAge(child.dateOfBirth),
 	});
 
@@ -227,7 +229,7 @@ async function lookupCaseNumber(firstName: string | undefined, lastName: string 
 	if (!firstNameQuery && !lastNameQuery) {
 		return {
 			message: "Found no exact match, here are all the children associated with the social worker",
-			children: children.filter((child): child is NonNullable<typeof child> => child !== null).map(mapChildToResponse),
+			children: children.map((child) => mapChildToResponse(child as Schema["Child"]["type"])),
 		};
 	}
 
@@ -243,7 +245,7 @@ async function lookupCaseNumber(firstName: string | undefined, lastName: string 
 		if (exactMatch) {
 			return {
 				message: "Found exact match",
-				children: [mapChildToResponse(exactMatch)],
+				children: [mapChildToResponse(exactMatch as Schema["Child"]["type"])],
 			};
 		}
 	}
@@ -259,14 +261,14 @@ async function lookupCaseNumber(firstName: string | undefined, lastName: string 
 	if (matches.length > 0) {
 		return {
 			message: "Found possible matches",
-			children: matches.map(mapChildToResponse),
+			children: matches.map((child) => mapChildToResponse(child as Schema["Child"]["type"])),
 		};
 	}
 
 	// If no matches found, return all children
 	return {
 		message: "Found no exact match, here are all the children associated with the social worker",
-		children: children.filter((child): child is NonNullable<typeof child> => child !== null).map(mapChildToResponse),
+		children: children.map((child) => mapChildToResponse(child as Schema["Child"]["type"])),
 	};
 }
 
