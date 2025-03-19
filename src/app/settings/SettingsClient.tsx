@@ -46,7 +46,9 @@ export default function SettingsClient() {
   const [tempBgColour, setTempBgColour] = useState(DEFAULT_BG_COLOUR);
 
   const { currentUser, isLoading } = useContext(AppContext);
-  const userModel = currentUser; 
+  const userModel = currentUser;
+
+  console.log("i am", userModel)
 
   useEffect(() => {
     const fetchUserSettings = async () => {
@@ -91,6 +93,8 @@ export default function SettingsClient() {
     setSpacing(spacing);
     setFontColour(fontColour);
     setBgColour(bgColour);
+
+    console.log("updating",fontSize, font, spacing, fontColour, bgColour);
     if (userModel?.id) {
       updateUserSettings(userModel.id, { fontSize, font, spacing, fontColour, bgColour });
     } else {
@@ -99,8 +103,6 @@ export default function SettingsClient() {
   }
 
   const handleSettingsChange = (e: React.FormEvent) => {
-    e.preventDefault();
-
     const buttonClicked = (e.nativeEvent as SubmitEvent).submitter as HTMLButtonElement;
     const action = buttonClicked.value;
 
@@ -110,6 +112,7 @@ export default function SettingsClient() {
       saveSettings();
     } else if (action === "preview") {
       previewSettings();
+      e.preventDefault();
     } else {
       console.log("Unknown action");
     };

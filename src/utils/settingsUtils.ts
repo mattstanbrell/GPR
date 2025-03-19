@@ -38,10 +38,10 @@ const userSettings: Record<string, ColourTheme[]> = {
     { colourVar: 'color-background-lightest-filter', colourVal: 'brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(7500%) hue-rotate(189deg) brightness(102%) contrast(102%)' },
   ],
   'high-contrast': [
-    { colourVar: 'hounslow-primary', colourVal: '#FF0' },
+    { colourVar: 'hounslow-primary', colourVal: '#00FF00' },
     { colourVar: 'hounslow-primary-filter', colourVal: '#FF0000' },
     { colourVar: 'hounslow-menu-icon-filter', colourVal: '#FF0000' },
-    { colourVar: 'color-secondary', colourVal: '#FF0' },
+    { colourVar: 'color-secondary', colourVal: '#00FF00' },
     { colourVar: 'color-accent', colourVal: '#FF0' },
     { colourVar: 'color-button-primary', colourVal: '#00FF00' },
     { colourVar: 'color-button-primary-filter', colourVal: 'filter: invert(50%) sepia(89%) saturate(2298%) hue-rotate(85deg) brightness(129%) contrast(116%);' },
