@@ -142,5 +142,5 @@ export const updateUserSettingColorThemes = (themeName: string): void => {
     root.style.setProperty(`--${colourVar}`, colourVal);
   });
 
-  console.log(`Applied theme: ${themeName}`);
+  // console.log(`Applied theme: ${themeName}`);
 };
