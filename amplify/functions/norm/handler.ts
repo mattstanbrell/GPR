@@ -783,26 +783,53 @@ async function getUserDetails(userID: string) {
 
 async function searchBusinesses(name: string) {
 	try {
-		// Query the Business model to find matches
-		const { data: businesses, errors } = await client.models.Business.list({
-			// @ts-ignore - The type definitions don't match the actual API
-			filter: { name: { contains: name } },
-			limit: 5,
+		// If search term is provided, try to find matches first
+		if (name && name.trim() !== "") {
+			// Query the Business model to find matches
+			const { data: businesses, errors } = await client.models.Business.list({
+				// @ts-ignore - The type definitions don't match the actual API
+				filter: { name: { contains: name } },
+				limit: 5,
+			});
+
+			if (errors) {
+				throw new Error(`Error searching businesses: ${errors.map((e) => e.message).join(", ")}`);
+			}
+
+			// If matches found, return them
+			if (businesses && businesses.length > 0) {
+				return businesses.map((business) => ({
+					id: business.id,
+					name: business.name,
+					address: business.address,
+				}));
+			}
+		}
+
+		// If no matches found or empty search term, return all businesses
+		const { data: allBusinesses, errors: allErrors } = await client.models.Business.list({
+			limit: 100, // Reasonable limit to avoid excessive data transfer
 		});
 
-		if (errors) {
-			throw new Error(`Error searching businesses: ${errors.map((e) => e.message).join(", ")}`);
+		if (allErrors) {
+			throw new Error(`Error listing all businesses: ${allErrors.map((e) => e.message).join(", ")}`);
 		}
 
-		if (!businesses || businesses.length === 0) {
-			return { message: `No businesses found matching "${name}"` };
+		if (!allBusinesses || allBusinesses.length === 0) {
+			return { message: "No businesses found in the database" };
 		}
 
-		return businesses.map((business) => ({
-			id: business.id,
-			name: business.name,
-			address: business.address,
-		}));
+		return {
+			message:
+				name && name.trim() !== ""
+					? `No exact matches found for "${name}". Here are all available businesses:`
+					: "All available businesses:",
+			businesses: allBusinesses.map((business) => ({
+				id: business.id,
+				name: business.name,
+				address: business.address,
+			})),
+		};
 	} catch (error) {
 		console.error("Error searching businesses:", error);
 		return { error: `Failed to search businesses: ${error instanceof Error ? error.message : String(error)}` };
