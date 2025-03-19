@@ -14,7 +14,7 @@ import { isFormValid, processMessages } from "./_helpers";
 import type { UIMessage, FormChanges } from "./types";
 import { FormErrorSummary } from "./FormErrorSummary";
 import {
-	createForm,
+	createFormWithThread,
 	updateForm,
 	getFormById,
 	getTeamByID,
@@ -170,7 +170,7 @@ export function FormContent() {
 		}
 
 		try {
-			const newForm = await createForm({
+			const newForm = await createFormWithThread({
 				...form,
 				status: "DRAFT",
 				creatorID: userModel.id,
