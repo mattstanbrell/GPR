@@ -5,6 +5,7 @@ import SocialWorkerButtons from "../components/dashboard/SocialWorkerButtons";
 import ManagerButtons from "../components/dashboard/ManagerButtons";
 import AdminButtons from "../components/dashboard/AdminButtons";
 import { AppContext } from "@/app/layout";
+import { signOut } from "aws-amplify/auth";
 
 
 const renderButtons = (permissionGroup: "ADMIN" | "MANAGER" | "SOCIAL_WORKER" | null | undefined) => {
@@ -22,13 +23,21 @@ const renderButtons = (permissionGroup: "ADMIN" | "MANAGER" | "SOCIAL_WORKER" | 
 
 const Home = () => {
 	const { currentUser, isLoading, isSignedIn } = useContext(AppContext);
+
 	useEffect(() => {
-	}, [currentUser, isSignedIn, isLoading]);
+		const verifySignIn = async () => {
+			if (!(isSignedIn) || !(currentUser)) {
+				// signed in with an undefined account, force re-login
+				await signOut();
+			}
+		}
+		verifySignIn(); 
+	}, [isSignedIn, currentUser]);
 	
 	return (
 		<>
 			
-			{ isLoading || !isSignedIn || !currentUser ? (
+			{ isLoading ? (
 				<h3 className="text-center">Loading...</h3>
 			) : (
 				<>
