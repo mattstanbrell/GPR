@@ -848,6 +848,7 @@ export async function updateUserSettings(userId: string, settingsUpdates: UserSe
 export async function createThread(formID: string) {
 	const { data, errors } = await client.models.Thread.create({
 		formID,
+		lastMessageTime: new Date().toISOString(),
 	});
 	if (errors) {
 		throw new Error(errors[0].message);
