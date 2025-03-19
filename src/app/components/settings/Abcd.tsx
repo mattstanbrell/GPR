@@ -14,6 +14,22 @@ type AbcdProps = {
 
 const Abc = ( {fontSize, font, fontColour, bgColour, spacing} : AbcdProps) => {
 
+  const getSelectedThemeLabel = (fontColour: string, bgColour: string): string => {
+    if (fontColour === "#000000" && bgColour === "#FFFFFF") {
+      return "standard";
+    }
+    if (fontColour === "#FF0" && bgColour === "#000") {
+      return "high-contrast";
+    }
+    if (fontColour === "#000000" && bgColour === "#fff9d2") {
+      return "cream";
+    }
+    if (fontColour === "#000000" && bgColour === "#9fcfff") {
+      return "blue";
+    }
+    return "standard";
+  };
+
   useEffect(() => {
 
     const selectedThemeLabel = getSelectedThemeLabel(fontColour, bgColour);
@@ -40,26 +56,6 @@ const Abc = ( {fontSize, font, fontColour, bgColour, spacing} : AbcdProps) => {
     );
     
   }, [fontSize, font, fontColour, bgColour, spacing]);
-
-  const getSelectedThemeLabel = (fontColour: string, bgColour: string): string => {
-    if (fontColour === "#000000" && bgColour === "#FFFFFF") {
-      return "standard";
-    }
-    if (fontColour === "#FF0" && bgColour === "#000") {
-      return "high-contrast";
-    }
-    if (fontColour === "#000000" && bgColour === "#fff9d2") {
-      return "cream";
-    }
-    if (fontColour === "#000000" && bgColour === "#9fcfff") {
-      return "blue";
-    }
-    return "standard";
-  };
-
-  const selectedThemeLabel = getSelectedThemeLabel(fontColour, bgColour);
-
-  console.log("label",selectedThemeLabel);
 
   return (
     <div>

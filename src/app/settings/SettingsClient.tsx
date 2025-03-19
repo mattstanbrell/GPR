@@ -31,7 +31,6 @@ type UserSettings = {
 };
 
 export default function SettingsClient() {
-  const [loaded, setLoaded] = useState(false);
   const [userSettings, setUserSettings] = useState<UserSettings | null>();
 
   const [fontSize, setFontSize] = useState(DEFAULT_FONT_SIZE);
@@ -59,8 +58,6 @@ export default function SettingsClient() {
         }
       } catch (error) {
         console.error("Failed to fetch user settings:", error);
-      } finally {
-        setLoaded(true);
       }
     };
     fetchUserSettings();
@@ -84,12 +81,10 @@ export default function SettingsClient() {
         }
       } catch (error) {
         console.error("Failed to set user settings:", error);
-      } finally {
-        setLoaded(true);
       }
     };
     setUserSettings();
-  }, [userSettings]);
+  }, [userSettings, isLoading]);
 
   const updateSettings = (fontSize: number, font: string, spacing: number, fontColour: string, bgColour: string) => {
     setFontSize(fontSize);
@@ -140,7 +135,7 @@ export default function SettingsClient() {
   return (
     <>
       <Abc fontSize={fontSize} font={font} fontColour={fontColour} bgColour={bgColour} spacing={spacing}/>
-      {loaded ? (
+      {!isLoading ? (
         <div>
           <h1 className="govuk-heading-xl" >Settings</h1>
           <div>
