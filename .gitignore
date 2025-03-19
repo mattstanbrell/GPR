@@ -49,6 +49,7 @@ NOTES.md
 TODO.md
 biome.json
 PROMPT.md
+CLAUDE.md
 
 # Ignore the entire test directory
 # /src/app/test/

@@ -12,7 +12,7 @@ import { fetchUserAttributes, getCurrentUser } from "aws-amplify/auth";
 import useIsMobileWindowSize, { useResponsiveMenu } from "@/utils/responsivenessHelpers";
 import { User } from "./types/models";
 import { getUserByEmail } from "@/utils/apis";
-
+import { usePathname } from "next/navigation";
 
 // Alternative font which was used in the figma design
 const lexend = Lexend({
@@ -23,36 +23,38 @@ const lexend = Lexend({
 	variable: "--font-lexend",
 });
 
-export const AppContext = createContext<
-	{ 
-		currentUser?: User | null,
-		isSignedIn: boolean,
-		setUser: (user: User) => void,
-		isMobile: boolean,
-		isLoading: boolean
-	}>({
-		currentUser: null,
-		isSignedIn: false,
-		setUser: () => {},
-		isMobile: false,
-		isLoading: true
-	});
+export const AppContext = createContext<{
+	currentUser?: User | null;
+	isSignedIn: boolean;
+	setUser: (user: User) => void;
+	isMobile: boolean;
+	isLoading: boolean;
+}>({
+	currentUser: null,
+	isSignedIn: false,
+	setUser: () => {},
+	isMobile: false,
+	isLoading: true,
+});
 
-
-export default function RootLayout({
-	children,
-}: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
 	const { isMenuOpen, toggleMobileMenu } = useResponsiveMenu(false);
 	const [currentUser, setUser] = useState<User | null>(null);
 	const isMobile = useIsMobileWindowSize();
 	const [isSignedIn, setIsSignedIn] = useState(false);
 	const [isLoading, setIsLoading] = useState(true);
+	const pathname = usePathname();
+
+	// Check if current page is form page
+	const isFormPage = pathname?.startsWith("/form");
+	// Hide footer on form pages in mobile view
+	const hideFooter = isMobile && isFormPage;
 
 	useEffect(() => {
 		const fetchUserModel = async () => {
-			try{
+			try {
 				const userAttributes = await fetchUserAttributes();
-				const data = await getUserByEmail(userAttributes ? userAttributes.email : ""); 
+				const data = await getUserByEmail(userAttributes ? userAttributes.email : "");
 				if (!data) {
 					setUser(data);
 					setIsSignedIn(false);
@@ -67,7 +69,7 @@ export default function RootLayout({
 			} finally {
 				setIsLoading(false);
 			}
-		}
+		};
 
 		getCurrentUser()
 			.then(() => {
@@ -77,17 +79,12 @@ export default function RootLayout({
 				setUser(null);
 				setIsSignedIn(false);
 				setIsLoading(false);
-			}
-		);
-
+			});
 	}, []);
 
 	return (
 		<AppContext.Provider value={{ currentUser, isSignedIn, setUser, isMobile, isLoading }}>
-			<html
-				lang="en"
-				className={`${lexend.className} antialiased govuk-template`}
-			>
+			<html lang="en" className={`${lexend.className} antialiased govuk-template`}>
 				<head>
 					<meta name="theme-color" content={audilyPrimary} />
 				</head>
@@ -114,15 +111,15 @@ export default function RootLayout({
 						<div className="govuk-width-container">
 							<main className="govuk-main-wrapper">{children}</main>
 						</div>
-						<footer className="govuk-footer">
-							<div className="govuk-width-container">
-								<div className="govuk-footer__meta">
-									<div className="govuk-footer__meta-item">
-										© CRITICAL Channel 2025
+						{!hideFooter && (
+							<footer className="govuk-footer">
+								<div className="govuk-width-container">
+									<div className="govuk-footer__meta">
+										<div className="govuk-footer__meta-item">© CRITICAL Channel 2025</div>
 									</div>
 								</div>
-							</div>
-						</footer>
+							</footer>
+						)}
 					</body>
 				)}
 			</html>
