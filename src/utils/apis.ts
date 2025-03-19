@@ -159,6 +159,16 @@ export async function getManagers() {
 	return data;
 }
 
+export async function getSocialWorkers() {
+	const { data, errors } = await client.models.User.list({
+		filter: { permissionGroup: { eq: 'SOCIAL_WORKER'}}
+	});
+	if (errors) {
+		throw new Error(errors[0].message);
+	}
+	return data;
+}
+
 
 // ----------Business APIs-----------
 export async function createBusiness(

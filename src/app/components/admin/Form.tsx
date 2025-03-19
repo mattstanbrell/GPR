@@ -5,7 +5,7 @@ import React, { useEffect, useState } from "react"
 import { redirect } from "next/navigation"
 import type { Child, Team, User } from "@/app/types/models"
 import { SecondaryButton, SubmitButton, WarningButton } from "@/app/components/admin/Buttons"
-import { listTeams, getManagers } from "@/utils/apis"
+import { listTeams, getManagers, getSocialWorkers } from "@/utils/apis"
 import { ADMIN } from "@/app/constants/urls"
 import { InputTextTableRow, InputDateTableRow, 
         InputSelectTableRow, InputHiddenTableRow } from "@/app/components/admin/FormElements"
@@ -32,9 +32,6 @@ export const UserForm = ({data} : {data: User | null}) => {
         fetchTeams();
     }, [data])
 
-    console.log(currentTeamId)
-
-
     const formElements = (
         <>
             <tbody className="govuk-table__body">
@@ -53,16 +50,35 @@ export const UserForm = ({data} : {data: User | null}) => {
 }
 
 export const ChildForm = ({data} : {data: Child | null}) => {
+    const [socialWorkerNameIds, setSocialWorkerNameIds] = useState<SelectNameID[]>([]);
     const childId = data && data.id ? data.id : "";
+
+    useEffect(() => {
+        const fetchSocialWorkers = async () => {
+            const socialWorkers = await getSocialWorkers(); 
+            const nameIds : SelectNameID[] = []
+            for (const user of socialWorkers) {
+                const fullName = `${user.firstName} ${user.lastName}`; 
+                nameIds.push({
+                    name: fullName,
+                    id: user.id, 
+                })
+            }
+            setSocialWorkerNameIds(nameIds); 
+        }
+        fetchSocialWorkers(); 
+    }, []);
+
     const formElements = (
         <tbody>
             <InputHiddenTableRow name="childId" value={childId} />
             <InputTextTableRow fieldName="Case Number" inputName="casenumber" defaultValue={ data?.caseNumber ? data.caseNumber : "" } isRequired={ true } />
+            <InputSelectTableRow fieldName="Social Worker" inputName="socialworker" defaultValue="" options={socialWorkerNameIds} isRequired={ true } />
             <InputTextTableRow fieldName="First Name" inputName="firstname" defaultValue={ data?.firstName ? data.firstName : "" } isRequired={ true } />
             <InputTextTableRow fieldName="Last Name" inputName="lastname" defaultValue={ data?.lastName ? data.lastName : "" } isRequired={ true } />
             <InputDateTableRow fieldName="Date of Birth" defaultValue={ data?.dateOfBirth ? data?.dateOfBirth : null } />
-            <InputSelectTableRow fieldName="Sex" inputName="sex" defaultValue={ data?.sex ? data?.sex : "" } options={gendersNameID} isRequired={ true } />
-            <InputSelectTableRow fieldName="Gender" inputName="gender" defaultValue={ data?.gender ? data?.gender : "" } options={gendersNameID} isRequired={ true } />
+            <InputSelectTableRow fieldName="Sex" inputName="sex" defaultValue={ data?.sex ? data?.sex : "" } options={gendersNameID} />
+            <InputSelectTableRow fieldName="Gender" inputName="gender" defaultValue={ data?.gender ? data?.gender : "" } options={gendersNameID} />
         </tbody>
     )
 
