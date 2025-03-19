@@ -9,7 +9,8 @@ import Preview from '../components/settings/Preview';
 
 import { useState, useEffect } from 'react';
 import { updateUserSettings, getUserSettingsByUserId } from '@/utils/apis';
-import { useUserModel } from '@/utils/authenticationUtils';
+import { useContext } from "react"
+import { AppContext } from "@/app/layout"
 
 import Abc from '../components/settings/Abcd';
 
@@ -45,7 +46,9 @@ export default function SettingsClient() {
   const [tempFontColour, setTempFontColour] = useState(DEFAULT_FONT_COLOUR);
   const [tempBgColour, setTempBgColour] = useState(DEFAULT_BG_COLOUR);
 
-  const userModel = useUserModel();
+  const { currentUser, isLoading } = useContext(AppContext);
+  console.log("you are ",currentUser);
+  const userModel = currentUser; 
 
   useEffect(() => {
     const fetchUserSettings = async () => {

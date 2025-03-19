@@ -46,7 +46,7 @@ const userSettings: Record<string, ColourTheme[]> = {
     { colourVar: 'color-secondary', colourVal: '#FF0' },
     { colourVar: 'color-accent', colourVal: '#FF0' },
     { colourVar: 'color-button-primary', colourVal: '#00FF00' },
-    { colourVar: 'color-button-primary-filter', colourVal: 'brightness(0) saturate(100%) invert(32%) sepia(96%) saturate(500%) hue-rotate(80deg) brightness(90%) contrast(120%);' },
+    { colourVar: 'color-button-primary-filter', colourVal: 'filter: invert(50%) sepia(89%) saturate(2298%) hue-rotate(85deg) brightness(129%) contrast(116%);' },
     { colourVar: 'color-button-secondary', colourVal: '#00FF00' },
     { colourVar: 'color-reject', colourVal: '#00FF00' },
     { colourVar: 'color-accept', colourVal: '#00FF00' },
@@ -67,7 +67,7 @@ const userSettings: Record<string, ColourTheme[]> = {
     { colourVar: 'color-background-dark', colourVal: '#000' },
     { colourVar: 'color-background-medium', colourVal: '#000' },
     { colourVar: 'color-background-light', colourVal: '#000' },
-    { colourVar: 'color-background-lightest', colourVal: '#00FF00' }, //set back to black
+    { colourVar: 'color-background-lightest', colourVal: '#000' }, //set back to black
     { colourVar: 'color-background-lightest-filter', colourVal: '#000' },
   ],
   'cream': [
