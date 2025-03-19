@@ -72,3 +72,22 @@ $spacing: 0;
   --font-family: #{$font-family};
   --spacing: #{$spacing};
 }
+
+body {
+  font-family: var(--font-family);
+  color: var(--hounslow-primary);
+  background-color: var(--color-background-lightest);
+  letter-spacing: var(--spacing);
+  word-spacing: var(--spacing);
+}
+
+// p, span, div, h1, h2, h3, h4, h5, h6, button, input, textarea {
+//   font-size: calc(1em * var(--font-size)); // Scale relative to parent elements
+// }
+html {
+  font-size: calc(16px * var(--font-size)); // Base font size scaled by --font-size
+}
+
+p, span, div, h1, h2, h3, h4, h5, h6, button, input, textarea {
+  font-size: calc(1em); // Scale relative to parent elements
+}

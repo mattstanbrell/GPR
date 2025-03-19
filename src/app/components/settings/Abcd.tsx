@@ -15,7 +15,7 @@ const Abc = ( {fontSize, font, fontColour, bgColour, spacing} : AbcdProps) => {
     // Update the --hounslow-primary variable based on the theme
     root?.style.setProperty(
       "--font-size",
-      `${fontSize*16}px`
+      `${fontSize}`
     );
     root?.style.setProperty(
       "--font-family",
@@ -40,7 +40,7 @@ const Abc = ( {fontSize, font, fontColour, bgColour, spacing} : AbcdProps) => {
     <div>
 
       <div style={{ 
-        fontSize: "var(--font-size)", 
+
         fontFamily: "var(--font-family)", 
         color: "var(--hounslow-primary)", 
         backgroundColor: "var(--color-background-lightest)",
