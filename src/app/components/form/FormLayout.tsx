@@ -1,10 +1,10 @@
-
 import { FORM_STATUS, PERMISSIONS } from "@/app/constants/models";
 import type { Schema } from "../../../../amplify/data/resource";
 import { RecurringPaymentSection } from "./RecurringPaymentSection";
 import FeedbackContainer from "./feedback/FeedbackContainer";
-import { useState } from "react";
-import { useContext } from "react";
+import Image from "next/image";
+import { useState, useRef, useEffect, useContext } from "react";
+
 import { AppContext } from "@/app/layout";
 import { SocialWorkerFormButtonContainer } from "./ButtonsContainer";
 
@@ -17,6 +17,8 @@ interface FormLayoutProps {
 	disabled: boolean;
 	updatedFields: Set<string>;
 	isSocialWorker: boolean;
+	isMobile?: boolean;
+	onToggle?: () => void;
 }
 
 export function FormLayout({
@@ -27,10 +29,28 @@ export function FormLayout({
 	isFormValid,
 	disabled,
 	updatedFields,
+	isMobile,
+	onToggle,
 }: FormLayoutProps) {
+	const [menuOpen, setMenuOpen] = useState(false);
+	const menuRef = useRef<HTMLDivElement>(null);
 
-	const { currentUser } = useContext(AppContext)
-	const isSocialWorker = currentUser?.permissionGroup === PERMISSIONS.SOCIAL_WORKER_GROUP
+	// Close the menu when clicking outside
+	useEffect(() => {
+		const handleClickOutside = (event: MouseEvent) => {
+			if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+				setMenuOpen(false);
+			}
+		};
+
+		document.addEventListener("mousedown", handleClickOutside);
+		return () => {
+			document.removeEventListener("mousedown", handleClickOutside);
+		};
+	}, []);
+
+	const { currentUser } = useContext(AppContext);
+	const isSocialWorker = currentUser?.permissionGroup === PERMISSIONS.SOCIAL_WORKER_GROUP;
 
 	// State to keep track of any errors during submission
 	const [submitError, setSubmitError] = useState<string | null>(null);
@@ -49,78 +69,84 @@ export function FormLayout({
 			}
 		}
 	};
+
 	return (
 		<>
 			<style jsx>{`
-				.button-container {
-					position: relative;
-					display: flex;
-					justify-content: center;
-					padding: 15px 0;
-				}
-				
-				.button-container::before {
-					content: "";
-					position: absolute;
-					top: -30px;
-					left: 0;
-					right: 0;
-					height: 30px;
-					background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.9));
-					pointer-events: none;
-				}
-				
-				.button-container::after {
-					content: "";
-					position: absolute;
-					bottom: 0;
-					left: 0;
-					right: 0;
-					height: 100%;
-					background: rgba(255, 255, 255, 0.8);
-					backdrop-filter: blur(5px);
-					z-index: -1;
-					border-top: 1px solid rgba(177, 180, 182, 0.3);
-				}
+        .button-container {
+          position: relative;
+          display: flex;
+          justify-content: center;
+          padding: 15px 0;
+        }
 
-				.form-title {
-					cursor: text;
-					outline: none;
-					width: fit-content;
-					padding: 0 2px;
-					margin-right: 10px;
-				}
+        .button-container::before {
+          content: "";
+          position: absolute;
+          top: -30px;
+          left: 0;
+          right: 0;
+          height: 30px;
+          background: linear-gradient(
+            to bottom,
+            rgba(255, 255, 255, 0),
+            rgba(255, 255, 255, 0.9)
+          );
+          pointer-events: none;
+        }
 
-				.form-title:hover, .form-title:focus {
-					background: transparent;
-				}
+        .button-container::after {
+          content: "";
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          height: 100%;
+          background: rgba(255, 255, 255, 0.8);
+          backdrop-filter: blur(5px);
+          z-index: -1;
+          border-top: 1px solid rgba(177, 180, 182, 0.3);
+        }
 
-				@keyframes flash-update {
-					0% {
-						background-color: transparent;
-					}
-					50% {
-						background-color: var(--color-background-light);
-					}
-					100% {
-						background-color: transparent;
-					}
-				}
+        .form-title {
+          cursor: text;
+          outline: none;
+          width: fit-content;
+          padding: 0 2px;
+          margin-right: 10px;
+        }
 
-				.field-updated {
-					animation: flash-update 0.8s ease;
-				}
+        .form-title:hover,
+        .form-title:focus {
+          background: transparent;
+        }
 
-				.form-title.field-updated {
-					animation: flash-update 0.8s ease;
-				}
-			`}</style>
+        @keyframes flash-update {
+          0% {
+            background-color: transparent;
+          }
+          50% {
+            background-color: var(--color-background-light);
+          }
+          100% {
+            background-color: transparent;
+          }
+        }
+
+        .field-updated {
+          animation: flash-update 0.8s ease;
+        }
+
+        .form-title.field-updated {
+          animation: flash-update 0.8s ease;
+        }
+      `}</style>
 			<div
 				style={{
 					width: "100%",
-					borderRight: "1px solid #b1b4b6",
+					borderRight: isMobile ? "none" : "1px solid #b1b4b6",
 					paddingRight: "0",
-					paddingLeft: "15px",
+					paddingLeft: isMobile ? "0" : "15px",
 					height: "100%",
 					display: "flex",
 					flexDirection: "column",
@@ -128,37 +154,125 @@ export function FormLayout({
 					boxSizing: "border-box",
 				}}
 			>
-				<h1
-					className={`govuk-heading-l form-title ${updatedFields.has("title") ? "field-updated" : ""}`}
-					style={{ marginLeft: "3px" }}
-					contentEditable
-					suppressContentEditableWarning
-					onBlur={(e) => {
-						const newTitle = e.currentTarget.textContent?.trim();
-						if (newTitle && newTitle !== form.title) {
-							handleFormChange("title", newTitle, true);
-						} else {
-							// Reset to current title if empty or unchanged
-							e.currentTarget.textContent = form.title || "Form";
-						}
-					}}
-					onKeyDown={(e) => {
-						if (e.key === "Enter") {
-							e.preventDefault();
-							e.currentTarget.blur();
-						}
-						if (e.key === "Escape") {
-							e.preventDefault();
-							e.currentTarget.textContent = form.title || "Form";
-							e.currentTarget.blur();
-						}
+				<div
+					style={{
+						display: "flex",
+						justifyContent: "space-between",
+						alignItems: "center",
+						...(isMobile && {
+							borderBottom: "1px solid #b1b4b6",
+							paddingBottom: "15px",
+							marginBottom: "15px",
+						}),
 					}}
 				>
-					{form.title || "Form"}
-				</h1>
+					<h1
+						className={`govuk-heading-l form-title ${updatedFields.has("title") ? "field-updated" : ""}`}
+						style={{
+							margin: 0,
+							marginLeft: "3px",
+							padding: "2px",
+							display: "flex",
+							alignItems: "center",
+						}}
+						contentEditable
+						suppressContentEditableWarning
+						onBlur={(e) => {
+							const newTitle = e.currentTarget.textContent?.trim();
+							if (newTitle && newTitle !== form.title) {
+								handleFormChange("title", newTitle, true);
+							} else {
+								e.currentTarget.textContent = form.title || "Form";
+							}
+						}}
+						onKeyDown={(e) => {
+							if (e.key === "Enter") {
+								e.preventDefault();
+								e.currentTarget.blur();
+							}
+							if (e.key === "Escape") {
+								e.preventDefault();
+								e.currentTarget.textContent = form.title || "Form";
+								e.currentTarget.blur();
+							}
+						}}
+					>
+						{form.title || "Form"}
+					</h1>
+					{isMobile && onToggle && (
+						<div ref={menuRef} style={{ position: "relative" }}>
+							<Image
+								src="/more-options.svg"
+								alt="Menu"
+								width={24}
+								height={24}
+								onClick={() => setMenuOpen(!menuOpen)}
+								style={{
+									cursor: "pointer",
+									filter: "var(--color-button-primary-filter)",
+								}}
+								role="button"
+								tabIndex={0}
+								onKeyDown={(e) => {
+									if (e.key === "Enter" || e.key === " ") {
+										e.preventDefault();
+										setMenuOpen(!menuOpen);
+									}
+								}}
+							/>
+
+							{menuOpen && (
+								<div
+									style={{
+										position: "absolute",
+										right: 0,
+										top: "100%",
+										marginTop: "5px",
+										backgroundColor: "#fff",
+										border: "1px solid #b1b4b6",
+										borderRadius: "4px",
+										boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+										zIndex: 100,
+										width: "150px",
+									}}
+								>
+									<button
+										type="button"
+										onClick={() => {
+											onToggle();
+											setMenuOpen(false);
+										}}
+										style={{
+											display: "flex",
+											alignItems: "center",
+											padding: "10px 15px",
+											width: "100%",
+											textAlign: "left",
+											border: "none",
+											backgroundColor: "transparent",
+											cursor: "pointer",
+											borderRadius: "4px",
+											gap: "8px",
+										}}
+										aria-label="Switch to Norm view"
+									>
+										<Image
+											src="/polygon.svg"
+											alt=""
+											width={18}
+											height={18}
+											style={{ filter: "var(--color-button-primary-filter)" }}
+										/>
+										<span>Norm</span>
+									</button>
+								</div>
+							)}
+						</div>
+					)}
+				</div>
 
 				<FeedbackContainer form={form} />
-				{ isSocialWorker && <SocialWorkerFormButtonContainer form={ form } /> }
+				{isSocialWorker && <SocialWorkerFormButtonContainer form={form} />}
 
 				<div style={{ flexGrow: 1, overflowY: "auto", paddingRight: "0" }}>
 					<form onSubmit={handleSubmit} style={{ paddingRight: "20px", paddingLeft: "3px" }}>
@@ -413,7 +527,6 @@ export function FormLayout({
 							</div>
 						</fieldset>
 
-						{/* Conditional rendering based on payment method */}
 						{form.expenseType !== "PURCHASE_ORDER" && (
 							<fieldset className="govuk-fieldset">
 								<legend className="govuk-fieldset__legend govuk-fieldset__legend--m">
@@ -659,7 +772,6 @@ export function FormLayout({
 							</fieldset>
 						)}
 
-						{/* Business details section for purchase orders */}
 						{form.expenseType === "PURCHASE_ORDER" && (
 							<fieldset className="govuk-fieldset">
 								<legend className="govuk-fieldset__legend govuk-fieldset__legend--m">
@@ -851,7 +963,6 @@ export function FormLayout({
 							</fieldset>
 						)}
 
-						{/* Only show recurring payment options for purchase orders */}
 						{form.expenseType === "PURCHASE_ORDER" && (
 							<RecurringPaymentSection form={form} handleFormChange={handleFormChange} disabled={disabled} />
 						)}
