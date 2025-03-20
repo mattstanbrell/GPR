@@ -49,7 +49,7 @@ const AuditLogEntry = ({ log }: {log : AuditLog} ) => {
         onClick={viewLogDetails}
         style={{ cursor: "pointer" }}
       >
-        <th scope="row" className="govuk-table__header"> {user?.firstName} {user?.lastName} {log.action}</th>
+        <th scope="row" className="govuk-table__header">{log.action}</th>
         <td className="govuk-table__cell">{formatDate(log.date)}</td>
       </tr>
       ) : (
