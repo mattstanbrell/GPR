@@ -14,10 +14,10 @@ const FontSizeSelector = ({ fontSize, updateTempFontSize }: FontSizeSelectorProp
     <div style={{display: "flex", justifyContent: "space-between", alignItems: "center"}} className="form__control">
       <label className="govuk-label">Font size</label>
       <select style={{width: "min(700px, 60%)"}} className="govuk-select" value={fontSize} onChange={handleFontSizeChange}>
-        <option value={1}>1x (Standard)</option>
-        <option value={1.5}>1.5x</option>
-        <option value={2}>2x</option>
-        <option value={2.5}>2.5x</option>
+        <option value={1}>+0 (Standard)</option>
+        <option value={1.05}>+1</option>
+        <option value={1.1}>+2</option>
+        <option value={1.15}>+3</option>
       </select>
     </div>
   );

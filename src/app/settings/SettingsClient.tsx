@@ -9,7 +9,10 @@ import Preview from '../components/settings/Preview';
 
 import { useState, useEffect } from 'react';
 import { updateUserSettings, getUserSettingsByUserId } from '@/utils/apis';
-import { useUserModel } from '@/utils/authenticationUtils';
+import { useContext } from "react"
+import { AppContext } from "@/app/layout"
+
+// import { applyUserSettings } from '../components/settings/applyUserSettings';
 
 const DEFAULT_FONT_SIZE = 1;
 const DEFAULT_FONT = 'lexend';
@@ -28,7 +31,6 @@ type UserSettings = {
 };
 
 export default function SettingsClient() {
-  const [loaded, setLoaded] = useState(false);
   const [userSettings, setUserSettings] = useState<UserSettings | null>();
 
   const [fontSize, setFontSize] = useState(DEFAULT_FONT_SIZE);
@@ -43,7 +45,10 @@ export default function SettingsClient() {
   const [tempFontColour, setTempFontColour] = useState(DEFAULT_FONT_COLOUR);
   const [tempBgColour, setTempBgColour] = useState(DEFAULT_BG_COLOUR);
 
-  const userModel = useUserModel();
+  const { currentUser, isLoading } = useContext(AppContext);
+  const userModel = currentUser;
+
+  console.log("i am", userModel)
 
   useEffect(() => {
     const fetchUserSettings = async () => {
@@ -54,8 +59,6 @@ export default function SettingsClient() {
         }
       } catch (error) {
         console.error("Failed to fetch user settings:", error);
-      } finally {
-        setLoaded(true);
       }
     };
     fetchUserSettings();
@@ -79,12 +82,10 @@ export default function SettingsClient() {
         }
       } catch (error) {
         console.error("Failed to set user settings:", error);
-      } finally {
-        setLoaded(true);
       }
     };
     setUserSettings();
-  }, [userSettings]);
+  }, [userSettings, isLoading]);
 
   const updateSettings = (fontSize: number, font: string, spacing: number, fontColour: string, bgColour: string) => {
     setFontSize(fontSize);
@@ -92,6 +93,8 @@ export default function SettingsClient() {
     setSpacing(spacing);
     setFontColour(fontColour);
     setBgColour(bgColour);
+
+    console.log("updating",fontSize, font, spacing, fontColour, bgColour);
     if (userModel?.id) {
       updateUserSettings(userModel.id, { fontSize, font, spacing, fontColour, bgColour });
     } else {
@@ -100,8 +103,6 @@ export default function SettingsClient() {
   }
 
   const handleSettingsChange = (e: React.FormEvent) => {
-    e.preventDefault();
-
     const buttonClicked = (e.nativeEvent as SubmitEvent).submitter as HTMLButtonElement;
     const action = buttonClicked.value;
 
@@ -111,6 +112,7 @@ export default function SettingsClient() {
       saveSettings();
     } else if (action === "preview") {
       previewSettings();
+      e.preventDefault();
     } else {
       console.log("Unknown action");
     };
@@ -134,14 +136,13 @@ export default function SettingsClient() {
   
   return (
     <>
-      {loaded ? (
+      {!isLoading ? (
         <div>
-          <h1 className="govuk-heading-xl" style={{ backgroundColor: '#e5f2eb' }} >Settings</h1>
+          <h1 className="govuk-heading-xl" >Settings</h1>
           <div>
             <p className="summary"
               style={{
-                border: '.25rem solid #f0e8f0',
-                color: '#642f6c',
+                border: '.25rem solid',
                 fontSize: '1.125rem',
                 marginBottom: '2.25rem',
                 padding: '1.5rem',
@@ -197,7 +198,7 @@ export default function SettingsClient() {
           </div>
         </div> 
       ) : (
-        <h3>Loading Logs...</h3>
+        <h3>Loading Settings...</h3>
       )}
     </>
   )

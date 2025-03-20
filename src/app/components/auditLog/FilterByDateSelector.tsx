@@ -15,35 +15,34 @@ const FilterByDateSelector = ({ logDatesSet, selectedDate, updateDate}: FilterBy
   };
 
   return (
-    <div className="form__control flex justify-between items-center md:gap-3">
+    <div className="form__control items-center md:gap-3 mb-1 flex-1">
       <label className="govuk-label">Select Date:</label>
-      <div className="flex items-center">
-      <DatePicker
-        selected={selectedDate}
-        onChange={updateDate}
-        filterDate={isDateValid}
-        dateFormat="yyyy-MM-dd"
-        placeholderText="Select a date"
-        className="govuk-select w-32"
-        wrapperClassName="date-picker-wrapper"
-      />
-      <button
-        type="button"
-        onClick={() => updateDate(null)}
-        className="govuk-button govuk-button--secondary"
-        style={{marginBottom: 2}}
-      >
-        Clear
-      </button>
+      <div className="md:flex flex-wrap items-center">
+        <DatePicker
+          selected={selectedDate}
+          onChange={updateDate}
+          filterDate={isDateValid}
+          dateFormat="yyyy-MM-dd"
+          placeholderText="Select a date"
+          className="govuk-select w-32"
+          wrapperClassName="date-picker-wrapper"
+        />
+        <button
+          type="button"
+          onClick={() => updateDate(null)}
+          className="govuk-button govuk-button--secondary"
+          style={{
+            marginBottom: '2px',
+            cursor: 'pointer',
+            width: '6em',
+            height: '2em'
+          }}
+        >
+          Clear
+        </button>
       </div>
     </div>
   );
 };
 
 export default FilterByDateSelector;
-/*
-      className="govuk-select text-sm md:text-base py-1 md:py-2 w-32 md:w-auto" // Adjust size for mobile
-
-      className="govuk-button govuk-button--secondary text-sm md:text-base py-1 md:py-2 px-2 md:px-4"
-
-*/

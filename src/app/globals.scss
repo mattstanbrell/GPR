@@ -62,3 +62,78 @@ background-color: color.adjust($color-accent, $lightness: -15%);  // Darken on h
     margin-bottom: 10px; // Adds spacing between buttons
   }
 }
+
+.govuk-template {
+  background-color: var(--color-background-lightest);
+}
+
+.govuk-template__body {
+  background-color: var(--color-background-lightest);
+}
+
+.govuk-header {
+  background-color: var(--hounslow-primary);
+}
+
+.govuk-header__container {
+  border-bottom: 10px solid var(--hounslow-primary);
+}
+
+.govuk-footer {
+  background: var(--color-background-lightest);
+}
+
+.govuk-label {
+  color: var(--hounslow-primary);
+}
+
+.govuk-select {
+  color: var(--hounslow-primary);
+  background-color: var(--color-background-lightest);
+}
+
+.govuk-heading-xl {
+  color: var(--hounslow-primary);
+  background-color: var(--color-background-lightest);
+}
+
+.govuk-heading-l {
+  color: var(--hounslow-primary);
+}
+
+.govuk-heading-m {
+  color: var(--hounslow-primary);
+}
+
+$font-size: 1;
+$font-family: "lexend";
+$word-spacing: normal;
+$letter-spacing: normal;
+
+:root {
+  --font-size: #{$font-size};
+  --font-family: #{$font-family};
+  --word-spacing: #{$word-spacing};
+  --letter-spacing: #{$letter-spacing};
+}
+
+body {
+  font-family: var(--font-family);
+  color: var(--hounslow-primary);
+  word-spacing: var(--word-spacing);
+  letter-spacing: var(--letter-spacing);
+}
+
+html {
+  font-size: calc(16px * var(--font-size)); // Base font size scaled by --font-size
+}
+
+h1{
+  font-size: calc(2.5em); // Scale relative to parent elements
+  color: var(--hounslow-primary);
+}
+
+span, div, h2, h3, h4, h5, h6, button, input, textarea {
+  font-size: calc(1.05em); // Scale relative to parent elements
+  color: var(--hounslow-primary);
+}

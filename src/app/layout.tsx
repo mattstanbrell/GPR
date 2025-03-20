@@ -13,6 +13,15 @@ import useIsMobileWindowSize, { useResponsiveMenu } from "@/utils/responsiveness
 import { User } from "./types/models";
 import { getUserByEmail } from "@/utils/apis";
 import { usePathname } from "next/navigation";
+import { applyUserSettings } from "./components/settings/applyUserSettings";
+
+type UserSettings = {
+  fontSize: number;
+  font: string;
+  fontColour: string;
+  bgColour: string;
+  spacing: number;
+};
 
 // Alternative font which was used in the figma design
 const lexend = Lexend({
@@ -29,12 +38,20 @@ export const AppContext = createContext<{
 	setUser: (user: User) => void;
 	isMobile: boolean;
 	isLoading: boolean;
+	userSettings: UserSettings;
 }>({
 	currentUser: null,
 	isSignedIn: false,
 	setUser: () => {},
 	isMobile: false,
 	isLoading: true,
+	userSettings: {
+    fontSize: 1,
+    font: "lexend",
+    fontColour: "#000000",
+    bgColour: "#FFFFFF",
+    spacing: 0,
+  },
 });
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
@@ -43,6 +60,13 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
 	const isMobile = useIsMobileWindowSize();
 	const [isSignedIn, setIsSignedIn] = useState(false);
 	const [isLoading, setIsLoading] = useState(true);
+	const [userSettings, setUserSettings] = useState<UserSettings>({
+    fontSize: 1,
+    font: "lexend",
+    fontColour: "#000000",
+    bgColour: "#FFFFFF",
+    spacing: 0,
+  }); 
 	const pathname = usePathname();
 
 	// Check if current page is form page
@@ -82,8 +106,32 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
 			});
 	}, []);
 
+	useEffect(() => {
+    const fetchUserSettings = async () => {
+      if (currentUser?.id) {
+        try {
+          const settings = currentUser.userSettings;
+          if (settings) {
+						const validatedSettings: UserSettings = {
+							fontSize: settings.fontSize ?? 1,
+							font: settings.font ?? "lexend",
+							fontColour: settings.fontColour ?? "#000000",
+							bgColour: settings.bgColour ?? "#FFFFFF",
+							spacing: settings.spacing ?? 0,
+						};
+						setUserSettings(validatedSettings);
+						applyUserSettings(validatedSettings);
+          }
+        } catch (error) {
+          console.error("Failed to fetch user settings:", error);
+        }
+      }
+    };
+    fetchUserSettings();
+  }, [currentUser]);
+
 	return (
-		<AppContext.Provider value={{ currentUser, isSignedIn, setUser, isMobile, isLoading }}>
+		<AppContext.Provider value={{ currentUser, isSignedIn, setUser, isMobile, isLoading, userSettings }}>
 			<html lang="en" className={`${lexend.className} antialiased govuk-template`}>
 				<head>
 					<meta name="theme-color" content={audilyPrimary} />
