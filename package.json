@@ -10,7 +10,7 @@
     "clear": " envCache --set stackInfo ''",
     "test": "jest",
     "test:watch": "jest --watch",
-    "coverage": "jest --coverage", 
+    "coverage": "jest --coverage" 
   },
   "dependencies": {
     "@aws-amplify/adapter-nextjs": "^1.4.2",
