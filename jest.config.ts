@@ -11,6 +11,7 @@ const createJestConfig = nextJest({
   dir: './',
 })
 
+
 const config: Config = {
   // All imported modules in your tests should be mocked automatically
   // automock: false,
@@ -99,6 +100,7 @@ const config: Config = {
   moduleNameMapper: {
     '^@/components/(.*)$': '<rootDir>/src/app/components/$1',
     '^@/utils/(.*)$': '<rootDir>/src/utils/$1',
+    '^@/pages/(.*)$': '<rootDir>/src/app/$1',
   },
 
   // An array of regexp pattern strings, matched against all module paths before considered 'visible' to the module loader
@@ -155,7 +157,7 @@ const config: Config = {
   // snapshotSerializers: [],
 
   // The test environment that will be used for testing
-  // testEnvironment: "jest-environment-node",
+  testEnvironment: "jsdom",
 
   // Options that will be passed to the testEnvironment
   // testEnvironmentOptions: {},
