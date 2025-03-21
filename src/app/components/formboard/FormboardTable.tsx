@@ -22,7 +22,7 @@ const FormTable = ({ forms }: { forms: Array<Form> }) => {
 		<>
 			{forms.map((form) => {
 				const id = form.id;
-				const title = form.title || form.reason ? form.reason : form.status;
+				const title = form.title || (form.reason ? form.reason : form.status);
 				const status = form.status;
 				const updatedDate = form.updatedAt && new Date(form.updatedAt).toLocaleDateString("en-GB");
 				const redirectURI = `/form?id=${id}`;

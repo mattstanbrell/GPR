@@ -30,7 +30,7 @@ const Thread = ({ thread, className, isMobile, sidebarToggle, loading }: ThreadP
     }
 
     return (
-        <div className={`flex flex-col bg-(--color-background-darkest) max-h-140 min-h-120 ${className}`}>
+        <div className={`flex flex-col bg-(--color-background-darkest) max-h-140 min-h-120 h-100 ${className}`}>
             <div className={`relative bg-(--color-background-light) flex justify-center flex-col min-h-28 ${loading && "animate-pulse"}`}>
                 { !loading &&
                     (!thread ?

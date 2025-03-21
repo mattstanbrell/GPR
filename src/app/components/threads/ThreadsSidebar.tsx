@@ -27,7 +27,7 @@ const ThreadsSidebar = ({ className, sidebarToggle, threads, selectedId, isMobil
                 }
             </div>
             <table className="flex flex-1 bg-(--color-background-medium) flex-col">
-                <tbody className="flex flex-col">
+                <tbody className="flex flex-col max-h-92 overflow-y-auto">
                     { 
                         loading ? 
                             <ThreadRow loading={true} />
